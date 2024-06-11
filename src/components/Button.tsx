@@ -26,7 +26,7 @@ const Button: React.FC<ButtonProps> = ({
 
   return (
     <button
-      className={`py-2 px-4 flex rounded-sm items-center gap-2 transition  hover:bg-gray-100 ${
+      className={`py-2 px-4 flex rounded-sm items-center gap-2 transition  hover:bg-gray-100 text-lg ${
         primary ? primaryClasses : ""
       } ${secondary ? secondaryClasses : ""} ${
         disabled ? disabledClasses : ""
