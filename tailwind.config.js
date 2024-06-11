@@ -4,5 +4,18 @@ export default {
   theme: {
     extend: {},
   },
-  plugins: [],
+  plugins: [
+    function ({ addUtilities }) {
+      const newUtilities = {
+        ".hide-calendar-icon::-webkit-calendar-picker-indicator": {
+          display: "none",
+        },
+        ".hide-calendar-icon": {
+          "-moz-appearance": "textfield",
+        },
+      };
+
+      addUtilities(newUtilities, ["responsive", "hover"]);
+    },
+  ],
 };

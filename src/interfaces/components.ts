@@ -17,3 +17,9 @@ export interface ContainerProps {
   children: React.ReactNode;
   background?: boolean;
 }
+
+export interface DatePickerProps {
+  onChange?: (date: string) => void;
+  value?: string;
+  disabled?: boolean;
+}
