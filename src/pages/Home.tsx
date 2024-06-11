@@ -1,9 +1,13 @@
-import React from "react";
+import React, { useRef } from "react";
 
 import HeroContainer from "../components/HeroContainer";
 import Button from "../components/Button";
 
+// import { scrollIntoView } from "../helpers/scrollIntoView";
+
 const Home: React.FC = () => {
+  // const exchangeRef = useRef<HTMLDivElement>(null);
+
   return (
     <>
       <HeroContainer>
