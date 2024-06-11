@@ -10,4 +10,5 @@ export interface ButtonProps
   secondary?: boolean;
   children: React.ReactNode;
   disabled?: boolean;
+  className?: string;
 }

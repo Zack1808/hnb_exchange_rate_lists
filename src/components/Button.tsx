@@ -7,6 +7,7 @@ const Button: React.FC<ButtonProps> = ({
   secondary,
   children,
   disabled,
+  className,
   ...rest
 }) => {
   if (Number(!!primary) + Number(!!secondary) > 1)
@@ -29,7 +30,7 @@ const Button: React.FC<ButtonProps> = ({
         primary ? primaryClasses : ""
       } ${secondary ? secondaryClasses : ""} ${
         disabled ? disabledClasses : ""
-      } `}
+      } ${className} `}
       {...rest}
       disabled={disabled}
     >
