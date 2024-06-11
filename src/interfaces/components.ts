@@ -15,4 +15,5 @@ export interface ButtonProps
 
 export interface ContainerProps {
   children: React.ReactNode;
+  background?: boolean;
 }
