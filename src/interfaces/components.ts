@@ -12,3 +12,7 @@ export interface ButtonProps
   disabled?: boolean;
   className?: string;
 }
+
+export interface ContainerProps {
+  children: React.ReactNode;
+}

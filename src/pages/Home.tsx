@@ -17,7 +17,7 @@ const Home: React.FC = () => {
         <h2 className="text-xl md:text-3xl text-gray-800">Brzo i jednosavno</h2>
 
         <Button primary className="mt-5">
-          Press me
+          Saznaj više
         </Button>
       </HeroContainer>
     </>
