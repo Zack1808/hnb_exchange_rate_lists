@@ -40,7 +40,7 @@ const Home: React.FC = () => {
             našu ažuriranu tečajnu listu!
           </p>
           <Link to="/tecaj">
-            <Button primary>Projverite tečaj</Button>
+            <Button primary>Projverite tečajeve</Button>
           </Link>
         </div>
       </Container>
