@@ -3,10 +3,7 @@ import { FaChevronLeft, FaChevronRight } from "react-icons/fa6";
 
 import Button from "./Button";
 
-import {
-  changeDateByDays,
-  getFormatedCurrentDate,
-} from "../helpers/getFormatedDates";
+import { changeDateByDays } from "../helpers/getFormatedDates";
 
 import { DatePickerProps } from "../interfaces/components";
 
@@ -16,22 +13,37 @@ const DatePicker: React.FC<DatePickerProps> = ({
   disabled,
   className,
   min,
+  max,
   ...rest
 }) => {
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    onChange && onChange(event.target.value);
+  const handleChange = (event: React.FocusEvent<HTMLInputElement>) => {
+    if (!!!onChange) return;
+
+    onChange(event.target.value);
+  };
+
+  const handleBlur = (event: React.FocusEvent<HTMLInputElement>) => {
+    if (!!!onChange || !!!min || !!!max) return;
+    if (event.target.value <= min) {
+      onChange(min);
+      return;
+    }
+    if (event.target.value >= max) {
+      onChange(max);
+      return;
+    }
   };
 
   const increaseDate = () => {
-    if (!!!value) return;
+    if (!!!value || !!!onChange) return;
     const date = changeDateByDays({ date: value, daysAmount: 1 });
-    onChange && onChange(date);
+    onChange(date);
   };
 
   const decreaseDate = () => {
-    if (!!!value) return;
+    if (!!!value || !!!onChange) return;
     const date = changeDateByDays({ date: value, daysAmount: -1 });
-    onChange && onChange(date);
+    onChange(date);
   };
 
   return (
@@ -39,14 +51,13 @@ const DatePicker: React.FC<DatePickerProps> = ({
       className={`${
         disabled ? "" : "focus-within:ring-1"
       } rounded-sm flex border w-full max-w-sm relative`}
-      tabIndex={0}
     >
       {!disabled && (
         <Button
           primary
           className="px-2"
           onClick={decreaseDate}
-          disabled={value ? value === min : false}
+          disabled={value && min ? value <= min : false}
         >
           <FaChevronLeft />
         </Button>
@@ -59,6 +70,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
         className="outline-none p-2 text-center flex-1"
         disabled={disabled}
         onChange={handleChange}
+        onBlur={handleBlur}
         min={min}
       />
 
@@ -67,7 +79,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
           primary
           onClick={increaseDate}
           className="px-2"
-          disabled={value ? value === getFormatedCurrentDate() : false}
+          disabled={value && max ? value >= max : false}
         >
           <FaChevronRight />
         </Button>

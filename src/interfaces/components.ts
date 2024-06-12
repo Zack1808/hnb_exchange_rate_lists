@@ -19,4 +19,6 @@ export interface DatePickerProps
   extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "onChange"> {
   onChange?: (date: string) => void;
   value?: string;
+  min?: string;
+  max?: string;
 }
