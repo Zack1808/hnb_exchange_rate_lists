@@ -54,7 +54,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
     >
       {!disabled && onChange && (
         <Button
-          className="px-2 text-red-500"
+          className="px-2 text-red-600"
           onClick={decreaseDate}
           disabled={value && min ? value <= min : false}
           type="button"
@@ -78,7 +78,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
       {!disabled && onChange && (
         <Button
           onClick={increaseDate}
-          className="px-2 text-red-500"
+          className="px-2 text-red-600"
           disabled={value && max ? value >= max : false}
           type="button"
         >
