@@ -3,7 +3,10 @@ import { FaChevronLeft, FaChevronRight } from "react-icons/fa6";
 
 import Button from "./Button";
 
-import { changeDateByDays } from "../helpers/getFormatedDates";
+import {
+  changeDateByDays,
+  getFormatedCurrentDate,
+} from "../helpers/getFormatedDates";
 
 import { DatePickerProps } from "../interfaces/components";
 
@@ -12,6 +15,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
   onChange,
   disabled,
   className,
+  min,
   ...rest
 }) => {
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -38,7 +42,12 @@ const DatePicker: React.FC<DatePickerProps> = ({
       tabIndex={0}
     >
       {!disabled && (
-        <Button primary className="px-2" onClick={increaseDate}>
+        <Button
+          primary
+          className="px-2"
+          onClick={decreaseDate}
+          disabled={value ? value === min : false}
+        >
           <FaChevronLeft />
         </Button>
       )}
@@ -50,10 +59,16 @@ const DatePicker: React.FC<DatePickerProps> = ({
         className="outline-none p-2 text-center flex-1"
         disabled={disabled}
         onChange={handleChange}
+        min={min}
       />
 
       {!disabled && (
-        <Button primary className="px-2" onClick={decreaseDate}>
+        <Button
+          primary
+          onClick={increaseDate}
+          className="px-2"
+          disabled={value ? value === getFormatedCurrentDate() : false}
+        >
           <FaChevronRight />
         </Button>
       )}

@@ -16,13 +16,15 @@ const Button: React.FC<ButtonProps> = ({
     );
 
   const primaryClasses =
-    "text-white !bg-red-600 hover:!bg-red-500 border !border-red-600 hover:!border-red-500";
+    "text-white bg-red-600 hover:bg-red-500 border border-red-600 hover:border-red-500";
 
   const secondaryClasses =
     "text-red-600 border border-red-600 hover:text-red-500 hover:border-red-500";
 
   const disabledClasses =
-    "!bg-gray-400 text-white !border-gray-400 hover:!bg-gray-400 hover:!border-gray-400";
+    "bg-gray-300 text-white border-gray-300 hover:bg-gray-300 hover:border-gray-300";
+
+  console.log(disabled);
 
   return (
     <button
