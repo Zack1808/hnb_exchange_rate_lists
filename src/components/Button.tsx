@@ -24,8 +24,6 @@ const Button: React.FC<ButtonProps> = ({
   const disabledClasses =
     "bg-gray-300 !text-white border-gray-300 hover:bg-gray-300 hover:border-gray-300";
 
-  console.log(disabled);
-
   return (
     <button
       className={`py-2 px-4 flex rounded-sm items-center gap-2 transition  hover:bg-gray-100 text-lg ${

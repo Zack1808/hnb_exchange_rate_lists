@@ -29,7 +29,7 @@ const Home: React.FC = () => {
           Saznajte više
         </Button>
       </HeroContainer>
-      <Container ref={exchangeRef} background>
+      <Container spacing="big" ref={exchangeRef} background>
         <h2 className="text-3xl text-gray-800 font-semibold">Trenutni tečaj</h2>
         <div className="flex flex-col md:flex-row justify-between md:items-center gap-5 w-full">
           <p className="text-lg text-gray-800 max-w-5xl">
@@ -44,7 +44,7 @@ const Home: React.FC = () => {
           </Link>
         </div>
       </Container>
-      <Container>
+      <Container spacing="big">
         <h2 className="text-3xl text-gray-800 font-semibold">
           Tečaj američkog dolara
         </h2>

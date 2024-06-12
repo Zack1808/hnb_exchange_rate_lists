@@ -13,6 +13,7 @@ export interface ButtonProps
 export interface ContainerProps {
   children: React.ReactNode;
   background?: boolean;
+  spacing: "big" | "small" | "medium" | "none";
 }
 
 export interface DatePickerProps
