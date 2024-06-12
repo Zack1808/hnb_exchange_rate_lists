@@ -52,10 +52,9 @@ const DatePicker: React.FC<DatePickerProps> = ({
         disabled ? "" : "focus-within:ring-1"
       } rounded-sm flex border w-full max-w-sm relative`}
     >
-      {!disabled && (
+      {!disabled && onChange && (
         <Button
-          primary
-          className="px-2"
+          className="px-2 text-red-500"
           onClick={decreaseDate}
           disabled={value && min ? value <= min : false}
         >
@@ -72,13 +71,13 @@ const DatePicker: React.FC<DatePickerProps> = ({
         onChange={handleChange}
         onBlur={handleBlur}
         min={min}
+        max={max}
       />
 
-      {!disabled && (
+      {!disabled && onChange && (
         <Button
-          primary
           onClick={increaseDate}
-          className="px-2"
+          className="px-2 text-red-500"
           disabled={value && max ? value >= max : false}
         >
           <FaChevronRight />
