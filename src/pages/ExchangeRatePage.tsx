@@ -3,8 +3,12 @@ import React, { useState } from "react";
 import Container from "../components/Container";
 import DatePicker from "../components/DatePicker";
 
+import { getFormatedCurrentDate } from "../helpers/getFormatedDates";
+
 const ExchangeRatePage: React.FC = () => {
-  const [date, setDate] = useState<string | undefined>();
+  const [date, setDate] = useState<string | undefined>(
+    getFormatedCurrentDate()
+  );
 
   return (
     <>
@@ -15,7 +19,12 @@ const ExchangeRatePage: React.FC = () => {
         <p className="text-lg">
           Ovdje možete provjeriti tečajne liste češće korištenih valuta.
         </p>
-        <DatePicker value={date} onChange={setDate} />
+        <DatePicker
+          value={date}
+          onChange={setDate}
+          min={"2023-01-01"}
+          max={getFormatedCurrentDate()}
+        />
       </Container>
     </>
   );

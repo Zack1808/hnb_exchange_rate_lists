@@ -18,8 +18,8 @@ export interface ContainerProps {
   background?: boolean;
 }
 
-export interface DatePickerProps {
+export interface DatePickerProps
+  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "onChange"> {
   onChange?: (date: string) => void;
   value?: string;
-  disabled?: boolean;
 }
