@@ -4,6 +4,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import Container from "../components/Container";
 import DatePicker from "../components/DatePicker";
 import Button from "../components/Button";
+import Loader from "../components/Loader";
 
 import { getFormatedCurrentDate } from "../helpers/getFormatedDates";
 
@@ -66,6 +67,9 @@ const ExchangeRatePage: React.FC = () => {
             </Button>
           </fieldset>
         </form>
+      </Container>
+      <Container spacing="medium">
+        <Loader />
       </Container>
     </>
   );

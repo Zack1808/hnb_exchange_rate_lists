@@ -2,20 +2,17 @@
 export default {
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
-    extend: {},
-  },
-  plugins: [
-    function ({ addUtilities }) {
-      const newUtilities = {
-        ".hide-calendar-icon::-webkit-calendar-picker-indicator": {
-          display: "none",
+    extend: {
+      keyframes: {
+        rotation: {
+          "0%": { rotate: "0deg" },
+          "100%": { rotate: "361deg" },
         },
-        ".hide-calendar-icon": {
-          "-moz-appearance": "textfield",
-        },
-      };
-
-      addUtilities(newUtilities, ["responsive", "hover"]);
+      },
+      animation: {
+        rotation: "rotation 1s linear infinite",
+      },
     },
-  ],
+  },
+  plugins: [],
 };
