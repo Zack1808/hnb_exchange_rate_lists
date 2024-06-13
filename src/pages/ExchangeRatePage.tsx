@@ -87,8 +87,10 @@ const ExchangeRatePage: React.FC = () => {
   };
 
   const tableColors = (index: number) => {
-    return index % 2 === 0 ? "bg-gray-100" : "bg-gray-300";
+    return index % 2 === 0 ? "bg-gray-100" : "bg-gray-200";
   };
+
+  const filter = ["drzava", "drzava_iso", "sifra_valute", "valuta"];
 
   return (
     <>
@@ -153,6 +155,8 @@ const ExchangeRatePage: React.FC = () => {
               sortable
               colorRow={tableColors}
               linkCols={links}
+              filterable
+              filterableKeys={filter}
             />
           </>
         )}

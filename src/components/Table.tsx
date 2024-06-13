@@ -64,21 +64,35 @@ const Table: React.FC<TableProps> = ({
     return `/povijest/${row[value]}/${linkKey.date}`;
   };
 
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setFilterText(event.target.value);
+  };
+
   return (
-    <div className="w-full flex flex-col">
-      <div className="overflow-x-auto w-full">
+    <div className="w-full flex flex-col gap-5 mt-5 items-start">
+      {filterable && (
+        <input
+          type="text"
+          value={filterText}
+          onChange={handleChange}
+          className="outline-none bg-gray-100 border px-3 py-2 w-full md:max-w-96"
+          placeholder="Filtriraj..."
+        />
+      )}
+
+      <div className="overflow-x-auto w-full rounded-sm">
         <table className="w-full">
           <thead>
             <tr className="divide-x divide-red-400">
               {headers.map((header, index) => (
                 <th
                   key={index}
-                  className={`px-4 py-2 bg-red-600 md:py-4 flex-1 text-white items-center justify-between gap-3 ${
+                  className={`px-4 py-2 bg-red-600 md:py-4 flex-1 text-white ${
                     sortable ? "cursor-pointer" : "cursor-default"
                   } ${header.value === "valuta" ? "sticky left-0 z-10" : ""}`}
                   onClick={() => sortable && handleHeaderClick(header.value)}
                 >
-                  <span className="flex w-full justify-between items-center gap-3">
+                  <span className="flex w-full justify-center items-center gap-3">
                     {header.title}{" "}
                     {sortable &&
                       (sortConfig?.key === header.value &&
@@ -95,17 +109,17 @@ const Table: React.FC<TableProps> = ({
 
           <tbody>
             {filteredData.map((row, rowIndex) => (
-              <tr key={rowIndex} className="divide-x divide-gray-400">
+              <tr key={rowIndex} className="divide-x divide-gray-300">
                 {headers.map((header, colIndex) => (
                   <td
                     key={colIndex}
-                    className={`px-4 py-2 md:py-4 ${
+                    className={`px-4 py-2 md:py-4 text-center ${
                       header.value === "valuta" ? "sticky left-0 z-10" : ""
                     } ${colorRow && colorRow(rowIndex)}`}
                   >
                     {!!linkCols.find((link) => link.target === header.value) ? (
                       <Link
-                        className="w-full flex"
+                        className="w-full flex justify-center"
                         to={returnLink(row, header.value)}
                       >
                         {row[header.value]}
