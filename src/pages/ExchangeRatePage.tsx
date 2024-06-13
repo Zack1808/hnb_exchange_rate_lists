@@ -85,6 +85,7 @@ const ExchangeRatePage: React.FC = () => {
   };
 
   useEffect(() => {
+    window.scrollTo(0, 0);
     const search = new URLSearchParams(location.search);
     if (!!!search.size) {
       fetchList(getFormatedCurrentDate());

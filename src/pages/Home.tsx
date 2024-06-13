@@ -15,6 +15,8 @@ const Home: React.FC = () => {
     scrollIntoView({ target: exchangeRef });
   };
 
+  window.scrollTo(0, 0);
+
   return (
     <>
       <HeroContainer>
