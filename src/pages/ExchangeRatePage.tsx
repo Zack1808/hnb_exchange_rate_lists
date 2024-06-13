@@ -20,13 +20,34 @@ const ExchangeRatePage: React.FC = () => {
   );
 
   const headers = [
-    "Valuta",
-    "Država",
-    "Država ISO",
-    "Kupovni tečaj",
-    "Srednji tečaj",
-    "Prodajni tečaj",
-    "Šifra valute",
+    {
+      title: "Valuta",
+      value: "valuta",
+    },
+    {
+      title: "Država",
+      value: "drzava",
+    },
+    {
+      title: "Država ISO",
+      value: "drzava_iso",
+    },
+    {
+      title: "Kupovni tečaj",
+      value: "kupovni_tecaj",
+    },
+    {
+      title: "Srednji tečaj",
+      value: "srednji_tecaj",
+    },
+    {
+      title: "Prodajni tečaj",
+      value: "prodajni_tecaj",
+    },
+    {
+      title: "Šifra valute",
+      value: "sifra_valute",
+    },
   ];
 
   const location = useLocation();
@@ -116,7 +137,7 @@ const ExchangeRatePage: React.FC = () => {
                 ).toLocaleDateString()}
               </span>
             </h4>
-            <Table data={exchangeRateList} headers={headers} />
+            <Table data={exchangeRateList} headers={headers} sortable />
           </>
         )}
       </Container>

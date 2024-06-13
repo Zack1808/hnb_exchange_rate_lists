@@ -9,3 +9,8 @@ export interface ExchangeRateItems {
   srednji_tecaj: string;
   valuta: string;
 }
+
+export interface SortItems {
+  key: string;
+  direction: "asc" | "desc";
+}

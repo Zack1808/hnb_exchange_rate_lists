@@ -26,10 +26,10 @@ export interface DatePickerProps
 }
 
 export interface TableProps {
-  headers: string[];
+  headers: { title: string; value: string }[];
   data: ExchangeRateItems[];
   colorRow?: (index: number) => string;
-  sortableCols?: string[];
+  sortable?: boolean;
   filterable?: boolean;
   filterableKeys?: string[];
   linkCols?: string[];
