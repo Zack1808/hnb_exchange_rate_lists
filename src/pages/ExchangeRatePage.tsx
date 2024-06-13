@@ -48,6 +48,14 @@ const ExchangeRatePage: React.FC = () => {
     },
   ];
 
+  const links = [
+    {
+      target: "valuta",
+      isCurrentDate: date === getFormatedCurrentDate(),
+      date,
+    },
+  ];
+
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -144,6 +152,7 @@ const ExchangeRatePage: React.FC = () => {
               headers={headers}
               sortable
               colorRow={tableColors}
+              linkCols={links}
             />
           </>
         )}

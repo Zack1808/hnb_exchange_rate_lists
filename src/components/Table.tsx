@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { TableProps } from "../interfaces/components";
 import { FaCaretDown, FaCaretUp } from "react-icons/fa";
+import { Link } from "react-router-dom";
 
 import { sort } from "../helpers/sortData";
 
@@ -20,9 +21,17 @@ const Table: React.FC<TableProps> = ({
 
   const handleHeaderClick = (key: string) => {
     let direction: "asc" | "desc" = "asc";
+    let isNumber = false;
     if (sortConfig?.key === key && sortConfig?.direction === "asc")
       direction = "desc";
-    setSortConfig({ key, direction });
+    if (
+      key === "kupovni_tecaj" ||
+      key === "srednji_tecaj" ||
+      key === "prodajni_tecaj" ||
+      key === "sifra_valute"
+    )
+      isNumber = true;
+    setSortConfig({ key, direction, isNumber });
   };
 
   const sortedData = useMemo(() => {
@@ -32,6 +41,7 @@ const Table: React.FC<TableProps> = ({
       data: sorted,
       key: sortConfig.key,
       direction: sortConfig.direction,
+      isNumber: sortConfig.isNumber,
     });
   }, [data, sortConfig]);
 
@@ -46,6 +56,13 @@ const Table: React.FC<TableProps> = ({
       )
     );
   }, [sortedData, filterText]);
+
+  const returnLink = (row: Record<string, any>, value: string) => {
+    const linkKey = linkCols.find((link) => link.target === value);
+    if (!!!linkKey) return "/";
+    if (linkKey.isCurrentDate) return `/povijest/${row[value]}`;
+    return `/povijest/${row[value]}/${linkKey.date}`;
+  };
 
   return (
     <div className="w-full flex flex-col">
@@ -86,7 +103,16 @@ const Table: React.FC<TableProps> = ({
                       header.value === "valuta" ? "sticky left-0 z-10" : ""
                     } ${colorRow && colorRow(rowIndex)}`}
                   >
-                    {row[header.value]}
+                    {!!linkCols.find((link) => link.target === header.value) ? (
+                      <Link
+                        className="w-full flex"
+                        to={returnLink(row, header.value)}
+                      >
+                        {row[header.value]}
+                      </Link>
+                    ) : (
+                      row[header.value]
+                    )}
                   </td>
                 ))}
               </tr>

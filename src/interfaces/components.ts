@@ -31,5 +31,5 @@ export interface TableProps {
   sortable?: boolean;
   filterable?: boolean;
   filterableKeys?: string[];
-  linkCols?: string[];
+  linkCols?: { target: string; isCurrentDate: boolean; date: string }[];
 }

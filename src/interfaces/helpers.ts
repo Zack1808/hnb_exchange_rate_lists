@@ -13,4 +13,5 @@ export interface SortProps {
   data: Record<string, any>[];
   key: string;
   direction: "asc" | "desc";
+  isNumber: boolean;
 }
