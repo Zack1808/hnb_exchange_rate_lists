@@ -6,6 +6,7 @@ import ExchangeRatePage from "./pages/ExchangeRatePage";
 import HistoryRatePage from "./pages/HistoryRatePage";
 
 import Navbar from "./components/Navbar";
+import Footer from "./components/Footer";
 
 const App: React.FC = () => {
   return (
@@ -17,6 +18,7 @@ const App: React.FC = () => {
         <Route path="/povijest/:currency" element={<HistoryRatePage />} />
         <Route path="/povijest/:currency/:date" element={<HistoryRatePage />} />
       </Routes>
+      <Footer />
     </BrowserRouter>
   );
 };
