@@ -5,9 +5,12 @@ import Home from "./pages/Home";
 import ExchangeRatePage from "./pages/ExchangeRatePage";
 import HistoryRatePage from "./pages/HistoryRatePage";
 
+import Navbar from "./components/Navbar";
+
 const App: React.FC = () => {
   return (
     <BrowserRouter>
+      <Navbar />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/tecaj" element={<ExchangeRatePage />} />
