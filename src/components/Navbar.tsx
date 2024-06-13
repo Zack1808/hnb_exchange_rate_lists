@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { ImMenu } from "react-icons/im";
 import { FaXmark } from "react-icons/fa6";
@@ -49,7 +49,10 @@ const Navbar: React.FC = () => {
         />
 
         {isOpen && (
-          <div className="absolute top-0 left-0 w-full h-dvh bg-black/20 md:hidden">
+          <div
+            className="absolute top-0 left-0 w-full h-dvh bg-black/20 md:hidden"
+            onClick={toggleOpen}
+          >
             <div
               className={`bg-white absolute left-0 top-0 bottom-0 px-8 py-5 flex flex-col gap-10 items-end scale-x-0 origin-left ${
                 isOpen && "animate-menu-open"
@@ -61,34 +64,26 @@ const Navbar: React.FC = () => {
                 }`}
               >
                 <Link
-                  onClick={toggleOpen}
                   to="/"
                   className="flex gap-0 items-center justify-center "
                 >
                   <img src="/favicon.svg" className="w-7 md:w-14" />
                   <h2 className="font-bold text-red-600 text-2xl flex ">HNB</h2>
                 </Link>
-                <FaXmark
-                  className="text-4xl text-red-600"
-                  onClick={toggleOpen}
-                />
+                <FaXmark className="text-4xl text-red-600" />
               </div>
               <div
                 className={`flex flex-col gap-2 opacity-0 ${
                   isOpen && "animate-menu-links-open"
                 }`}
               >
-                <Link onClick={toggleOpen} to="/" className="text-lg py-3">
+                <Link to="/" className="text-lg py-3">
                   Početna
                 </Link>
-                <Link onClick={toggleOpen} to="/tecaj" className="text-lg py-3">
+                <Link to="/tecaj" className="text-lg py-3">
                   Pregledaj tečajeve
                 </Link>
-                <Link
-                  onClick={toggleOpen}
-                  to="/povijest/USD"
-                  className="text-lg py-3"
-                >
+                <Link to="/povijest/USD" className="text-lg py-3">
                   Povijest tečaja za USD
                 </Link>
               </div>
