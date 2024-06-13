@@ -1,5 +1,4 @@
 import React from "react";
-import { ExchangeRateItems } from "./state";
 
 export interface HeroContainerProps {
   children: React.ReactNode;
@@ -27,7 +26,7 @@ export interface DatePickerProps
 
 export interface TableProps {
   headers: { title: string; value: string }[];
-  data: ExchangeRateItems[];
+  data: Record<string, any>[];
   colorRow?: (index: number) => string;
   sortable?: boolean;
   filterable?: boolean;

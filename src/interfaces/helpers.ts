@@ -8,3 +8,9 @@ export interface ChangeDateByDaysProps {
   date: string;
   daysAmount: number;
 }
+
+export interface SortProps {
+  data: Record<string, any>[];
+  key: string;
+  direction: "asc" | "desc";
+}

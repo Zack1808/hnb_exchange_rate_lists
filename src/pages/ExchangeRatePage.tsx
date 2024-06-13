@@ -7,17 +7,15 @@ import Button from "../components/Button";
 import Loader from "../components/Loader";
 import Table from "../components/Table";
 
-import { ExchangeRateItems } from "../interfaces/state";
-
 import { getFormatedCurrentDate } from "../helpers/getFormatedDates";
 
 import { useGetListings } from "../hooks/useGetListings";
 
 const ExchangeRatePage: React.FC = () => {
   const [date, setDate] = useState<string>("");
-  const [exchangeRateList, setExchangeRateList] = useState<ExchangeRateItems[]>(
-    []
-  );
+  const [exchangeRateList, setExchangeRateList] = useState<
+    Record<string, any>[]
+  >([]);
 
   const headers = [
     {
@@ -80,6 +78,10 @@ const ExchangeRatePage: React.FC = () => {
     setExchangeRateList(list);
   };
 
+  const tableColors = (index: number) => {
+    return index % 2 === 0 ? "bg-gray-100" : "bg-gray-300";
+  };
+
   return (
     <>
       <Container spacing="medium">
@@ -137,7 +139,12 @@ const ExchangeRatePage: React.FC = () => {
                 ).toLocaleDateString()}
               </span>
             </h4>
-            <Table data={exchangeRateList} headers={headers} sortable />
+            <Table
+              data={exchangeRateList}
+              headers={headers}
+              sortable
+              colorRow={tableColors}
+            />
           </>
         )}
       </Container>
