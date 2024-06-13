@@ -12,7 +12,7 @@ import { getFormatedCurrentDate } from "../helpers/getFormatedDates";
 import { useGetListings } from "../hooks/useGetListings";
 
 const ExchangeRatePage: React.FC = () => {
-  const [date, setDate] = useState<string>("");
+  const [date, setDate] = useState<string>(getFormatedCurrentDate());
   const [exchangeRateList, setExchangeRateList] = useState<
     Record<string, any>[]
   >([]);
@@ -72,20 +72,7 @@ const ExchangeRatePage: React.FC = () => {
     setExchangeRateList(list);
   };
 
-  useEffect(() => {
-    const search = new URLSearchParams(location.search);
-    if (!!!search.size) {
-      setDate(getFormatedCurrentDate());
-      fetchList(getFormatedCurrentDate());
-      return;
-    }
-    const urlDate = search.get("datum-primjene");
-    if (!!!urlDate) return;
-    setDate(urlDate);
-    fetchList(urlDate);
-  }, []);
-
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const search = new URLSearchParams(location.search);
     if (
@@ -94,9 +81,20 @@ const ExchangeRatePage: React.FC = () => {
     )
       return;
     navigate(`/tecaj?datum-primjene=${date}`);
-    const list = await getListing(date);
-    setExchangeRateList(list);
+    fetchList(date);
   };
+
+  useEffect(() => {
+    const search = new URLSearchParams(location.search);
+    if (!!!search.size) {
+      fetchList(getFormatedCurrentDate());
+      return;
+    }
+    const urlDate = search.get("datum-primjene");
+    if (!!!urlDate) return;
+    setDate(urlDate);
+    fetchList(urlDate);
+  }, []);
 
   return (
     <>
