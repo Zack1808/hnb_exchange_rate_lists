@@ -75,8 +75,8 @@ const Table: React.FC<TableProps> = ({
           type="text"
           value={filterText}
           onChange={handleChange}
-          className="outline-none bg-gray-100 border px-3 py-2 w-full md:max-w-96"
-          placeholder="Filtriraj..."
+          className="outline-none bg-gray-100 border px-3 py-2 w-full md:max-w-96 rounded-sm focus:ring-1"
+          placeholder="Filtriraj po državi, valuti, ISO broju ili šifri valute..."
         />
       )}
 
