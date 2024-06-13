@@ -1,8 +1,6 @@
 import { useState, useCallback } from "react";
 import axios from "axios";
 
-const baseUrl = "https://api.hnb.hr/tecajn-eur/v3";
-
 export const useGetListings = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -11,7 +9,7 @@ export const useGetListings = () => {
     setLoading(true);
     setError(null);
     try {
-      const { data } = await axios.get(`${baseUrl}?datum-primjene=${date}`);
+      const { data } = await axios.get(`/api?datum-primjene=${date}`);
       return data;
     } catch (err) {
       setError(`Došlo je do pogreške: ${err}`);

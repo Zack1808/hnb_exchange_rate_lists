@@ -6,23 +6,39 @@ import DatePicker from "../components/DatePicker";
 import Button from "../components/Button";
 import Loader from "../components/Loader";
 
+import { ExchangeRateItems } from "../interfaces/state";
+
 import { getFormatedCurrentDate } from "../helpers/getFormatedDates";
+
+import { useGetListings } from "../hooks/useGetListings";
 
 const ExchangeRatePage: React.FC = () => {
   const [date, setDate] = useState<string | undefined>("");
+  const [exchangeRateList, setExchangeRateList] = useState<ExchangeRateItems[]>(
+    []
+  );
 
   const location = useLocation();
   const navigate = useNavigate();
+
+  const { loading, getListing, error } = useGetListings();
+
+  const fetchList = async (currentDate: string) => {
+    const list = await getListing(currentDate);
+    setExchangeRateList(list);
+  };
 
   useEffect(() => {
     const search = new URLSearchParams(location.search);
     if (!!!search.size) {
       setDate(getFormatedCurrentDate());
+      fetchList(getFormatedCurrentDate());
       return;
     }
     const urlDate = search.get("datum-primjene");
     if (!!!urlDate) return;
     setDate(urlDate);
+    fetchList(urlDate);
   }, []);
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
@@ -69,7 +85,11 @@ const ExchangeRatePage: React.FC = () => {
         </form>
       </Container>
       <Container spacing="medium">
-        <Loader />
+        {loading && <Loader />}
+        {!loading && error && <p className="text-red-600 text-lg">{error}</p>}
+        {!loading &&
+          exchangeRateList.length > 0 &&
+          exchangeRateList[0].broj_tecajnice}
       </Container>
     </>
   );
