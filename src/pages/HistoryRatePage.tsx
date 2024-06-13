@@ -5,18 +5,70 @@ import Container from "../components/Container";
 import DatePicker from "../components/DatePicker";
 import Button from "../components/Button";
 import Input from "../components/Input";
+import Table from "../components/Table";
+import Loader from "../components/Loader";
 
 import {
   getFormatedCurrentDate,
   changeDateByDays,
 } from "../helpers/getFormatedDates";
+import { sort } from "../helpers/sortData";
 
 import { useGetListings } from "../hooks/useGetListings";
+
+import {
+  getSpecificItemList,
+  getUniqueList,
+} from "../helpers/getFilteredLists";
+import { addPercentageChange } from "../helpers/addPercentageChange";
 
 const HistoryRatePage: React.FC = () => {
   const [date, setDate] = useState<string>(getFormatedCurrentDate());
   const [daysBackwards, setDaysBackwards] = useState<number>(2);
   const [data, setData] = useState<Record<string, any>[]>([]);
+
+  const headers = [
+    {
+      title: "Valuta",
+      value: "valuta",
+    },
+    {
+      title: "Broj tečajnice",
+      value: "broj_tecajnice",
+    },
+    {
+      title: "Datum Primjene",
+      value: "datum_primjene",
+    },
+    {
+      title: "Država",
+      value: "drzava",
+    },
+    {
+      title: "Država ISO",
+      value: "drzava_iso",
+    },
+    {
+      title: "Kupovni tečaj",
+      value: "kupovni_tecaj",
+    },
+    {
+      title: "Srednji tečaj",
+      value: "srednji_tecaj",
+    },
+    {
+      title: "Prodajni tečaj",
+      value: "prodajni_tecaj",
+    },
+    {
+      title: "Šifra valute",
+      value: "sifra_valute",
+    },
+    {
+      title: "Rast/Pad tečaja",
+      value: "postotak",
+    },
+  ];
 
   const params = useParams();
   const navigate = useNavigate();
@@ -40,6 +92,13 @@ const HistoryRatePage: React.FC = () => {
       navigate(
         `/povijest/${params.currency}/${date}?broj-dana-unazad=${daysBackwards}`
       );
+    fetchList(
+      date,
+      changeDateByDays({
+        date,
+        daysAmount: -daysBackwards,
+      })
+    );
   };
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -52,9 +111,30 @@ const HistoryRatePage: React.FC = () => {
   };
 
   const fetchList = async (fromDate: string, toDate: string) => {
-    const list = await getCurrencyHistory(fromDate, toDate);
+    if (!params.currency) return;
+    let list = await getCurrencyHistory(fromDate, toDate);
+    list = getSpecificItemList(list, "valuta", params.currency);
+    list = getUniqueList(list, "broj_tecajnice");
+    list = sort({
+      data: list,
+      key: "datum_primjene",
+      direction: "asc",
+      isNumber: false,
+    });
+    console.log(list);
+    list = addPercentageChange(list);
     console.log(list);
     setData(list);
+  };
+
+  const colorRow = (index: number) => {
+    if (index === data.length - 1) return "bg-gray-100";
+    if (
+      Number(data[index].srednji_tecaj.replace(",", "")) >
+      Number(data[index + 1].srednji_tecaj.replace(",", ""))
+    )
+      return "bg-green-400";
+    return "bg-red-400";
   };
 
   useEffect(() => {
@@ -134,6 +214,19 @@ const HistoryRatePage: React.FC = () => {
             Prikaži povijest
           </Button>
         </form>
+      </Container>
+
+      <Container spacing="medium">
+        {loading && <Loader />}
+        {!loading && error && <p className="text-red-600 text-lg">{error}</p>}
+        {!loading && data.length > 0 && (
+          <>
+            <h2 className="text-2xl font-semibold text-gray-800">
+              Povijest tečaja za {data[0].valuta}
+            </h2>
+            <Table data={data} headers={headers} colorRow={colorRow} />
+          </>
+        )}
       </Container>
     </>
   );
