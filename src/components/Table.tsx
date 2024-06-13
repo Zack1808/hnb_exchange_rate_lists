@@ -75,13 +75,13 @@ const Table: React.FC<TableProps> = ({
           type="text"
           value={filterText}
           onChange={handleChange}
-          className="outline-none bg-gray-100 border px-3 py-2 w-full md:max-w-96 rounded-sm focus:ring-1"
+          className="outline-none bg-gray-100 border px-3 py-2 w-full md:max-w-xl rounded-sm focus:ring-1 text-lg"
           placeholder="Filtriraj po državi, valuti, ISO broju ili šifri valute..."
         />
       )}
 
       <div className="overflow-x-auto w-full rounded-sm">
-        <table className="w-full">
+        <table className="w-full text-lg">
           <thead>
             <tr className="divide-x divide-red-400">
               {headers.map((header, index) => (
