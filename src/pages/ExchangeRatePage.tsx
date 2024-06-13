@@ -101,7 +101,7 @@ const ExchangeRatePage: React.FC = () => {
   return (
     <>
       <Container spacing="medium">
-        <h1 className="text-5xl mt-20 md:mt-36 font-semibold text-gray-800 flex flex-col items-start justify-start">
+        <h1 className="text-5xl mt-20 md:mt-28 font-semibold text-gray-800 flex flex-col items-start justify-start">
           Tečajna lista
         </h1>
         <p className="text-lg text-gray-800">
