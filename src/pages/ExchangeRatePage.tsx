@@ -5,6 +5,7 @@ import Container from "../components/Container";
 import DatePicker from "../components/DatePicker";
 import Button from "../components/Button";
 import Loader from "../components/Loader";
+import Table from "../components/Table";
 
 import { ExchangeRateItems } from "../interfaces/state";
 
@@ -13,10 +14,20 @@ import { getFormatedCurrentDate } from "../helpers/getFormatedDates";
 import { useGetListings } from "../hooks/useGetListings";
 
 const ExchangeRatePage: React.FC = () => {
-  const [date, setDate] = useState<string | undefined>("");
+  const [date, setDate] = useState<string>("");
   const [exchangeRateList, setExchangeRateList] = useState<ExchangeRateItems[]>(
     []
   );
+
+  const headers = [
+    "Valuta",
+    "Država",
+    "Država ISO",
+    "Kupovni tečaj",
+    "Srednji tečaj",
+    "Prodajni tečaj",
+    "Šifra valute",
+  ];
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -41,9 +52,11 @@ const ExchangeRatePage: React.FC = () => {
     fetchList(urlDate);
   }, []);
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     navigate(`/tecaj?datum-primjene=${date}`);
+    const list = await getListing(date);
+    setExchangeRateList(list);
   };
 
   return (
@@ -87,9 +100,25 @@ const ExchangeRatePage: React.FC = () => {
       <Container spacing="medium">
         {loading && <Loader />}
         {!loading && error && <p className="text-red-600 text-lg">{error}</p>}
-        {!loading &&
-          exchangeRateList.length > 0 &&
-          exchangeRateList[0].broj_tecajnice}
+        {!loading && exchangeRateList.length > 0 && (
+          <>
+            <h4 className="text-gray-800 font-semibold text-xl">
+              Broj tečajnice:{" "}
+              <span className="font-medium text-lg">
+                {exchangeRateList[0].broj_tecajnice}
+              </span>
+            </h4>
+            <h4 className="text-gray-800 font-semibold text-xl">
+              Datum primjene:{" "}
+              <span className="font-medium text-lg">
+                {new Date(
+                  exchangeRateList[0].datum_primjene
+                ).toLocaleDateString()}
+              </span>
+            </h4>
+            <Table data={exchangeRateList} headers={headers} />
+          </>
+        )}
       </Container>
     </>
   );
