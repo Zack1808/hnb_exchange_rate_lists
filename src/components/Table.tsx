@@ -3,6 +3,8 @@ import { TableProps } from "../interfaces/components";
 import { FaCaretDown, FaCaretUp } from "react-icons/fa";
 import { Link } from "react-router-dom";
 
+import Input from "./Input";
+
 import { sort } from "../helpers/sortData";
 
 import { SortItems } from "../interfaces/state";
@@ -71,11 +73,10 @@ const Table: React.FC<TableProps> = ({
   return (
     <div className="w-full flex flex-col gap-5 mt-5 items-start">
       {filterable && (
-        <input
+        <Input
           type="text"
           value={filterText}
           onChange={handleChange}
-          className="outline-none bg-gray-100 border px-3 py-2 w-full md:max-w-xl rounded-sm focus:ring-1 text-lg"
           placeholder="Filtriraj po državi, valuti, ISO broju ili šifri valute..."
         />
       )}

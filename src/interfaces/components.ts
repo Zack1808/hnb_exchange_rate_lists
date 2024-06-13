@@ -33,3 +33,6 @@ export interface TableProps {
   filterableKeys?: string[];
   linkCols?: { target: string; isCurrentDate: boolean; date: string }[];
 }
+
+export interface InputProps
+  extends React.InputHTMLAttributes<HTMLInputElement> {}

@@ -20,5 +20,24 @@ export const useGetListings = () => {
     }
   }, []);
 
-  return { loading, error, getListing };
+  const getCurrencyHistory = useCallback(
+    async (fromDate: string, toDate: string) => {
+      setLoading(true);
+      setError(null);
+      try {
+        const { data } = await axios.get(
+          `/api?datum-primjene-od=${toDate}&datum-primjene-do=${fromDate}`
+        );
+        return data;
+      } catch (err) {
+        setError(`Došlo je do pogreške: ${err}`);
+        return [];
+      } finally {
+        setLoading(false);
+      }
+    },
+    []
+  );
+
+  return { loading, error, getListing, getCurrencyHistory };
 };

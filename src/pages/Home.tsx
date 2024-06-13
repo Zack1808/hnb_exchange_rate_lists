@@ -54,7 +54,7 @@ const Home: React.FC = () => {
             istražite fascinantne fluktuacije vrijednosti dolara tijekom
             vremena. Budite u koraku s promjenama i donosite informirane odluke.
           </p>
-          <Link to="/povjest/USD">
+          <Link to="/povijest/USD">
             <Button primary>Projverite tečaj</Button>
           </Link>
         </div>
