@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { TableProps } from "../interfaces/components";
 import { FaCaretDown, FaCaretUp } from "react-icons/fa";
 import { Link } from "react-router-dom";
@@ -21,20 +21,23 @@ const Table: React.FC<TableProps> = ({
   const [sortConfig, setSortConfig] = useState<SortItems | null>(null);
   const [filterText, setFilterText] = useState<string>("");
 
-  const handleHeaderClick = (key: string) => {
-    let direction: "asc" | "desc" = "asc";
-    let isNumber = false;
-    if (sortConfig?.key === key && sortConfig?.direction === "asc")
-      direction = "desc";
-    if (
-      key === "kupovni_tecaj" ||
-      key === "srednji_tecaj" ||
-      key === "prodajni_tecaj" ||
-      key === "sifra_valute"
-    )
-      isNumber = true;
-    setSortConfig({ key, direction, isNumber });
-  };
+  const handleHeaderClick = useCallback((key: string) => {
+    setSortConfig((prevState) => {
+      let direction: "asc" | "desc" = "asc";
+      let isNumber = false;
+      if (prevState?.key === key && prevState?.direction === "asc")
+        direction = "desc";
+      if (
+        key === "kupovni_tecaj" ||
+        key === "srednji_tecaj" ||
+        key === "prodajni_tecaj" ||
+        key === "sifra_valute"
+      )
+        isNumber = true;
+
+      return { key, direction, isNumber };
+    });
+  }, []);
 
   const sortedData = useMemo(() => {
     const sorted = [...data];
@@ -59,12 +62,15 @@ const Table: React.FC<TableProps> = ({
     );
   }, [sortedData, filterText]);
 
-  const returnLink = (row: Record<string, any>, value: string) => {
-    const linkKey = linkCols.find((link) => link.target === value);
-    if (!!!linkKey) return "/";
-    if (linkKey.isCurrentDate) return `/povijest/${row[value]}`;
-    return `/povijest/${row[value]}/${linkKey.date}`;
-  };
+  const returnLink = useCallback(
+    (row: Record<string, any>, value: string) => {
+      const linkKey = linkCols.find((link) => link.target === value);
+      if (!!!linkKey) return "/";
+      if (linkKey.isCurrentDate) return `/povijest/${row[value]}`;
+      return `/povijest/${row[value]}/${linkKey.date}`;
+    },
+    [linkCols]
+  );
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setFilterText(event.target.value);
