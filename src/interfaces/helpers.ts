@@ -11,7 +11,7 @@ export interface ChangeDateByDaysProps {
 
 export interface SortProps {
   data: Record<string, any>[];
-  key: string;
+  key: keyof Record<string, any>;
   direction: "asc" | "desc";
   isNumber: boolean;
 }
