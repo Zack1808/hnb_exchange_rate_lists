@@ -1,4 +1,4 @@
-import { ChangeDateByDaysProps } from "../interfaces/helpers";
+import { ChangeDateByDaysProps } from "../interfaces";
 
 const convertDateToString = (date: Date) => {
   const year = date.getFullYear();

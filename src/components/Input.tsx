@@ -1,6 +1,6 @@
 import React from "react";
 
-import { InputProps } from "../interfaces/components";
+import { InputProps } from "../interfaces";
 
 const Input: React.FC<InputProps> = ({ className, ...rest }) => {
   return (

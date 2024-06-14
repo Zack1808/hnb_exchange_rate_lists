@@ -1,6 +1,6 @@
 import React from "react";
 
-import { HeroContainerProps } from "../interfaces/components";
+import { HeroContainerProps } from "../interfaces";
 
 const HeroContainer: React.FC<HeroContainerProps> = React.memo(
   ({ children, className, ...rest }) => {

@@ -1,6 +1,6 @@
 import React from "react";
 
-import { ContainerProps } from "../interfaces/components";
+import { ContainerProps } from "../interfaces";
 
 const Container = React.forwardRef<HTMLDivElement, ContainerProps>(
   ({ children, background, spacing }, ref) => {

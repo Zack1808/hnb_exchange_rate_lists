@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 
 import { Container, Table, Button, DatePicker, Loader } from "../components";
 
-import { getFormatedCurrentDate } from "../helpers/getFormatedDates";
+import { getFormatedCurrentDate } from "../helpers";
 
 import { useGetListings } from "../hooks/useGetListings";
 

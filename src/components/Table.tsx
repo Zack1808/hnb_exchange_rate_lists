@@ -5,9 +5,9 @@ import { Link } from "react-router-dom";
 
 import { Input } from "./";
 
-import { sort } from "../helpers/sortData";
+import { sort } from "../helpers";
 
-import { SortItems } from "../interfaces/state";
+import { SortItems } from "../interfaces";
 
 const Table: React.FC<TableProps> = ({
   headers,

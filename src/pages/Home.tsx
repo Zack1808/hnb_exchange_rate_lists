@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 
 import { Container, HeroContainer, Button } from "../components";
 
-import { scrollIntoView } from "../helpers/scrollIntoView";
+import { scrollIntoView } from "../helpers";
 
 const Home: React.FC = () => {
   const exchangeRef = useRef<HTMLDivElement>(null);

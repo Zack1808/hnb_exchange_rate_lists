@@ -3,9 +3,9 @@ import { FaChevronLeft, FaChevronRight } from "react-icons/fa6";
 
 import { Button } from "./";
 
-import { changeDateByDays } from "../helpers/getFormatedDates";
+import { changeDateByDays } from "../helpers";
 
-import { DatePickerProps } from "../interfaces/components";
+import { DatePickerProps } from "../interfaces";
 
 const DatePicker: React.FC<DatePickerProps> = ({
   value,

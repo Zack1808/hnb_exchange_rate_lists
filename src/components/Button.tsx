@@ -1,6 +1,6 @@
 import React from "react";
 
-import { ButtonProps } from "../interfaces/components";
+import { ButtonProps } from "../interfaces";
 
 const Button: React.FC<ButtonProps> = React.memo(
   ({ primary, secondary, children, disabled, className, ...rest }) => {

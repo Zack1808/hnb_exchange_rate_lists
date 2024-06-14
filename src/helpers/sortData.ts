@@ -1,4 +1,4 @@
-import { SortProps } from "../interfaces/helpers";
+import { SortProps } from "../interfaces";
 
 export const sort = ({ data, key, direction, isNumber }: SortProps) => {
   let list = [...data];
