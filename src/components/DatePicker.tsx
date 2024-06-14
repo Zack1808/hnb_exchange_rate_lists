@@ -50,7 +50,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
     <div
       className={`${
         disabled ? "bg-white" : "focus-within:ring-1"
-      } rounded-sm flex border w-full max-w-sm relative `}
+      } rounded-sm flex border w-full max-w-sm relative text-lg `}
     >
       {!disabled && onChange && (
         <Button
