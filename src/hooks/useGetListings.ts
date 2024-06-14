@@ -13,7 +13,7 @@ export const useGetListings = () => {
       return data;
     } catch (err) {
       setError(`Došlo je do pogreške: ${err}`);
-      console.log(err);
+      console.error(`Error Fetching data: ${err}`);
       return [];
     } finally {
       setLoading(false);
@@ -31,6 +31,7 @@ export const useGetListings = () => {
         return data;
       } catch (err) {
         setError(`Došlo je do pogreške: ${err}`);
+        console.error(`Error Fetching data: ${err}`);
         return [];
       } finally {
         setLoading(false);

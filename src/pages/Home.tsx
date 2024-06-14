@@ -23,6 +23,7 @@ const Home: React.FC = () => {
         <h1 className="text-5xl md:text-7xl font-semibold text-gray-800 font-sans">
           Provjerite tečajne liste
         </h1>
+
         <h2 className="text-2xl md:text-3xl text-gray-800">
           Brzo i jednosavno
         </h2>
@@ -33,6 +34,7 @@ const Home: React.FC = () => {
       </HeroContainer>
       <Container spacing="big" ref={exchangeRef} background>
         <h2 className="text-3xl text-gray-800 font-semibold">Trenutni tečaj</h2>
+
         <div className="flex flex-col md:flex-row justify-between md:items-center gap-5 w-full">
           <p className="text-lg text-gray-800 max-w-5xl">
             Želite li biti u korak s najnovijim promjenama tečajeva? Provjerite
@@ -41,6 +43,7 @@ const Home: React.FC = () => {
             odluke o svojim valutnim operacijama. Neka vaš novac radi za vas uz
             našu ažuriranu tečajnu listu!
           </p>
+
           <Link to="/tecaj">
             <Button primary>Projverite tečajeve</Button>
           </Link>
@@ -50,12 +53,14 @@ const Home: React.FC = () => {
         <h2 className="text-3xl text-gray-800 font-semibold">
           Tečaj američkog dolara
         </h2>
+
         <div className="flex flex-col md:flex-row justify-between md:items-center gap-5 w-full">
           <p className="text-lg text-gray-800 max-w-5xl">
             Interesira vas američki dolar? Zavirite u naše tečajne liste i
             istražite fascinantne fluktuacije vrijednosti dolara tijekom
             vremena. Budite u koraku s promjenama i donosite informirane odluke.
           </p>
+
           <Link to="/povijest/USD">
             <Button primary>Projverite tečaj</Button>
           </Link>

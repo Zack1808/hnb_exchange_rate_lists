@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback } from "react";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa6";
 
 import Button from "./Button";
@@ -16,35 +16,45 @@ const DatePicker: React.FC<DatePickerProps> = ({
   max,
   ...rest
 }) => {
-  const handleChange = (event: React.FocusEvent<HTMLInputElement>) => {
-    if (!!!onChange) return;
+  const handleChange = useCallback(
+    (event: React.FocusEvent<HTMLInputElement>) => {
+      if (!!!onChange) return;
 
-    onChange(event.target.value);
-  };
+      onChange(event.target.value);
+    },
+    [onChange]
+  );
 
-  const handleBlur = (event: React.FocusEvent<HTMLInputElement>) => {
-    if (!!!onChange || !!!min || !!!max) return;
-    if (event.target.value <= min) {
-      onChange(min);
-      return;
-    }
-    if (event.target.value >= max) {
-      onChange(max);
-      return;
-    }
-  };
+  const handleBlur = useCallback(
+    (event: React.FocusEvent<HTMLInputElement>) => {
+      if (!onChange || !min || !max) return;
 
-  const increaseDate = () => {
-    if (!!!value || !!!onChange) return;
+      if (event.target.value <= min) {
+        onChange(min);
+        return;
+      }
+
+      if (event.target.value >= max) {
+        onChange(max);
+        return;
+      }
+    },
+    [onChange, min, max]
+  );
+
+  const increaseDate = useCallback(() => {
+    if (!value || !onChange) return;
+
     const date = changeDateByDays({ date: value, daysAmount: 1 });
     onChange(date);
-  };
+  }, [value, onChange]);
 
-  const decreaseDate = () => {
-    if (!!!value || !!!onChange) return;
+  const decreaseDate = useCallback(() => {
+    if (!value || !onChange) return;
+
     const date = changeDateByDays({ date: value, daysAmount: -1 });
     onChange(date);
-  };
+  }, [value, onChange]);
 
   return (
     <div

@@ -1,6 +1,6 @@
 import React from "react";
 
-export interface HeroContainerProps {
+export interface HeroContainerProps extends React.HTMLAttributes<HTMLElement> {
   children: React.ReactNode;
 }
 

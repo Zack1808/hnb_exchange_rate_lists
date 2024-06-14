@@ -1,15 +1,17 @@
 export const addPercentageChange = (data: Record<string, any>[]) => {
-  let list = [...data];
-  if (list.length <= 1) return list;
-  for (let i = 0; i < list.length - 1; i++) {
-    const prevRate = Number(list[i + 1].srednji_tecaj.replace(",", "."));
-    const currRate = Number(list[i].srednji_tecaj.replace(",", "."));
-    console.log();
+  if (data.length <= 1) return [...data];
+
+  return data.map((item, index) => {
+    if (index === data.length - 1) {
+      item.postotak = "Nije dostupno";
+      return item;
+    }
+
+    const prevRate = Number(data[index + 1].srednji_tecaj.replace(",", "."));
+    const currRate = Number(item.srednji_tecaj.replace(",", "."));
     const percentage = ((currRate - prevRate) / prevRate) * 100;
-    list[i].postotak = percentage.toPrecision(2) + "%";
-  }
+    item.postotak = percentage.toPrecision(2) + "%";
 
-  list[list.length - 1].postotak = "Nije dostupno";
-
-  return list;
+    return item;
+  });
 };

@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { ImMenu } from "react-icons/im";
 import { FaXmark } from "react-icons/fa6";
 
-const Navbar: React.FC = () => {
+const Navbar: React.FC = React.memo(() => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
 
   const toggleOpen = () => {
@@ -46,17 +46,20 @@ const Navbar: React.FC = () => {
         <ImMenu
           className="md:hidden flex text-4xl text-red-600"
           onClick={toggleOpen}
+          aria-label="Open menu"
         />
 
         {isOpen && (
           <div
             className="absolute top-0 left-0 w-full h-dvh bg-black/20 md:hidden"
             onClick={toggleOpen}
+            aria-label="Close menu"
           >
             <div
               className={`bg-white absolute left-0 top-0 bottom-0 px-8 py-5 flex flex-col gap-10 items-end scale-x-0 origin-left ${
                 isOpen && "animate-menu-open"
               }`}
+              onClick={(event) => event.stopPropagation()}
             >
               <div
                 className={`flex justify-between w-full opacity-0 ${
@@ -66,24 +69,33 @@ const Navbar: React.FC = () => {
                 <Link
                   to="/"
                   className="flex gap-0 items-center justify-center "
+                  onClick={toggleOpen}
                 >
                   <img src="/favicon.svg" className="w-7 md:w-14" />
                   <h2 className="font-bold text-red-600 text-2xl flex ">HNB</h2>
                 </Link>
-                <FaXmark className="text-4xl text-red-600" />
+                <FaXmark
+                  className="text-4xl text-red-600"
+                  onClick={toggleOpen}
+                  aria-label="Close menu"
+                />
               </div>
               <div
                 className={`flex flex-col gap-2 opacity-0 ${
                   isOpen && "animate-menu-links-open"
                 }`}
               >
-                <Link to="/" className="text-lg py-3">
+                <Link to="/" className="text-lg py-3" onClick={toggleOpen}>
                   Početna
                 </Link>
-                <Link to="/tecaj" className="text-lg py-3">
+                <Link to="/tecaj" className="text-lg py-3" onClick={toggleOpen}>
                   Pregledaj tečajeve
                 </Link>
-                <Link to="/povijest/USD" className="text-lg py-3">
+                <Link
+                  to="/povijest/USD"
+                  className="text-lg py-3"
+                  onClick={toggleOpen}
+                >
                   Povijest tečaja za USD
                 </Link>
               </div>
@@ -93,6 +105,6 @@ const Navbar: React.FC = () => {
       </div>
     </nav>
   );
-};
+});
 
 export default Navbar;
