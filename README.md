@@ -54,16 +54,19 @@ If you want to run the app locally, do the following:
 #### 1. Clone the repository <a name="clone" />
 
 - HTTPS:
+
 ```bash
 git clone https://github.com/Zack1808/hnb-exchange-rate-lists.git
 ```
 
 - SSH:
+
 ```bash
 git clone git@github.com:Zack1808/hnb-exchange-rate-lists.git
 ```
 
 - Git CLI:
+
 ```bash
 gh repo clone Zack1808/hnb-exchange-rate-lists
 ```
