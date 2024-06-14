@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Home from "./pages/Home";
 import ExchangeRatePage from "./pages/ExchangeRatePage";
 import HistoryRatePage from "./pages/HistoryRatePage";
+import PageNotFound from "./pages/PageNotFound";
 
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
@@ -17,6 +18,8 @@ const App: React.FC = () => {
         <Route path="/tecaj" element={<ExchangeRatePage />} />
         <Route path="/povijest/:currency" element={<HistoryRatePage />} />
         <Route path="/povijest/:currency/:date" element={<HistoryRatePage />} />
+
+        <Route path="*" element={<PageNotFound />} />
       </Routes>
       <Footer />
     </BrowserRouter>
