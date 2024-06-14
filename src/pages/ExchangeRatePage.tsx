@@ -113,6 +113,9 @@ const ExchangeRatePage: React.FC = () => {
         <p className="text-lg text-gray-800">
           Ovdje se prikazuju samo tečajne liste od uvođenja eura (01.01.2023).
           Podaci prije 01.01.2023 se neće prikazivati.
+          <br />
+          Također pritiskom na valutu u tablici možete otvoriti povjest tečaja
+          odabrane valute sa odabranim datumom.
         </p>
         <form
           className="flex flex-col mt-5 gap-1 w-full md:max-w-xl justify-between"

@@ -114,7 +114,7 @@ const Table: React.FC<TableProps> = ({
             </tr>
           </thead>
 
-          <tbody>
+          <tbody className="divide-y">
             {filteredData.map((row, rowIndex) => (
               <tr key={rowIndex} className="divide-x divide-gray-300">
                 {headers.map((header, colIndex) => (

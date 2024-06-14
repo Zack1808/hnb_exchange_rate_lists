@@ -133,8 +133,8 @@ const HistoryRatePage: React.FC = () => {
       Number(data[index].srednji_tecaj.replace(",", "")) >
       Number(data[index + 1].srednji_tecaj.replace(",", ""))
     )
-      return index % 2 === 0 ? "bg-green-400" : "bg-green-300";
-    return index % 2 === 0 ? "bg-red-400" : "bg-red-500";
+      return "bg-green-400";
+    return "bg-red-400";
   };
 
   useEffect(() => {
