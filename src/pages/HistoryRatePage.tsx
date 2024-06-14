@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 
-import Container from "../components/Container";
-import DatePicker from "../components/DatePicker";
-import Button from "../components/Button";
-import Input from "../components/Input";
-import Table from "../components/Table";
-import Loader from "../components/Loader";
+import {
+  Container,
+  DatePicker,
+  Button,
+  Input,
+  Table,
+  Loader,
+} from "../components";
 
 import {
   getFormatedCurrentDate,

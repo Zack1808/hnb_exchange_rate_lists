@@ -3,7 +3,7 @@ import { TableProps } from "../interfaces/components";
 import { FaCaretDown, FaCaretUp } from "react-icons/fa";
 import { Link } from "react-router-dom";
 
-import Input from "./Input";
+import { Input } from "./";
 
 import { sort } from "../helpers/sortData";
 

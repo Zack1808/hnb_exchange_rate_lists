@@ -1,13 +1,9 @@
 import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
-import Home from "./pages/Home";
-import ExchangeRatePage from "./pages/ExchangeRatePage";
-import HistoryRatePage from "./pages/HistoryRatePage";
-import PageNotFound from "./pages/PageNotFound";
+import { PageNotFound, ExchangeRatePage, HistoryRatePage, Home } from "./pages";
 
-import Navbar from "./components/Navbar";
-import Footer from "./components/Footer";
+import { Navbar, Footer } from "./components";
 
 const App: React.FC = () => {
   return (

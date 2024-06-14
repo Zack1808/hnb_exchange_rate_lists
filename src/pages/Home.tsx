@@ -1,9 +1,7 @@
 import React, { useRef } from "react";
 import { Link } from "react-router-dom";
 
-import HeroContainer from "../components/HeroContainer";
-import Button from "../components/Button";
-import Container from "../components/Container";
+import { Container, HeroContainer, Button } from "../components";
 
 import { scrollIntoView } from "../helpers/scrollIntoView";
 
@@ -62,7 +60,7 @@ const Home: React.FC = () => {
           </p>
 
           <Link to="/povijest/USD">
-            <Button primary>Projverite tečaj</Button>
+            <Button primary>Provjerite tečaj</Button>
           </Link>
         </div>
       </Container>

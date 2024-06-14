@@ -1,7 +1,7 @@
 import React, { useCallback } from "react";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa6";
 
-import Button from "./Button";
+import { Button } from "./";
 
 import { changeDateByDays } from "../helpers/getFormatedDates";
 
