@@ -177,6 +177,8 @@ const HistoryRatePage: React.FC = () => {
           <br />
           Također mogu se prikazat podaci do 60 dana unazad od odabranog datuma,
           sve do 01.01.2023.
+          <br />
+          Tečaj je iskazan za 1 EUR.
         </p>
         <form
           className="flex mt-5 gap-5 w-full justify-start items-end flex-col md:flex-row md"

@@ -112,6 +112,8 @@ const ExchangeRatePage: React.FC = () => {
           <br />
           Također pritiskom na valutu u tablici možete otvoriti povjest tečaja
           odabrane valute sa odabranim datumom.
+          <br />
+          Tečaj je iskazan za 1 EUR.
         </p>
         <form
           className="flex flex-col mt-5 gap-1 w-full md:max-w-xl justify-between"
