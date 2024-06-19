@@ -1,0 +1,42 @@
+name: Greeting and assigning to repository owner
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened]
+  issues:
+    types: [opened]
+
+jobs:
+  greeting-contributers:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Greet new contributers
+        uses: actions/github-script@v5
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const comment = "Welcome to the HNB exchange rate lists repository. Thank you for contributing!!!";
+            github.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment,
+            });
+        if: github.event_name == 'pull_request' || github.event_name == 'issues'
+
+  assign-to-owner:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Assign any pull request and issues to the owner of the repository
+        uses: actions/github-script@v5
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            github.issues.addAssignees({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo
+              assignees: [context.repo.owner]
+            });
+        if: github.event_name == 'pull_request' || github.event_name == 'issues'

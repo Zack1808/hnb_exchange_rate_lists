@@ -8,7 +8,6 @@
 - [how to run the app locally](#local)
   - [Clone the repository](#clone)
   - [Enter project directory](#dir)
-  - [Change the branch](#branch)
   - [Install dependencies](#dependencies)
   - [Start app](#start)
 - [Contribution](#contrib)
@@ -77,19 +76,32 @@ gh repo clone Zack1808/hnb-exchange-rate-lists
 cd hnb-exchange-rate-lists
 ```
 
-#### 3. Change the branch <a name="branch" />
-
-```bash
-git checkout prebuild
+#### 3. Install dependencies <a name="dependencies" />
+=======
 ```
 
-#### 4. Install dependencies <a name="dependencies" />
+- Git CLI:
+
+```bash
+gh repo clone Zack1808/hnb-exchange-rate-lists
+```
+
+#### 2. Enter project directory <a name="dir" />
+
+```bash
+cd hnb-exchange-rate-lists
+```
+
+#### 3. Install dependencies <a name="dependencies" />
+
 
 ```bash
 npm install
 ```
 
-#### 5. Start app <a name="start" />
+
+#### 4. Start app <a name="start" />
+
 
 ```bash
 npm start
