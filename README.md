@@ -77,12 +77,31 @@ cd hnb-exchange-rate-lists
 ```
 
 #### 3. Install dependencies <a name="dependencies" />
+=======
+```
+
+- Git CLI:
+
+```bash
+gh repo clone Zack1808/hnb-exchange-rate-lists
+```
+
+#### 2. Enter project directory <a name="dir" />
+
+```bash
+cd hnb-exchange-rate-lists
+```
+
+#### 3. Install dependencies <a name="dependencies" />
+
 
 ```bash
 npm install
 ```
 
+
 #### 4. Start app <a name="start" />
+
 
 ```bash
 npm start
