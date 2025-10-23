@@ -78,14 +78,11 @@ cd hnb-exchange-rate-lists
 
 #### 3. Install dependencies <a name="dependencies" />
 
-
 ```bash
 npm install
 ```
 
-
 #### 4. Start app <a name="start" />
-
 
 ```bash
 npm start
@@ -103,5 +100,5 @@ Contributions to the project are welcome. If you find any issues or want to add 
 
 ## Contact <a name="contact" />
 
-- Mail: jeanpierrenovak23@gmail.com
-- My portfolio: [jeanpierrenovak.netlify.app](https://jeanpierrenovak.netlify.app)
+- Mail: jeanpierrenovak25@gmail.com
+- My portfolio: [jeanpierrenovak.from.hr](https://jeanpierrenovak.from.hr)
