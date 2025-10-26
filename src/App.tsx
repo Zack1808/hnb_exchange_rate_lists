@@ -6,9 +6,12 @@ import ExchangeRate from "./pages/ExchangeRate";
 import ExchangeHistory from "./pages/ExchangeHistory";
 import PageNotFound from "./pages/PageNotFound";
 
+import Navigation from "./components/layout/Navigation";
+
 const App: React.FC = () => {
   return (
     <BrowserRouter>
+      <Navigation />
       <main>
         <Routes>
           <Route path="/" element={<Home />} />
