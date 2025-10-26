@@ -7,6 +7,7 @@ import ExchangeHistory from "./pages/ExchangeHistory";
 import PageNotFound from "./pages/PageNotFound";
 
 import Navigation from "./components/layout/Navigation";
+import Footer from "./components/layout/Footer";
 
 const App: React.FC = () => {
   return (
@@ -20,6 +21,7 @@ const App: React.FC = () => {
           <Route path="*" element={<PageNotFound />} />
         </Routes>
       </main>
+      <Footer />
     </BrowserRouter>
   );
 };
