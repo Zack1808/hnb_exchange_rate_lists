@@ -9,20 +9,24 @@ import PageNotFound from "./pages/PageNotFound";
 import Navigation from "./components/layout/Navigation";
 import Footer from "./components/layout/Footer";
 
+import BaseExchangeRateProvider from "./context/BaseExchangeRateContext";
+
 const App: React.FC = () => {
   return (
-    <BrowserRouter>
-      <Navigation />
-      <main>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/tecaj" element={<ExchangeRate />} />
-          <Route path="/povijest" element={<ExchangeHistory />} />
-          <Route path="*" element={<PageNotFound />} />
-        </Routes>
-      </main>
-      <Footer />
-    </BrowserRouter>
+    <BaseExchangeRateProvider>
+      <BrowserRouter>
+        <Navigation />
+        <main>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/tecaj" element={<ExchangeRate />} />
+            <Route path="/povijest" element={<ExchangeHistory />} />
+            <Route path="*" element={<PageNotFound />} />
+          </Routes>
+        </main>
+        <Footer />
+      </BrowserRouter>
+    </BaseExchangeRateProvider>
   );
 };
 
