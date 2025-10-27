@@ -11,7 +11,7 @@ const Hero: React.FC<React.HTMLAttributes<HTMLElement>> = React.memo(
       <section className={sectionClasses} {...rest}>
         <article
           className="w-full max-w-screen-2xl flex items-center justify-between
-         gap-5"
+         gap-5 p-5"
         >
           {children}
         </article>
