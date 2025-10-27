@@ -72,7 +72,7 @@ const Navigation: React.FC = React.memo(() => {
 
         <nav ref={navRef} className={navClasses} onClick={handleClick}>
           <div
-            className={`flex flex-col md:flex-row bg-white h-dvh md:h-auto w-fit p-3 md:p-0  origin-right`}
+            className={`flex flex-col md:flex-row bg-white h-dvh md:h-auto w-fit p-3 md:p-0 origin-right`}
           >
             <Button onClick={toggleOpen} className={closeButtonClasses}>
               <FaXmark

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState, useRef } from "react";
 
 import Hero from "../components/layout/Hero";
 import Container from "../components/layout/Container";
@@ -15,6 +15,8 @@ import { useBaseExchangeRate } from "../context/BaseExchangeRateContext";
 const Home: React.FC = React.memo(() => {
   const [chartData, setChartData] = useState<Record<string, string>[]>([]);
   const [currency, setCurrency] = useState<string>("");
+
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const { getCurrencyHistory, loading } = useGetListings();
   const { getCurrency, convertToChartData } = useChartData();
@@ -34,6 +36,14 @@ const Home: React.FC = React.memo(() => {
 
     setChartData(data);
   }, [baseData]);
+
+  const handleHeroButtonClick = useCallback(() => {
+    if (!containerRef.current) return;
+
+    containerRef.current.scrollIntoView({
+      behavior: "smooth",
+    });
+  }, []);
 
   useEffect(() => {
     const fetch = () => {
@@ -65,7 +75,11 @@ const Home: React.FC = React.memo(() => {
             Svi službeni tečajevi Hrvatske narodne banke na jednom mjestu
           </p>
 
-          <Button variant="primary" className="mt-6">
+          <Button
+            variant="primary"
+            className="mt-6"
+            onClick={handleHeroButtonClick}
+          >
             Saznajte više
           </Button>
         </div>
@@ -83,7 +97,12 @@ const Home: React.FC = React.memo(() => {
           )}
         </div>
       </Hero>
-      <Container spacing="big" hasBackground className="scroll-mt-96">
+      <Container
+        spacing="big"
+        hasBackground
+        className="scroll-mt-96"
+        ref={containerRef}
+      >
         <h2 className="text-3xl text-gray-800 font-semibold">
           Provjera trenutnog tečaja
         </h2>

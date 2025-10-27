@@ -81,8 +81,6 @@ export const useChartData = (): UseChartDataReturnProps => {
         (value: Record<string, string>) => value.valuta === curr
       );
 
-      console.log(newBaseData);
-
       if (!newBaseData.length) return newData;
 
       newData = addPercentageCalculation(
