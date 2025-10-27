@@ -1,8 +1,10 @@
 import React, { useCallback, useEffect, useState } from "react";
 
-import Hero from "../components/common/Hero";
+import Hero from "../components/layout/Hero";
+
 import Button from "../components/common/Button";
 import Chart from "../components/common/Chart";
+import Loader from "../components/common/Loader";
 
 import { useGetListings } from "../hooks/useGetListing";
 import { useChartData } from "../hooks/useChartData";
@@ -67,7 +69,9 @@ const Home: React.FC = React.memo(() => {
           </Button>
         </div>
         <div className="hidden relative xl:flex xl:flex-col w-[50%] h-[400px]">
-          {loading ? null : (
+          {loading ? (
+            <Loader />
+          ) : (
             <>
               <Chart chartData={chartData} currency={currency} />
               <small>
