@@ -2,6 +2,7 @@ import React from "react";
 
 import Hero from "../components/common/Hero";
 import Button from "../components/common/Button";
+import Chart from "../components/common/Chart";
 
 const Home: React.FC = React.memo(() => {
   return (
@@ -20,7 +21,7 @@ const Home: React.FC = React.memo(() => {
           </Button>
         </div>
         <div className="hidden relative xl:flex flex-1 h-[400px]">
-          {/* TODO - build chart component and display growth/decline of the middle rate since 1.1.2023 and growth/decline of the middle rate depending on the rate of the previous day for a randomly selected currency */}
+          <Chart chartData={[]} currency="" />
         </div>
       </Hero>
     </>
