@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 
 import Hero from "../components/layout/Hero";
+import Container from "../components/layout/Container";
 
 import Button from "../components/common/Button";
 import Chart from "../components/common/Chart";
@@ -82,6 +83,44 @@ const Home: React.FC = React.memo(() => {
           )}
         </div>
       </Hero>
+      <Container spacing="big" hasBackground className="scroll-mt-96">
+        <h2 className="text-3xl text-gray-800 font-semibold">
+          Provjera trenutnog tečaja
+        </h2>
+
+        <p className="text-lg text-gray-800 max-w-5xl">
+          Pratite najnovije tečajeve iz prve ruke. Naša tečajna lista ažurira se
+          redovito, pa uvijek znate po kojem tečaju mijenjate valutu. Donosite
+          financijske odluke s pouzdanjem.
+        </p>
+
+        <Button
+          to={`/tecaj?datum_primjene=2025-10-20`}
+          variant="primary"
+          className="mt-5"
+        >
+          Provjerite današnji tečaj
+        </Button>
+      </Container>
+      <Container spacing="big" className="scroll-mt-96">
+        <h2 className="text-3xl text-gray-800 font-semibold">
+          Pogledajte kretanje tečaja kroz vrijeme
+        </h2>
+
+        <p className="text-lg text-gray-800 max-w-5xl">
+          Istražite kako su se tečajevi mijenjali kroz vrijeme. Pratite
+          trendove, uspoređujte razdoblja i donosite informirane odluke za
+          buduće transakcije.
+        </p>
+
+        <Button
+          to={`/povijest?datum_primjene_od=2025-10-18&datum_primjene_do=2025-10-20`}
+          variant="primary"
+          className="mt-5"
+        >
+          Pogledajte povijest tečajeva
+        </Button>
+      </Container>
     </>
   );
 });
