@@ -24,9 +24,7 @@ interface UseGetListingReturnProps {
 
 type UseGetListingProps = () => UseGetListingReturnProps;
 
-export const useGetListings: UseGetListingProps = (
-  useMockData = MOCK_CONFIG.enableMockData
-) => {
+export const useGetListings: UseGetListingProps = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -35,7 +33,7 @@ export const useGetListings: UseGetListingProps = (
     setError(null);
 
     try {
-      if (useMockData) {
+      if (MOCK_CONFIG.enableMockData) {
         await new Promise((resolve) =>
           setTimeout(resolve, MOCK_CONFIG.apiDelay)
         );
@@ -54,7 +52,7 @@ export const useGetListings: UseGetListingProps = (
       setError(null);
 
       try {
-        if (useMockData) {
+        if (MOCK_CONFIG.enableMockData) {
           await new Promise((resolve) =>
             setTimeout(resolve, MOCK_CONFIG.apiDelay)
           );
@@ -66,7 +64,7 @@ export const useGetListings: UseGetListingProps = (
         setLoading(false);
       }
     },
-    [useMockData]
+    []
   );
 
   return { loading, error, getCurrencyHistory, getListing };
