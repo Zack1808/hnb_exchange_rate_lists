@@ -3,6 +3,7 @@ import React from "react";
 import Container from "../components/layout/Container";
 
 import List from "../components/common/List";
+import DatePicker from "../components/common/DatePicker";
 
 const NOTES = [
   `Svi tečajevi su iskazani za 1 EUR od uvođenja EUR <strong>(01.01.2023)</strong>.`,
@@ -10,7 +11,7 @@ const NOTES = [
   "Srednji tečajevi HNB-a nisu namijenjeni za korištenje u pravnim poslovima koji su nastali nakon uvođenja eura kao službene valute u Republici Hrvatskoj, niti bi se oni trebali koristiti, direktno ili indirektno (kao referentna vrijednost) za sklapanje bilo kojih novih pravnih poslova, već je njihovo korištenje ograničeno na pravne poslove u kojima je pozivanje na srednji tečaj HNB-a određeno prije datuma uvođenja eura, osim ako nekim propisom nije drugačije uređeno.",
   "HNB ne može biti odgovoran za korištenje podataka o srednjim tečajevima HNB-a u svrhe za koje to nije namijenjeno.",
   "Pritiskom na valutu u tablici možete provjeriti povjest tečaja odabrane valute.",
-];
+] as string[];
 
 const ExchangeRate: React.FC = React.memo(() => {
   return (
@@ -32,7 +33,7 @@ const ExchangeRate: React.FC = React.memo(() => {
 
         <List content={NOTES} listType="decimal" />
 
-        {/* TODO - Create form with custom date picker component */}
+        <DatePicker value={new Date()} />
       </Container>
       <Container spacing="medium">
         <h2 className="text-3xl md:text-3xl text-gray-800 font-bold mb-6">
