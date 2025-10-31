@@ -1,5 +1,10 @@
 import React, { useState, useCallback, useEffect, useRef } from "react";
-import { FaChevronLeft, FaChevronRight } from "react-icons/fa6";
+import {
+  FaChevronLeft,
+  FaChevronRight,
+  FaCaretUp,
+  FaCaretDown,
+} from "react-icons/fa6";
 
 import Button from "./Button";
 
@@ -27,6 +32,8 @@ interface DatePickerProps {
   };
   format?: DateFormat;
 }
+
+const DAYS = ["PON", "UTO", "SRI", "ČET", "PET", "SUB", "NED"] as const;
 
 const DatePicker: React.FC<DatePickerProps> = React.memo(
   ({
@@ -80,6 +87,41 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
       resetDatePickerState();
     }, [resetDatePickerState]);
 
+    const generateDayButtons = useCallback(() => {
+      const month = value.getMonth();
+      const year = value.getFullYear();
+
+      let days: Record<string, boolean | number>[] = [];
+
+      const prevMonthDaysAmount = new Date(year, month, 0).getDay();
+      const currMonthDaysAmount = new Date(year, month + 1, 0).getDate();
+      const nextMonthDaysAmount =
+        42 - (prevMonthDaysAmount + currMonthDaysAmount);
+
+      for (let i = 0; i < prevMonthDaysAmount; i++)
+        days = [...days, { value: i + 1, isActiveMonth: false }];
+      for (let i = 0; i < currMonthDaysAmount; i++)
+        days = [...days, { value: i + 1, isActiveMonth: true }];
+      for (let i = 0; i < nextMonthDaysAmount; i++)
+        days = [...days, { value: i + 1, isActiveMonth: false }];
+
+      return days.map(
+        (item: Record<string, boolean | number>, index: number) => (
+          <button
+            type="button"
+            key={index}
+            className={`aspect-square cursor-pointer transition ${
+              item.isActiveMonth
+                ? "hover:bg-red-400"
+                : "bg-gray-100 text-gray-400 hover:bg-red-200"
+            }`}
+          >
+            {item.value}
+          </button>
+        )
+      );
+    }, [value]);
+
     useEffect(() => {
       const handleOutsideClick = (event: MouseEvent): void => {
         if (!datePickerRef.current?.contains(event.target as Node))
@@ -102,6 +144,7 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
             aria-label="Odaberi prijašnji dan"
             disabled={disabled}
             aria-disabled={disabled}
+            type="button"
           >
             <FaChevronLeft />
           </Button>
@@ -124,6 +167,7 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
             aria-label="Odaberi slijedeći dan"
             disabled={disabled}
             aria-disabled={disabled}
+            type="button"
           >
             <FaChevronRight />
           </Button>
@@ -140,12 +184,44 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
         >
           <div
             ref={datePickerRef}
-            className="relative flex flex-col bg-white border border-gray-300 p-3 rounded-sm w-full transition shadow-lg"
+            className="flex flex-col bg-white border border-gray-300  rounded-sm w-full transition shadow-lg"
             role="dialog"
             aria-modal="true"
             aria-label="Kalendar"
             hidden={!isOpen}
-          ></div>
+          >
+            <div className="flex items-center justify-between">
+              <Button
+                type="button"
+                className="text-red-600 max-w-none flex-1 flex items-center justify-between hover:bg-gray-100"
+              >
+                Listopad <FaCaretDown />
+              </Button>
+              <Button
+                type="button"
+                className="text-red-600 max-w-none flex-1 flex items-center justify-between hover:bg-gray-100"
+              >
+                2025
+                <FaCaretDown />
+              </Button>
+            </div>
+
+            <div className="p-2 relative">
+              <div className="flex-1">
+                <div className="grid grid-cols-7 border-b border-gray-300">
+                  {DAYS.map((day: string) => (
+                    <small
+                      className="text-red-600 font-bold text-center pointer-events-none mt-3 mb-2"
+                      key={day}
+                    >
+                      {day}
+                    </small>
+                  ))}
+                </div>
+                <div className="grid grid-cols-7">{generateDayButtons()}</div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     );
