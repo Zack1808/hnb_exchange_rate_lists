@@ -21,7 +21,7 @@ type DateFormat =
 
 interface DatePickerProps {
   value: Date;
-  onChange?: (date: Date) => void;
+  onChange?: React.Dispatch<React.SetStateAction<Date>>;
   min?: Date;
   max?: Date;
   disabled?: boolean;
@@ -34,6 +34,20 @@ interface DatePickerProps {
 }
 
 const DAYS = ["PON", "UTO", "SRI", "ČET", "PET", "SUB", "NED"] as const;
+const MONTHS = [
+  "Sječanj",
+  "Veljača",
+  "Ožujak",
+  "Travanj",
+  "Svibanj",
+  "Lipanj",
+  "Srpanj",
+  "Kolovoz",
+  "Rujan",
+  "Listopad",
+  "Studeni",
+  "Prosinac",
+] as const;
 
 const DatePicker: React.FC<DatePickerProps> = React.memo(
   ({
@@ -47,6 +61,9 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
     format = "DD.MM.YYYY",
   }) => {
     const [isOpen, setIsOpen] = useState<boolean>(true);
+    const [selectYearOrMonth, setSelectYearOrMonth] = useState<
+      null | "month" | "year"
+    >(null);
 
     const datePickerRef = useRef<HTMLDivElement>(null);
 
@@ -63,7 +80,7 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
 
         return newDate;
       },
-      []
+      [value]
     );
 
     const resetDatePickerState = useCallback((): void => {
@@ -75,6 +92,15 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
         event.stopPropagation();
 
         setIsOpen((prevState) => !prevState);
+      },
+      []
+    );
+
+    const handleYearOrMonthButtonClick = useCallback(
+      (selection: "month" | "year") => {
+        setSelectYearOrMonth((prevState) => {
+          return prevState === selection ? null : selection;
+        });
       },
       []
     );
@@ -91,36 +117,88 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
       const month = value.getMonth();
       const year = value.getFullYear();
 
-      let days: Record<string, boolean | number>[] = [];
+      let days: Record<string, boolean | number | Date>[] = [];
 
       const prevMonthDaysAmount = new Date(year, month, 0).getDay();
+      const prevMonthLastDate = new Date(year, month, 0).getDate();
       const currMonthDaysAmount = new Date(year, month + 1, 0).getDate();
       const nextMonthDaysAmount =
         42 - (prevMonthDaysAmount + currMonthDaysAmount);
 
-      for (let i = 0; i < prevMonthDaysAmount; i++)
-        days = [...days, { value: i + 1, isActiveMonth: false }];
+      for (let i = prevMonthDaysAmount - 1; i >= 0; i--)
+        days = [
+          ...days,
+          {
+            value: prevMonthLastDate - i,
+            isActiveMonth: false,
+            dateValue: new Date(year, month - 1, prevMonthLastDate - i),
+          },
+        ];
       for (let i = 0; i < currMonthDaysAmount; i++)
-        days = [...days, { value: i + 1, isActiveMonth: true }];
+        days = [
+          ...days,
+          {
+            value: i + 1,
+            isActiveMonth: true,
+            dateValue: new Date(year, month, i + 1),
+          },
+        ];
       for (let i = 0; i < nextMonthDaysAmount; i++)
-        days = [...days, { value: i + 1, isActiveMonth: false }];
+        days = [
+          ...days,
+          {
+            value: i + 1,
+            isActiveMonth: false,
+            dateValue: new Date(year, month + 1, i + 1),
+          },
+        ];
 
       return days.map(
-        (item: Record<string, boolean | number>, index: number) => (
+        (item: Record<string, boolean | number | Date>, index: number) => (
           <button
             type="button"
             key={index}
             className={`aspect-square cursor-pointer transition ${
               item.isActiveMonth
-                ? "hover:bg-red-400"
+                ? "hover:bg-red-400 hover:text-white"
                 : "bg-gray-100 text-gray-400 hover:bg-red-200"
+            } ${
+              (item.dateValue as Date).toDateString() === value.toDateString()
+                ? "bg-red-600 text-white"
+                : ""
             }`}
           >
-            {item.value}
+            {item.value as number}
           </button>
         )
       );
     }, [value]);
+
+    const genearteMonthButtons = useCallback(() => {
+      const handleClick = (index: number) => {
+        onChange &&
+          onChange((prevState: Date) => {
+            prevState.setMonth(index);
+
+            return prevState;
+          });
+
+        setTimeout(() => setSelectYearOrMonth(null));
+      };
+
+      return MONTHS.map((month: string, index: number) => (
+        <button
+          type="button"
+          key={month}
+          className={`hover:bg-red-400 hover:text-white p-3 cursor-pointer transition ${
+            value.getMonth() === index ? "bg-red-600 text-white" : ""
+          }`}
+          onClick={() => handleClick(index)}
+        >
+          {month}
+        </button>
+      ));
+    }, [MONTHS]);
 
     useEffect(() => {
       const handleOutsideClick = (event: MouseEvent): void => {
@@ -194,8 +272,14 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
               <Button
                 type="button"
                 className="text-red-600 max-w-none flex-1 flex items-center justify-between hover:bg-gray-100"
+                onClick={() => handleYearOrMonthButtonClick("month")}
               >
-                Listopad <FaCaretDown />
+                {MONTHS[value.getMonth()]}{" "}
+                {selectYearOrMonth === "month" ? (
+                  <FaCaretUp />
+                ) : (
+                  <FaCaretDown />
+                )}
               </Button>
               <Button
                 type="button"
@@ -220,6 +304,14 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
                 </div>
                 <div className="grid grid-cols-7">{generateDayButtons()}</div>
               </div>
+
+              {selectYearOrMonth ? (
+                <div className="absolute inset-0 bg-white grid grid-cols-3 items-center">
+                  {selectYearOrMonth === "month"
+                    ? genearteMonthButtons()
+                    : null}
+                </div>
+              ) : null}
             </div>
           </div>
         </div>

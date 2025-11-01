@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 
 import Container from "../components/layout/Container";
 
@@ -14,6 +14,8 @@ const NOTES = [
 ] as string[];
 
 const ExchangeRate: React.FC = React.memo(() => {
+  const [date, setDate] = useState<Date>(new Date());
+
   return (
     <>
       <Container spacing="medium">
@@ -33,7 +35,7 @@ const ExchangeRate: React.FC = React.memo(() => {
 
         <List content={NOTES} listType="decimal" />
 
-        <DatePicker value={new Date()} />
+        <DatePicker value={date} onChange={setDate} />
       </Container>
       <Container spacing="medium">
         <h2 className="text-3xl md:text-3xl text-gray-800 font-bold mb-6">
