@@ -178,6 +178,11 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
             key={index}
             onClick={() => handleClick(item.dateValue as Date)}
             className={`aspect-square cursor-pointer transition ${
+              (item.dateValue as Date).toDateString() ===
+              new Date().toDateString()
+                ? "inset-ring-2 ring-red-500 text-red-500"
+                : ""
+            } ${
               item.isActiveMonth
                 ? "hover:bg-red-400 hover:text-white"
                 : "bg-gray-100 text-gray-400 hover:bg-red-200"
@@ -278,13 +283,13 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
         </div>
 
         <div
-          className={`absolute top-full right-0 left-0 mt-0.5 bg-black/40 sm:bg-transparent z-50 ${
+          className={`absolute top-full right-0 left-0 mt-0.5 bg-black/40 sm:bg-transparent z-50 flex justify-center ${
             isOpen ? "opacity-100 visible" : "opacity-0 invisible"
           }`}
         >
           <div
             ref={datePickerRef}
-            className="flex flex-col bg-white border border-gray-300  rounded-sm w-full transition shadow-lg p-2"
+            className="flex flex-col bg-white border border-gray-300 rounded-sm w-full max-w-sm transition shadow-lg p-2"
             role="dialog"
             aria-modal="true"
             aria-label="Kalendar"
