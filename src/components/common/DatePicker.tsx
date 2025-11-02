@@ -607,7 +607,7 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
     }, [isOpen, selectYearOrMonth, value]);
 
     return (
-      <div className="relative">
+      <div className="relative flex-1">
         <div className="flex border border-gray-300 bg-white rounded-sm focus-within:ring-1 ring-red-300">
           <Button
             className="text-red-600 py-3 hover:bg-gray-100"

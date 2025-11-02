@@ -4,6 +4,7 @@ import Container from "../components/layout/Container";
 
 import List from "../components/common/List";
 import DatePicker from "../components/common/DatePicker";
+import Button from "../components/common/Button";
 
 const NOTES = [
   `Svi tečajevi su iskazani za 1 EUR od uvođenja EUR <strong>(01.01.2023)</strong>.`,
@@ -35,12 +36,24 @@ const ExchangeRate: React.FC = React.memo(() => {
 
         <List content={NOTES} listType="decimal" />
 
-        <DatePicker
-          value={date}
-          onChange={setDate}
-          min={new Date(2023, 0, 1)}
-          max={new Date()}
-        />
+        <form className="w-full sm:w-xl flex flex-col gap-3 mt-6">
+          <label
+            htmlFor="datepicker"
+            className="text-lg text-red-600 font-bold"
+          >
+            Datum primjene
+          </label>
+          <div className="flex gap-3 w-full">
+            <DatePicker
+              value={date}
+              onChange={setDate}
+              min={new Date(2023, 0, 1)}
+              max={new Date()}
+              id="datepicker"
+            />
+            <Button variant="primary">Prikaži listu</Button>
+          </div>
+        </form>
       </Container>
       <Container spacing="medium">
         <h2 className="text-3xl md:text-3xl text-gray-800 font-bold mb-6">
