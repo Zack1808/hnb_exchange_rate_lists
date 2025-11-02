@@ -60,7 +60,7 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
     selectedRange,
     format = "DD.MM.YYYY",
   }) => {
-    const [isOpen, setIsOpen] = useState<boolean>(true);
+    const [isOpen, setIsOpen] = useState<boolean>(false);
     const [selectYearOrMonth, setSelectYearOrMonth] = useState<
       null | "month" | "year"
     >(null);
@@ -80,24 +80,28 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
 
         return newDate;
       },
-      [value]
+      []
     );
 
     const resetDatePickerState = useCallback((): void => {
-      isOpen && setIsOpen(false);
-    }, [isOpen]);
+      setSelectYearOrMonth(null);
+      setIsOpen(false);
+    }, []);
 
     const handleToggleDatePicker = useCallback(
       (event: React.MouseEvent): void => {
         event.stopPropagation();
 
-        setIsOpen((prevState) => !prevState);
+        setIsOpen((prevState) => {
+          !prevState && setSelectYearOrMonth(null);
+          return !prevState;
+        });
       },
       []
     );
 
     const handleYearOrMonthButtonClick = useCallback(
-      (selection: "month" | "year") => {
+      (selection: "month" | "year"): void => {
         setSelectYearOrMonth((prevState) => {
           return prevState === selection ? null : selection;
         });
@@ -105,27 +109,28 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
       []
     );
 
-    const incrementDate = useCallback(() => {
+    const incrementDate = useCallback((): void => {
       resetDatePickerState();
     }, [resetDatePickerState]);
 
-    const decrementDate = useCallback(() => {
+    const decrementDate = useCallback((): void => {
       resetDatePickerState();
     }, [resetDatePickerState]);
 
-    const generateDayButtons = useCallback(() => {
+    const generateDayButtons = useCallback((): React.ReactNode => {
       const month = value.getMonth();
       const year = value.getFullYear();
 
       let days: Record<string, boolean | number | Date>[] = [];
 
-      const prevMonthDaysAmount = new Date(year, month, 0).getDay();
+      const firstDayOfMonth = new Date(year, month, 1).getDay();
+      const firstDayMondayBased =
+        firstDayOfMonth === 0 ? 6 : firstDayOfMonth - 1;
+
       const prevMonthLastDate = new Date(year, month, 0).getDate();
       const currMonthDaysAmount = new Date(year, month + 1, 0).getDate();
-      const nextMonthDaysAmount =
-        42 - (prevMonthDaysAmount + currMonthDaysAmount);
 
-      for (let i = prevMonthDaysAmount - 1; i >= 0; i--)
+      for (let i = firstDayMondayBased - 1; i >= 0; i--) {
         days = [
           ...days,
           {
@@ -134,7 +139,9 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
             dateValue: new Date(year, month - 1, prevMonthLastDate - i),
           },
         ];
-      for (let i = 0; i < currMonthDaysAmount; i++)
+      }
+
+      for (let i = 0; i < currMonthDaysAmount; i++) {
         days = [
           ...days,
           {
@@ -143,7 +150,12 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
             dateValue: new Date(year, month, i + 1),
           },
         ];
-      for (let i = 0; i < nextMonthDaysAmount; i++)
+      }
+
+      const totalDaysShown = days.length;
+      const nextMonthDaysAmount = 42 - totalDaysShown;
+
+      for (let i = 0; i < nextMonthDaysAmount; i++) {
         days = [
           ...days,
           {
@@ -152,12 +164,19 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
             dateValue: new Date(year, month + 1, i + 1),
           },
         ];
+      }
+
+      const handleClick = (date: Date): void => {
+        onChange?.(date);
+        resetDatePickerState();
+      };
 
       return days.map(
         (item: Record<string, boolean | number | Date>, index: number) => (
           <button
             type="button"
             key={index}
+            onClick={() => handleClick(item.dateValue as Date)}
             className={`aspect-square cursor-pointer transition ${
               item.isActiveMonth
                 ? "hover:bg-red-400 hover:text-white"
@@ -172,18 +191,20 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
           </button>
         )
       );
-    }, [value]);
+    }, [value, onChange, resetDatePickerState]);
 
-    const genearteMonthButtons = useCallback(() => {
-      const handleClick = (index: number) => {
-        onChange &&
-          onChange((prevState: Date) => {
-            prevState.setMonth(index);
+    const generateMonthButtons = useCallback((): React.ReactNode => {
+      const handleClick = (index: number, event: React.MouseEvent): void => {
+        event.stopPropagation();
 
-            return prevState;
-          });
+        onChange?.((prevState: Date) => {
+          const newDate = new Date(prevState);
+          newDate.setMonth(index);
 
-        setTimeout(() => setSelectYearOrMonth(null));
+          return newDate;
+        });
+
+        setSelectYearOrMonth(null);
       };
 
       return MONTHS.map((month: string, index: number) => (
@@ -193,17 +214,18 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
           className={`hover:bg-red-400 hover:text-white p-3 cursor-pointer transition ${
             value.getMonth() === index ? "bg-red-600 text-white" : ""
           }`}
-          onClick={() => handleClick(index)}
+          onClick={(event) => handleClick(index, event)}
         >
           {month}
         </button>
       ));
-    }, [MONTHS]);
+    }, [value, onChange]);
 
     useEffect(() => {
       const handleOutsideClick = (event: MouseEvent): void => {
-        if (!datePickerRef.current?.contains(event.target as Node))
+        if (!datePickerRef.current?.contains(event.target as Node)) {
           resetDatePickerState();
+        }
       };
 
       document.addEventListener("click", handleOutsideClick);
@@ -211,7 +233,7 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
       return (): void => {
         document.removeEventListener("click", handleOutsideClick);
       };
-    }, []);
+    }, [resetDatePickerState]);
 
     return (
       <div className="relative">
@@ -262,7 +284,7 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
         >
           <div
             ref={datePickerRef}
-            className="flex flex-col bg-white border border-gray-300  rounded-sm w-full transition shadow-lg"
+            className="flex flex-col bg-white border border-gray-300  rounded-sm w-full transition shadow-lg p-2"
             role="dialog"
             aria-modal="true"
             aria-label="Kalendar"
@@ -290,7 +312,7 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
               </Button>
             </div>
 
-            <div className="p-2 relative">
+            <div className="relative">
               <div className="flex-1">
                 <div className="grid grid-cols-7 border-b border-gray-300">
                   {DAYS.map((day: string) => (
@@ -302,13 +324,15 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
                     </small>
                   ))}
                 </div>
-                <div className="grid grid-cols-7">{generateDayButtons()}</div>
+                <div className="grid grid-cols-7 rounded-sm overflow-hidden">
+                  {generateDayButtons()}
+                </div>
               </div>
 
               {selectYearOrMonth ? (
-                <div className="absolute inset-0 bg-white grid grid-cols-3 items-center">
+                <div className="absolute inset-0 bg-white grid grid-cols-3 items-center ">
                   {selectYearOrMonth === "month"
-                    ? genearteMonthButtons()
+                    ? generateMonthButtons()
                     : null}
                 </div>
               ) : null}
