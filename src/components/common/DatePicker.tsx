@@ -93,7 +93,7 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
       setIsOpen(false);
     }, []);
 
-    const updateDateWithKeypress = useCallback(
+    const updateDate = useCallback(
       (dateSegment: "day" | "month" | "year", ammount: number): void => {
         onChange?.((prevState) => {
           const newDate = new Date(prevState);
@@ -141,11 +141,11 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
             break;
           case "ArrowUp":
             event.preventDefault();
-            updateDateWithKeypress("day", 1);
+            updateDate("day", 1);
             break;
           case "ArrowDown":
             event.preventDefault();
-            updateDateWithKeypress("day", -1);
+            updateDate("day", -1);
             break;
         }
       },
@@ -163,11 +163,13 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
 
     const incrementDate = useCallback((): void => {
       resetDatePickerState();
-    }, [resetDatePickerState]);
+      updateDate("day", 1);
+    }, [resetDatePickerState, updateDate]);
 
     const decrementDate = useCallback((): void => {
       resetDatePickerState();
-    }, [resetDatePickerState]);
+      updateDate("day", -1);
+    }, [resetDatePickerState, updateDate]);
 
     const generateDayButtons = useCallback((): React.ReactNode => {
       const month = value.getMonth();
@@ -228,19 +230,19 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
         switch (event.key) {
           case "ArrowUp":
             event.preventDefault();
-            updateDateWithKeypress("day", -7);
+            updateDate("day", -7);
             break;
           case "ArrowDown":
             event.preventDefault();
-            updateDateWithKeypress("day", 7);
+            updateDate("day", 7);
             break;
           case "ArrowLeft":
             event.preventDefault();
-            updateDateWithKeypress("day", -1);
+            updateDate("day", -1);
             break;
           case "ArrowRight":
             event.preventDefault();
-            updateDateWithKeypress("day", 1);
+            updateDate("day", 1);
             break;
           case "Escape":
             resetDatePickerState();
@@ -302,19 +304,19 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
         switch (event.key) {
           case "ArrowUp":
             event.preventDefault();
-            updateDateWithKeypress("month", -3);
+            updateDate("month", -3);
             break;
           case "ArrowDown":
             event.preventDefault();
-            updateDateWithKeypress("month", 3);
+            updateDate("month", 3);
             break;
           case "ArrowLeft":
             event.preventDefault();
-            updateDateWithKeypress("month", -1);
+            updateDate("month", -1);
             break;
           case "ArrowRight":
             event.preventDefault();
-            updateDateWithKeypress("month", 1);
+            updateDate("month", 1);
             break;
           case "Escape":
             resetDatePickerState();
@@ -372,19 +374,19 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
         switch (event.key) {
           case "ArrowUp":
             event.preventDefault();
-            updateDateWithKeypress("year", -3);
+            updateDate("year", -3);
             break;
           case "ArrowDown":
             event.preventDefault();
-            updateDateWithKeypress("year", 3);
+            updateDate("year", 3);
             break;
           case "ArrowLeft":
             event.preventDefault();
-            updateDateWithKeypress("year", -1);
+            updateDate("year", -1);
             break;
           case "ArrowRight":
             event.preventDefault();
-            updateDateWithKeypress("year", 1);
+            updateDate("year", 1);
             break;
           case "Escape":
             resetDatePickerState();
