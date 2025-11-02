@@ -66,6 +66,7 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
     >(null);
 
     const datePickerRef = useRef<HTMLDivElement>(null);
+    const scrollToSelectedYearRef = useRef<HTMLDivElement>(null);
 
     const convertToDateString = useCallback(
       (date: Date, format: DateFormat): string => {
@@ -276,6 +277,23 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
       };
     }, [resetDatePickerState]);
 
+    useEffect(() => {
+      if (selectYearOrMonth !== "year" || !scrollToSelectedYearRef.current)
+        return;
+
+      setTimeout(() => {
+        const selectedYearElement =
+          scrollToSelectedYearRef.current?.querySelector(".bg-red-600");
+        if (selectedYearElement) {
+          selectedYearElement.scrollIntoView({
+            behavior: "instant",
+            block: "center",
+            inline: "center",
+          });
+        }
+      }, 10);
+    }, [selectYearOrMonth]);
+
     return (
       <div className="relative">
         <div className="flex border border-gray-300 bg-white rounded-sm focus-within:ring-1 ring-red-300">
@@ -372,7 +390,10 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
               </div>
 
               {selectYearOrMonth ? (
-                <div className="absolute inset-0 bg-white grid grid-cols-3 items-center overflow-auto">
+                <div
+                  className="absolute inset-0 bg-white grid grid-cols-3 items-center overflow-auto"
+                  ref={scrollToSelectedYearRef}
+                >
                   {selectYearOrMonth === "month"
                     ? generateMonthButtons()
                     : generateYearButtons()}
