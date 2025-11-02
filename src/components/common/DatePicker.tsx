@@ -67,6 +67,9 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
 
     const datePickerRef = useRef<HTMLDivElement>(null);
     const scrollToSelectedYearRef = useRef<HTMLDivElement>(null);
+    const selectedDayRef = useRef<HTMLButtonElement>(null);
+    const selectedMonthRef = useRef<HTMLButtonElement>(null);
+    const selectedYearRef = useRef<HTMLButtonElement>(null);
 
     const convertToDateString = useCallback(
       (date: Date, format: DateFormat): string => {
@@ -173,31 +176,38 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
       };
 
       return days.map(
-        (item: Record<string, boolean | number | Date>, index: number) => (
-          <button
-            type="button"
-            key={index}
-            onClick={() => handleClick(item.dateValue as Date)}
-            className={`aspect-square cursor-pointer transition ${
-              (item.dateValue as Date).toDateString() ===
-              new Date().toDateString()
-                ? "inset-ring-2 ring-red-500 text-red-500"
-                : ""
-            } ${
-              item.isActiveMonth
-                ? "hover:bg-red-400 hover:text-white"
-                : "bg-gray-100 text-gray-400 hover:bg-red-200"
-            } ${
-              (item.dateValue as Date).toDateString() === value.toDateString()
-                ? "bg-red-600 text-white"
-                : ""
-            }`}
-          >
-            {item.value as number}
-          </button>
-        )
+        (item: Record<string, boolean | number | Date>, index: number) => {
+          const isSelected =
+            (item.dateValue as Date).toDateString() === value.toDateString();
+          const isToday =
+            (item.dateValue as Date).toDateString() ===
+            new Date().toDateString();
+
+          return (
+            <button
+              type="button"
+              key={index}
+              ref={isSelected ? selectedDayRef : null}
+              tabIndex={isSelected && !selectYearOrMonth ? 0 : -1}
+              aria-label={(item.dateValue as Date).toDateString()}
+              aria-selected={
+                (item.dateValue as Date).toDateString() === value.toDateString()
+              }
+              onClick={() => handleClick(item.dateValue as Date)}
+              className={`aspect-square cursor-pointer transition outline-none focus:border-2 focus:border-black ${
+                isToday ? "border border-red-500 text-red-500" : ""
+              } ${
+                item.isActiveMonth
+                  ? "hover:bg-red-400 hover:text-white"
+                  : "bg-gray-100 text-gray-400 hover:bg-red-200"
+              } ${isSelected ? "bg-red-600 text-white" : ""}`}
+            >
+              {item.value as number}
+            </button>
+          );
+        }
       );
-    }, [value, onChange, resetDatePickerState]);
+    }, [value, onChange, resetDatePickerState, selectYearOrMonth]);
 
     const generateMonthButtons = useCallback((): React.ReactNode => {
       const handleClick = (index: number, event: React.MouseEvent): void => {
@@ -213,18 +223,26 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
         setSelectYearOrMonth(null);
       };
 
-      return MONTHS.map((month: string, index: number) => (
-        <button
-          type="button"
-          key={month}
-          className={`hover:bg-red-400 hover:text-white p-3 cursor-pointer transition ${
-            value.getMonth() === index ? "bg-red-600 text-white" : ""
-          }`}
-          onClick={(event) => handleClick(index, event)}
-        >
-          {month}
-        </button>
-      ));
+      return MONTHS.map((month: string, index: number) => {
+        const isSelected = value.getMonth() === index;
+
+        return (
+          <button
+            type="button"
+            key={month}
+            ref={isSelected ? selectedMonthRef : null}
+            tabIndex={isSelected ? 0 : -1}
+            aria-label={month}
+            aria-selected={index === value.getMonth()}
+            className={`hover:bg-red-400 hover:text-white p-3 cursor-pointer transition focus:border-2 focus:border-black ${
+              isSelected ? "bg-red-600 text-white" : ""
+            }`}
+            onClick={(event) => handleClick(index, event)}
+          >
+            {month}
+          </button>
+        );
+      });
     }, [value, onChange]);
 
     const generateYearButtons = useCallback((): React.ReactNode => {
@@ -249,18 +267,26 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
         setSelectYearOrMonth(null);
       };
 
-      return years.map((year: number) => (
-        <button
-          type="button"
-          key={year}
-          onClick={(event) => handleClick(year, event)}
-          className={`hover:bg-red-400 hover:text-white p-3 cursor-pointer transition ${
-            value.getFullYear() === year ? "bg-red-600 text-white" : ""
-          }`}
-        >
-          {year}
-        </button>
-      ));
+      return years.map((year: number) => {
+        const isSelected = value.getFullYear() === year;
+
+        return (
+          <button
+            type="button"
+            key={year}
+            ref={isSelected ? selectedYearRef : null}
+            tabIndex={isSelected ? 0 : -1}
+            aria-label={String(year)}
+            aria-selected={year === value.getFullYear()}
+            onClick={(event) => handleClick(year, event)}
+            className={`hover:bg-red-400 hover:text-white p-3 cursor-pointer transition focus:border-2 focus:border-black ${
+              isSelected ? "bg-red-600 text-white" : ""
+            }`}
+          >
+            {year}
+          </button>
+        );
+      });
     }, [value, onChange]);
 
     useEffect(() => {
@@ -293,6 +319,13 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
         }
       }, 10);
     }, [selectYearOrMonth]);
+
+    useEffect(() => {
+      if (!isOpen) return;
+      if (!selectYearOrMonth) selectedDayRef.current?.focus();
+      if (selectYearOrMonth === "month") selectedMonthRef.current?.focus();
+      if (selectYearOrMonth === "year") selectedYearRef.current?.focus();
+    }, [isOpen, selectYearOrMonth]);
 
     return (
       <div className="relative">
@@ -374,7 +407,7 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
 
             <div className="relative">
               <div className="flex-1">
-                <div className="grid grid-cols-7 border-b border-gray-300">
+                <div className="grid grid-cols-7 border-b border-gray-300 p-0.5">
                   {DAYS.map((day: string) => (
                     <small
                       className="text-red-600 font-bold text-center pointer-events-none mt-3 mb-2"
@@ -384,7 +417,7 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
                     </small>
                   ))}
                 </div>
-                <div className="grid grid-cols-7 rounded-sm overflow-hidden">
+                <div className="grid grid-cols-7 rounded-sm overflow-hidden p-0.5">
                   {generateDayButtons()}
                 </div>
               </div>
