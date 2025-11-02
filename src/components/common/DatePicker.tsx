@@ -66,6 +66,7 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
     >(null);
 
     const datePickerRef = useRef<HTMLDivElement>(null);
+    const inputRef = useRef<HTMLInputElement>(null);
     const scrollToSelectedYearRef = useRef<HTMLDivElement>(null);
     const selectedDayRef = useRef<HTMLButtonElement>(null);
     const selectedMonthRef = useRef<HTMLButtonElement>(null);
@@ -92,6 +93,29 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
       setIsOpen(false);
     }, []);
 
+    const updateDateWithKeypress = useCallback(
+      (dateSegment: "day" | "month" | "year", ammount: number): void => {
+        onChange?.((prevState) => {
+          const newDate = new Date(prevState);
+
+          switch (dateSegment) {
+            case "day":
+              newDate.setDate(newDate.getDate() + ammount);
+              break;
+            case "month":
+              newDate.setMonth(newDate.getMonth() + ammount);
+              break;
+            case "year":
+              newDate.setFullYear(newDate.getFullYear() + ammount);
+              break;
+          }
+
+          return newDate;
+        });
+      },
+      [onChange]
+    );
+
     const handleToggleDatePicker = useCallback(
       (event: React.MouseEvent): void => {
         event.stopPropagation();
@@ -100,6 +124,30 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
           !prevState && setSelectYearOrMonth(null);
           return !prevState;
         });
+      },
+      []
+    );
+
+    const handleInputKeypressToggleDatePicker = useCallback(
+      (event: React.KeyboardEvent): void => {
+        switch (event.key) {
+          case "Enter":
+          case " ":
+            event.preventDefault();
+            setIsOpen((prevState) => {
+              !prevState && setSelectYearOrMonth(null);
+              return !prevState;
+            });
+            break;
+          case "ArrowUp":
+            event.preventDefault();
+            updateDateWithKeypress("day", 1);
+            break;
+          case "ArrowDown":
+            event.preventDefault();
+            updateDateWithKeypress("day", -1);
+            break;
+        }
       },
       []
     );
@@ -173,6 +221,32 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
       const handleClick = (date: Date): void => {
         onChange?.(date);
         resetDatePickerState();
+        inputRef.current?.focus();
+      };
+
+      const handleKeyPress = (event: React.KeyboardEvent): void => {
+        switch (event.key) {
+          case "ArrowUp":
+            event.preventDefault();
+            updateDateWithKeypress("day", -7);
+            break;
+          case "ArrowDown":
+            event.preventDefault();
+            updateDateWithKeypress("day", 7);
+            break;
+          case "ArrowLeft":
+            event.preventDefault();
+            updateDateWithKeypress("day", -1);
+            break;
+          case "ArrowRight":
+            event.preventDefault();
+            updateDateWithKeypress("day", 1);
+            break;
+          case "Escape":
+            resetDatePickerState();
+            inputRef.current?.focus();
+            break;
+        }
       };
 
       return days.map(
@@ -194,12 +268,13 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
                 (item.dateValue as Date).toDateString() === value.toDateString()
               }
               onClick={() => handleClick(item.dateValue as Date)}
-              className={`aspect-square cursor-pointer transition outline-none focus:border-2 focus:border-black ${
-                isToday ? "border border-red-500 text-red-500" : ""
+              onKeyDown={handleKeyPress}
+              className={`aspect-square cursor-pointer transition outline-none border-2 focus:!border-black ${
+                isToday ? " border-red-500 text-red-500" : "border-transparent"
               } ${
                 item.isActiveMonth
                   ? "hover:bg-red-400 hover:text-white"
-                  : "bg-gray-100 text-gray-400 hover:bg-red-200"
+                  : "bg-gray-50 text-gray-400 hover:bg-red-200"
               } ${isSelected ? "bg-red-600 text-white" : ""}`}
             >
               {item.value as number}
@@ -223,6 +298,31 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
         setSelectYearOrMonth(null);
       };
 
+      const handleKeyPress = (event: React.KeyboardEvent) => {
+        switch (event.key) {
+          case "ArrowUp":
+            event.preventDefault();
+            updateDateWithKeypress("month", -3);
+            break;
+          case "ArrowDown":
+            event.preventDefault();
+            updateDateWithKeypress("month", 3);
+            break;
+          case "ArrowLeft":
+            event.preventDefault();
+            updateDateWithKeypress("month", -1);
+            break;
+          case "ArrowRight":
+            event.preventDefault();
+            updateDateWithKeypress("month", 1);
+            break;
+          case "Escape":
+            resetDatePickerState();
+            inputRef.current?.focus();
+            break;
+        }
+      };
+
       return MONTHS.map((month: string, index: number) => {
         const isSelected = value.getMonth() === index;
 
@@ -234,10 +334,11 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
             tabIndex={isSelected ? 0 : -1}
             aria-label={month}
             aria-selected={index === value.getMonth()}
-            className={`hover:bg-red-400 hover:text-white p-3 cursor-pointer transition focus:border-2 focus:border-black ${
+            className={`hover:bg-red-400 hover:text-white p-3 cursor-pointer transition border-2 border-transparent focus:border-black ${
               isSelected ? "bg-red-600 text-white" : ""
             }`}
             onClick={(event) => handleClick(index, event)}
+            onKeyDown={handleKeyPress}
           >
             {month}
           </button>
@@ -246,7 +347,7 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
     }, [value, onChange]);
 
     const generateYearButtons = useCallback((): React.ReactNode => {
-      const currentYear = value.getFullYear();
+      const currentYear = new Date().getFullYear();
       const startYear = currentYear - 100;
       const endYear = currentYear + 20;
 
@@ -267,6 +368,31 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
         setSelectYearOrMonth(null);
       };
 
+      const handleKeyPress = (event: React.KeyboardEvent): void => {
+        switch (event.key) {
+          case "ArrowUp":
+            event.preventDefault();
+            updateDateWithKeypress("year", -3);
+            break;
+          case "ArrowDown":
+            event.preventDefault();
+            updateDateWithKeypress("year", 3);
+            break;
+          case "ArrowLeft":
+            event.preventDefault();
+            updateDateWithKeypress("year", -1);
+            break;
+          case "ArrowRight":
+            event.preventDefault();
+            updateDateWithKeypress("year", 1);
+            break;
+          case "Escape":
+            resetDatePickerState();
+            inputRef.current?.focus();
+            break;
+        }
+      };
+
       return years.map((year: number) => {
         const isSelected = value.getFullYear() === year;
 
@@ -279,7 +405,8 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
             aria-label={String(year)}
             aria-selected={year === value.getFullYear()}
             onClick={(event) => handleClick(year, event)}
-            className={`hover:bg-red-400 hover:text-white p-3 cursor-pointer transition focus:border-2 focus:border-black ${
+            onKeyDown={handleKeyPress}
+            className={`hover:bg-red-400 hover:text-white p-3 cursor-pointer transition border-2 border-transparent focus:border-black ${
               isSelected ? "bg-red-600 text-white" : ""
             }`}
           >
@@ -287,7 +414,7 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
           </button>
         );
       });
-    }, [value, onChange]);
+    }, [selectYearOrMonth, value, onChange]);
 
     useEffect(() => {
       const handleOutsideClick = (event: MouseEvent): void => {
@@ -325,7 +452,7 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
       if (!selectYearOrMonth) selectedDayRef.current?.focus();
       if (selectYearOrMonth === "month") selectedMonthRef.current?.focus();
       if (selectYearOrMonth === "year") selectedYearRef.current?.focus();
-    }, [isOpen, selectYearOrMonth]);
+    }, [isOpen, selectYearOrMonth, value]);
 
     return (
       <div className="relative">
@@ -343,9 +470,11 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
           <input
             type="text"
             readOnly
+            ref={inputRef}
             value={convertToDateString(value, format)}
             className="outline-none cursor-pointer text-center w-full"
             onClick={handleToggleDatePicker}
+            onKeyDown={handleInputKeypressToggleDatePicker}
             aria-label="Odabrani datum"
             aria-haspopup="dialog"
             aria-expanded={isOpen}
@@ -382,7 +511,7 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
             aria-label="Kalendar"
             hidden={!isOpen}
           >
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between p-0.5">
               <Button
                 type="button"
                 className="text-red-600 max-w-none flex-1 flex items-center justify-between hover:bg-gray-100"
