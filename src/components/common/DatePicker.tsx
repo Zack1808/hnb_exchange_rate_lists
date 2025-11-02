@@ -647,7 +647,7 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
         </div>
 
         <div
-          className={`absolute top-full right-0 left-0 mt-0.5 bg-black/40 sm:bg-transparent z-50 flex justify-center ${
+          className={`sm:absolute fixed sm:top-full sm:bottom-auto top-0 bottom-0 right-0 left-0 sm:mt-0.5 bg-black/40 sm:bg-transparent z-50 flex justify-center items-center ${
             isOpen ? "opacity-100 visible" : "opacity-0 invisible"
           }`}
         >
