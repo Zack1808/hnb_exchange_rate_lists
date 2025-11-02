@@ -505,7 +505,11 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
           const newDate = new Date(prevState);
           newDate.setFullYear(value);
 
-          return newDate;
+          return min && compareDates(newDate, min, "less")
+            ? min
+            : max && compareDates(newDate, max, "greater")
+            ? max
+            : newDate;
         });
 
         setSelectYearOrMonth(null);
