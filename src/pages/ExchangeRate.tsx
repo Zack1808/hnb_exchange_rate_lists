@@ -35,7 +35,12 @@ const ExchangeRate: React.FC = React.memo(() => {
 
         <List content={NOTES} listType="decimal" />
 
-        <DatePicker value={date} onChange={setDate} />
+        <DatePicker
+          value={date}
+          onChange={setDate}
+          min={new Date(2023, 0, 1)}
+          max={new Date()}
+        />
       </Container>
       <Container spacing="medium">
         <h2 className="text-3xl md:text-3xl text-gray-800 font-bold mb-6">
