@@ -226,6 +226,42 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
       ));
     }, [value, onChange]);
 
+    const generateYearButtons = useCallback((): React.ReactNode => {
+      const currentYear = value.getFullYear();
+      const startYear = currentYear - 100;
+      const endYear = currentYear + 20;
+
+      let years: number[] = [];
+
+      for (let i = startYear; i <= endYear; i++) years.push(i);
+
+      const handleClick = (value: number, event: React.MouseEvent): void => {
+        event.stopPropagation();
+
+        onChange?.((prevState: Date) => {
+          const newDate = new Date(prevState);
+          newDate.setFullYear(value);
+
+          return newDate;
+        });
+
+        setSelectYearOrMonth(null);
+      };
+
+      return years.map((year: number) => (
+        <button
+          type="button"
+          key={year}
+          onClick={(event) => handleClick(year, event)}
+          className={`hover:bg-red-400 hover:text-white p-3 cursor-pointer transition ${
+            value.getFullYear() === year ? "bg-red-600 text-white" : ""
+          }`}
+        >
+          {year}
+        </button>
+      ));
+    }, [value, onChange]);
+
     useEffect(() => {
       const handleOutsideClick = (event: MouseEvent): void => {
         if (!datePickerRef.current?.contains(event.target as Node)) {
@@ -311,9 +347,10 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
               <Button
                 type="button"
                 className="text-red-600 max-w-none flex-1 flex items-center justify-between hover:bg-gray-100"
+                onClick={() => handleYearOrMonthButtonClick("year")}
               >
-                2025
-                <FaCaretDown />
+                {value.getFullYear()}{" "}
+                {selectYearOrMonth === "year" ? <FaCaretUp /> : <FaCaretDown />}
               </Button>
             </div>
 
@@ -335,10 +372,10 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
               </div>
 
               {selectYearOrMonth ? (
-                <div className="absolute inset-0 bg-white grid grid-cols-3 items-center ">
+                <div className="absolute inset-0 bg-white grid grid-cols-3 items-center overflow-auto">
                   {selectYearOrMonth === "month"
                     ? generateMonthButtons()
-                    : null}
+                    : generateYearButtons()}
                 </div>
               ) : null}
             </div>
