@@ -106,9 +106,14 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
               break;
           }
 
-          return (min && compareDate("day", newDate, min, "less")) ||
-            (max && compareDate("day", newDate, max, "greater"))
+          return min && compareDate("month", newDate, min, "less")
             ? prevState
+            : min && compareDate("day", newDate, min, "less")
+            ? min
+            : max && compareDate("month", newDate, max, "greater")
+            ? prevState
+            : max && compareDate("day", newDate, max, "greater")
+            ? max
             : newDate;
         });
       },
@@ -275,8 +280,10 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
               onKeyDown={handleKeyPress}
               disabled={isDisabled}
               aria-disabled={isDisabled}
-              className={`aspect-square cursor-pointer transition rounded-sm outline-none border-3 focus:!border-red-800 disabled:bg-gray-200 disabled:text-gray-400 disabled:rounded-none ${
-                isToday ? " border-red-500 text-red-500" : "border-transparent"
+              className={`aspect-square cursor-pointer transition rounded-sm outline-none border-none inset-ring-3 focus:inset-ring-red-800 disabled:bg-gray-200 disabled:text-gray-400 disabled:rounded-none ${
+                isToday
+                  ? " inset-ring-red-500 text-red-500"
+                  : "inset-ring-transparent"
               } ${
                 item.isActiveMonth
                   ? "hover:bg-red-400 hover:text-white"
@@ -355,7 +362,7 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
             tabIndex={isSelected ? 0 : -1}
             aria-label={month}
             aria-selected={index === value.getMonth()}
-            className={`hover:bg-red-400 rounded-sm hover:text-white p-3 cursor-pointer outline-none transition border-3 border-transparent focus:border-red-900 disabled:bg-gray-200 disabled:text-gray-400 disabled:rounded-none ${
+            className={`hover:bg-red-400 rounded-sm hover:text-white p-3 cursor-pointer outline-none transition inset-ring-3 inset-ring-transparent focus:inset-ring-red-900 disabled:bg-gray-200 disabled:text-gray-400 disabled:rounded-none ${
               isSelected ? "bg-red-600 text-white" : ""
             }`}
             onClick={(event) => handleClick(index, event)}
@@ -438,7 +445,7 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
             onKeyDown={handleKeyPress}
             disabled={isDisabled}
             aria-disabled={isDisabled}
-            className={`hover:bg-red-400 rounded-sm hover:text-white p-3 cursor-pointer outline-none transition border-3 border-transparent focus:border-red-900 disabled:bg-gray-200 disabled:text-gray-400 disabled:rounded-none ${
+            className={`hover:bg-red-400 rounded-sm hover:text-white p-3 cursor-pointer outline-none transition inset-ring-3 inset-ring-transparent focus:inset-ring-red-900 disabled:bg-gray-200 disabled:text-gray-400 disabled:rounded-none ${
               isSelected ? "bg-red-600 text-white" : ""
             }`}
           >
