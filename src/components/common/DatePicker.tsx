@@ -89,6 +89,77 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
       setIsOpen(false);
     }, []);
 
+    const handleKeyPress = useCallback(
+      (
+        element: string,
+        segment: "day" | "month" | "year",
+        event: React.KeyboardEvent
+      ): void => {
+        switch (event.key) {
+          case "Enter":
+          case " ":
+            if (element === "button") break;
+            if (element === "input") {
+              event.preventDefault();
+              setIsOpen((prevState) => {
+                !prevState && setSelectYearOrMonth(null);
+                return !prevState;
+              });
+              break;
+            }
+            break;
+          case "ArrowUp":
+            event.preventDefault();
+            if (element === "button") {
+              updateDate(segment, segment === "day" ? -7 : -3);
+              break;
+            }
+            if (element === "input") {
+              updateDate("day", 1);
+              break;
+            }
+            break;
+          case "ArrowDown":
+            event.preventDefault();
+            if (element === "button") {
+              updateDate(segment, segment === "day" ? 7 : 3);
+              break;
+            }
+            if (element === "input") {
+              updateDate("day", -1);
+              break;
+            }
+            break;
+          case "ArrowLeft":
+            event.preventDefault();
+            if (element === "button") {
+              updateDate(segment, -1);
+              break;
+            }
+            if (element === "input") break;
+            break;
+          case "ArrowRight":
+            event.preventDefault();
+            if (element === "button") {
+              updateDate(segment, 1);
+              break;
+            }
+            if (element === "input") break;
+            break;
+          case "Escape":
+            event.preventDefault();
+            if (element === "button") {
+              inputRef.current?.focus();
+              resetDatePickerState();
+              break;
+            }
+            if (element === "input") break;
+            break;
+        }
+      },
+      []
+    );
+
     const updateDate = useCallback(
       (dateSegment: "day" | "month" | "year", ammount: number): void => {
         onChange?.((prevState) => {
@@ -134,24 +205,9 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
 
     const handleInputKeypressToggleDatePicker = useCallback(
       (event: React.KeyboardEvent): void => {
-        switch (event.key) {
-          case "Enter":
-          case " ":
-            event.preventDefault();
-            setIsOpen((prevState) => {
-              !prevState && setSelectYearOrMonth(null);
-              return !prevState;
-            });
-            break;
-          case "ArrowUp":
-            event.preventDefault();
-            updateDate("day", 1);
-            break;
-          case "ArrowDown":
-            event.preventDefault();
-            updateDate("day", -1);
-            break;
-        }
+        const element = (event.target as HTMLElement).tagName.toLowerCase();
+
+        handleKeyPress(element, "day", event);
       },
       []
     );
@@ -230,29 +286,9 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
         inputRef.current?.focus();
       };
 
-      const handleKeyPress = (event: React.KeyboardEvent): void => {
-        switch (event.key) {
-          case "ArrowUp":
-            event.preventDefault();
-            updateDate("day", -7);
-            break;
-          case "ArrowDown":
-            event.preventDefault();
-            updateDate("day", 7);
-            break;
-          case "ArrowLeft":
-            event.preventDefault();
-            updateDate("day", -1);
-            break;
-          case "ArrowRight":
-            event.preventDefault();
-            updateDate("day", 1);
-            break;
-          case "Escape":
-            resetDatePickerState();
-            inputRef.current?.focus();
-            break;
-        }
+      const handlePress = (event: React.KeyboardEvent): void => {
+        const element = (event.target as HTMLElement).tagName.toLowerCase();
+        handleKeyPress(element, "day", event);
       };
 
       return days.map(
@@ -277,7 +313,7 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
                 (item.dateValue as Date).toDateString() === value.toDateString()
               }
               onClick={() => handleClick(item.dateValue as Date)}
-              onKeyDown={handleKeyPress}
+              onKeyDown={handlePress}
               disabled={isDisabled}
               aria-disabled={isDisabled}
               className={`aspect-square cursor-pointer transition rounded-sm outline-none border-none inset-ring-3 focus:inset-ring-red-800 disabled:bg-gray-200 disabled:text-gray-400 disabled:rounded-none ${
@@ -311,29 +347,9 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
         setSelectYearOrMonth(null);
       };
 
-      const handleKeyPress = (event: React.KeyboardEvent) => {
-        switch (event.key) {
-          case "ArrowUp":
-            event.preventDefault();
-            updateDate("month", -3);
-            break;
-          case "ArrowDown":
-            event.preventDefault();
-            updateDate("month", 3);
-            break;
-          case "ArrowLeft":
-            event.preventDefault();
-            updateDate("month", -1);
-            break;
-          case "ArrowRight":
-            event.preventDefault();
-            updateDate("month", 1);
-            break;
-          case "Escape":
-            resetDatePickerState();
-            inputRef.current?.focus();
-            break;
-        }
+      const handlePress = (event: React.KeyboardEvent) => {
+        const element = (event.target as HTMLElement).tagName.toLowerCase();
+        handleKeyPress(element, "month", event);
       };
 
       return MONTHS.map((month: string, index: number) => {
@@ -366,7 +382,7 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
               isSelected ? "bg-red-600 text-white" : ""
             }`}
             onClick={(event) => handleClick(index, event)}
-            onKeyDown={handleKeyPress}
+            onKeyDown={handlePress}
             disabled={isDisabled}
             aria-disabled={isDisabled}
           >
@@ -402,29 +418,11 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
         setSelectYearOrMonth(null);
       };
 
-      const handleKeyPress = (event: React.KeyboardEvent): void => {
-        switch (event.key) {
-          case "ArrowUp":
-            event.preventDefault();
-            updateDate("year", -3);
-            break;
-          case "ArrowDown":
-            event.preventDefault();
-            updateDate("year", 3);
-            break;
-          case "ArrowLeft":
-            event.preventDefault();
-            updateDate("year", -1);
-            break;
-          case "ArrowRight":
-            event.preventDefault();
-            updateDate("year", 1);
-            break;
-          case "Escape":
-            resetDatePickerState();
-            inputRef.current?.focus();
-            break;
-        }
+      const handlePress = (event: React.KeyboardEvent): void => {
+        const element = (
+          event.target as HTMLElement
+        ).tagName.toLocaleLowerCase();
+        handleKeyPress(element, "year", event);
       };
 
       return years.map((year: number) => {
@@ -442,7 +440,7 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
             aria-label={String(year)}
             aria-selected={year === value.getFullYear()}
             onClick={(event) => handleClick(year, event)}
-            onKeyDown={handleKeyPress}
+            onKeyDown={handlePress}
             disabled={isDisabled}
             aria-disabled={isDisabled}
             className={`hover:bg-red-400 rounded-sm hover:text-white p-3 cursor-pointer outline-none transition inset-ring-3 inset-ring-transparent focus:inset-ring-red-900 disabled:bg-gray-200 disabled:text-gray-400 disabled:rounded-none ${
