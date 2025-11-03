@@ -14,16 +14,16 @@ import {
 
 import Button from "./Button";
 
-type DateFormat =
-  | "YYYY-MM-DD"
-  | "YYYY.MM.DD"
-  | "DD/MM/YYYY"
-  | "MM/DD/YYYY"
-  | "DD-MM-YYYY"
-  | "MM-DD-YYYY"
-  | "YYYY/MM/DD"
-  | "DD.MM.YYYY"
-  | "MM.DD.YYYY";
+import { convertToDateString } from "../../helpers/convertDateToString";
+
+import { DateFormat } from "../../helpers/convertDateToString";
+
+type OperationFormat =
+  | "same"
+  | "greater"
+  | "less"
+  | "greaterOrEqual"
+  | "lessOrEqual";
 
 interface DatePickerProps {
   value: Date;
@@ -38,13 +38,6 @@ interface DatePickerProps {
   };
   format?: DateFormat;
 }
-
-type OperationFormat =
-  | "same"
-  | "greater"
-  | "less"
-  | "greaterOrEqual"
-  | "lessOrEqual";
 
 const DAYS = ["PON", "UTO", "SRI", "ČET", "PET", "SUB", "NED"] as const;
 const MONTHS = [
@@ -189,22 +182,6 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
       const minDisabled = min && compareDates(value, min, "lessOrEqual");
       return disabled || minDisabled;
     }, [min, value]);
-
-    const convertToDateString = useCallback(
-      (date: Date, format: DateFormat): string => {
-        const day = String(date.getDate()).padStart(2, "0");
-        const month = String(date.getMonth() + 1).padStart(2, "0");
-        const year = date.getFullYear().toString();
-
-        const newDate = format
-          .replace("DD", day)
-          .replace("MM", month)
-          .replace("YYYY", year);
-
-        return newDate;
-      },
-      []
-    );
 
     const resetDatePickerState = useCallback((): void => {
       setSelectYearOrMonth(null);
@@ -397,12 +374,12 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
               onKeyDown={handleKeyPress}
               disabled={isDisabled}
               aria-disabled={isDisabled}
-              className={`aspect-square cursor-pointer transition outline-none border-2 focus:!border-black disabled:bg-gray-400 disabled:text-white ${
+              className={`aspect-square cursor-pointer transition rounded-sm outline-none border-3 focus:!border-red-800 disabled:bg-gray-200 disabled:text-gray-400 disabled:rounded-none ${
                 isToday ? " border-red-500 text-red-500" : "border-transparent"
               } ${
                 item.isActiveMonth
                   ? "hover:bg-red-400 hover:text-white"
-                  : "bg-gray-50 text-gray-400 hover:bg-red-200"
+                  : "bg-gray-50 text-gray-500 hover:bg-red-200 rounded-none"
               } ${isSelected ? "bg-red-600 text-white" : ""}`}
             >
               {item.value as number}
@@ -475,7 +452,7 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
             tabIndex={isSelected ? 0 : -1}
             aria-label={month}
             aria-selected={index === value.getMonth()}
-            className={`hover:bg-red-400 hover:text-white p-3 cursor-pointer transition border-2 border-transparent focus:border-black disabled:bg-gray-400 disabled:text-white ${
+            className={`hover:bg-red-400 rounded-sm hover:text-white p-3 cursor-pointer outline-none transition border-3 border-transparent focus:border-red-900 disabled:bg-gray-200 disabled:text-gray-400 disabled:rounded-none ${
               isSelected ? "bg-red-600 text-white" : ""
             }`}
             onClick={(event) => handleClick(index, event)}
@@ -558,7 +535,7 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
             onKeyDown={handleKeyPress}
             disabled={isDisabled}
             aria-disabled={isDisabled}
-            className={`hover:bg-red-400 hover:text-white p-3 cursor-pointer transition border-2 border-transparent focus:border-black disabled:bg-gray-400 disabled:text-white ${
+            className={`hover:bg-red-400 rounded-sm hover:text-white p-3 cursor-pointer outline-none transition border-3 border-transparent focus:border-red-900 disabled:bg-gray-200 disabled:text-gray-400 disabled:rounded-none ${
               isSelected ? "bg-red-600 text-white" : ""
             }`}
           >
