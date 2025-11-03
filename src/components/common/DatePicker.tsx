@@ -172,24 +172,29 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
           switch (dateSegment) {
             case "day":
               newDate.setDate(newDate.getDate() + ammount);
-              break;
+              return (min && compareDate("day", newDate, min, "less")) ||
+                (max && compareDate("day", newDate, max, "greater"))
+                ? prevState
+                : newDate;
             case "month":
               newDate.setMonth(newDate.getMonth() + ammount);
-              break;
+              return min && compareDate("month", newDate, min, "less")
+                ? prevState
+                : min && compareDate("day", newDate, min, "less")
+                ? min
+                : max && compareDate("month", newDate, max, "greater")
+                ? prevState
+                : max && compareDate("day", newDate, max, "greater")
+                ? max
+                : newDate;
             case "year":
               newDate.setFullYear(newDate.getFullYear() + ammount);
-              break;
+              return min && compareDate("day", newDate, min, "less")
+                ? min
+                : max && compareDate("day", newDate, max, "greater")
+                ? max
+                : newDate;
           }
-
-          return min && compareDate("month", newDate, min, "less")
-            ? prevState
-            : min && compareDate("day", newDate, min, "less")
-            ? min
-            : max && compareDate("month", newDate, max, "greater")
-            ? prevState
-            : max && compareDate("day", newDate, max, "greater")
-            ? max
-            : newDate;
         });
       },
       [onChange]
