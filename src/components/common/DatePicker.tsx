@@ -15,15 +15,9 @@ import {
 import Button from "./Button";
 
 import { convertToDateString } from "../../helpers/convertDateToString";
+import { compareDate } from "../../helpers/compareDate";
 
 import { DateFormat } from "../../helpers/convertDateToString";
-
-type OperationFormat =
-  | "same"
-  | "greater"
-  | "less"
-  | "greaterOrEqual"
-  | "lessOrEqual";
 
 interface DatePickerProps {
   value: Date;
@@ -78,108 +72,14 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
     const selectedMonthRef = useRef<HTMLButtonElement>(null);
     const selectedYearRef = useRef<HTMLButtonElement>(null);
 
-    const compareDates = useCallback(
-      (date1: Date, date2: Date, operation: OperationFormat): boolean => {
-        const year1 = date1.getFullYear();
-        const year2 = date2.getFullYear();
-        const month1 = date1.getMonth();
-        const month2 = date2.getMonth();
-        const day1 = date1.getDate();
-        const day2 = date2.getDate();
-
-        switch (operation) {
-          case "same":
-            return year1 === year2 && month1 === month2 && day1 === day2;
-
-          case "greater":
-            return (
-              year1 > year2 ||
-              (year1 === year2 && month1 > month2) ||
-              (year1 === year2 && month1 === month2 && day1 > day2)
-            );
-
-          case "less":
-            return (
-              year1 < year2 ||
-              (year1 === year2 && month1 < month2) ||
-              (year1 === year2 && month1 === month2 && day1 < day2)
-            );
-
-          case "greaterOrEqual":
-            return (
-              compareDates(date1, date2, "same") ||
-              compareDates(date1, date2, "greater")
-            );
-
-          case "lessOrEqual":
-            return (
-              compareDates(date1, date2, "same") ||
-              compareDates(date1, date2, "less")
-            );
-        }
-      },
-      []
-    );
-
-    const compareMonths = useCallback(
-      (date1: Date, date2: Date, operation: OperationFormat): boolean => {
-        const year1 = date1.getFullYear();
-        const year2 = date2.getFullYear();
-        const month1 = date1.getMonth();
-        const month2 = date2.getMonth();
-
-        switch (operation) {
-          case "same":
-            return year1 === year2 && month1 === month2;
-
-          case "greater":
-            return year1 > year2 || (year1 === year2 && month1 > month2);
-
-          case "less":
-            return year1 < year2 || (year1 === year2 && month1 < month2);
-
-          case "greaterOrEqual":
-            return year1 > year2 || (year1 === year2 && month1 >= month2);
-
-          case "lessOrEqual":
-            return year1 < year2 || (year1 === year2 && month1 <= month2);
-        }
-      },
-      []
-    );
-
-    const compareYears = useCallback(
-      (date1: Date, date2: Date, operation: OperationFormat): boolean => {
-        const year1 = date1.getFullYear();
-        const year2 = date2.getFullYear();
-
-        switch (operation) {
-          case "same":
-            return year1 === year2;
-
-          case "greater":
-            return year1 > year2;
-
-          case "less":
-            return year1 < year2;
-
-          case "greaterOrEqual":
-            return year1 >= year2;
-
-          case "lessOrEqual":
-            return year1 <= year2;
-        }
-      },
-      []
-    );
-
     const incrementDisabled = useMemo(() => {
-      const maxDisabled = max && compareDates(value, max, "greaterOrEqual");
+      const maxDisabled =
+        max && compareDate("day", value, max, "greaterOrEqual");
       return disabled || maxDisabled;
     }, [max, value]);
 
     const decrementDisabled = useMemo(() => {
-      const minDisabled = min && compareDates(value, min, "lessOrEqual");
+      const minDisabled = min && compareDate("day", value, min, "lessOrEqual");
       return disabled || minDisabled;
     }, [min, value]);
 
@@ -205,8 +105,8 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
               break;
           }
 
-          return (min && compareDates(newDate, min, "less")) ||
-            (max && compareDates(newDate, max, "greater"))
+          return (min && compareDate("day", newDate, min, "less")) ||
+            (max && compareDate("day", newDate, max, "greater"))
             ? prevState
             : newDate;
         });
@@ -357,8 +257,8 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
             (item.dateValue as Date).toDateString() ===
             new Date().toDateString();
           const isDisabled =
-            (min && compareDates(item.dateValue as Date, min, "less")) ||
-            (max && compareDates(item.dateValue as Date, max, "greater"));
+            (min && compareDate("day", item.dateValue as Date, min, "less")) ||
+            (max && compareDate("day", item.dateValue as Date, max, "greater"));
 
           return (
             <button
@@ -432,13 +332,15 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
         const isSelected = value.getMonth() === index;
         const isDisabled =
           (min &&
-            compareMonths(
+            compareDate(
+              "month",
               new Date(value.getFullYear(), index, 1),
               min,
               "less"
             )) ||
           (max &&
-            compareMonths(
+            compareDate(
+              "month",
               new Date(value.getFullYear(), index, 1),
               max,
               "greater"
@@ -482,9 +384,9 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
           const newDate = new Date(prevState);
           newDate.setFullYear(value);
 
-          return min && compareDates(newDate, min, "less")
+          return min && compareDate("day", newDate, min, "less")
             ? min
-            : max && compareDates(newDate, max, "greater")
+            : max && compareDate("day", newDate, max, "greater")
             ? max
             : newDate;
         });
@@ -520,8 +422,8 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
       return years.map((year: number) => {
         const isSelected = value.getFullYear() === year;
         const isDisabled =
-          (min && compareYears(new Date(year, 0, 1), min, "less")) ||
-          (max && compareYears(new Date(year, 0, 1), max, "greater"));
+          (min && compareDate("year", new Date(year, 0, 1), min, "less")) ||
+          (max && compareDate("year", new Date(year, 0, 1), max, "greater"));
 
         return (
           <button
