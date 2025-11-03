@@ -16,6 +16,12 @@ type OperationFormat =
   | "greaterOrEqual"
   | "lessOrEqual";
 
+export interface CalendarDaysArrayFormat {
+  value: number;
+  isActiveMonth: boolean;
+  dateValue: Date;
+}
+
 export const compareDate = (
   compare: "day" | "month" | "year",
   date1: Date,
@@ -153,4 +159,44 @@ export const convertToDateString = (date: Date, format: DateFormat): string => {
     .replace("YYYY", year);
 
   return newDate;
+};
+
+export const generateCalendarDays = (
+  month: number,
+  year: number
+): Array<CalendarDaysArrayFormat> => {
+  const days: Array<CalendarDaysArrayFormat> = [];
+
+  const firstDayOfMonth = new Date(year, month, 1).getDay();
+  const firstDayMondayBased = firstDayOfMonth === 0 ? 6 : firstDayOfMonth - 1;
+  const prevMonthLastDate = new Date(year, month, 0).getDate();
+  const currMonthDaysAmount = new Date(year, month + 1, 0).getDate();
+
+  for (let i = firstDayMondayBased - 1; i >= 0; i--) {
+    days.push({
+      value: prevMonthLastDate - i,
+      isActiveMonth: false,
+      dateValue: new Date(year, month - 1, prevMonthLastDate - i),
+    });
+  }
+
+  for (let i = 1; i <= currMonthDaysAmount; i++) {
+    days.push({
+      value: i,
+      isActiveMonth: true,
+      dateValue: new Date(year, month, i),
+    });
+  }
+
+  const totalDaysShown = days.length;
+  const nextMonthDaysAmount = 42 - totalDaysShown;
+  for (let i = 1; i <= nextMonthDaysAmount; i++) {
+    days.push({
+      value: i,
+      isActiveMonth: false,
+      dateValue: new Date(year, month + 1, i),
+    });
+  }
+
+  return days;
 };
