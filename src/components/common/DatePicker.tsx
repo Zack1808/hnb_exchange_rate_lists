@@ -178,7 +178,7 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
 
       const firstDayOfMonth = new Date(year, month, 1).getDay();
       const firstDayMondayBased =
-        firstDayOfMonth === 0 ? 6 : firstDayOfMonth - 1;
+        firstDayOfMonth === 1 ? 7 : firstDayOfMonth - 1;
 
       const prevMonthLastDate = new Date(year, month, 0).getDate();
       const currMonthDaysAmount = new Date(year, month + 1, 0).getDate();
