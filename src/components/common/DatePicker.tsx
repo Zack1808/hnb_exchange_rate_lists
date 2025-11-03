@@ -14,10 +14,9 @@ import {
 
 import Button from "./Button";
 
-import { convertToDateString } from "../../helpers/convertDateToString";
-import { compareDate } from "../../helpers/compareDate";
+import { convertToDateString, compareDate } from "../../utils/dateUtils";
 
-import { DateFormat } from "../../helpers/convertDateToString";
+import { DateFormat } from "../../utils/dateUtils";
 
 interface DatePickerProps {
   value: Date;
