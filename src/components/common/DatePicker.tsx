@@ -14,6 +14,8 @@ import {
 
 import Button from "./Button";
 
+import { useOutsideClick } from "../../hooks/useOutsideClick";
+
 import { convertToDateString, compareDate } from "../../utils/dateUtils";
 
 import { DateFormat } from "../../utils/dateUtils";
@@ -446,19 +448,7 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
       });
     }, [selectYearOrMonth, value, onChange]);
 
-    useEffect(() => {
-      const handleOutsideClick = (event: MouseEvent): void => {
-        if (!datePickerRef.current?.contains(event.target as Node)) {
-          resetDatePickerState();
-        }
-      };
-
-      document.addEventListener("click", handleOutsideClick);
-
-      return (): void => {
-        document.removeEventListener("click", handleOutsideClick);
-      };
-    }, [resetDatePickerState]);
+    useOutsideClick(datePickerRef, resetDatePickerState);
 
     useEffect(() => {
       if (selectYearOrMonth !== "year" || !scrollToSelectedYearRef.current)
