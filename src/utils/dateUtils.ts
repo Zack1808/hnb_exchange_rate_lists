@@ -168,7 +168,7 @@ export const generateCalendarDays = (
   const days: Array<CalendarDaysArrayFormat> = [];
 
   const firstDayOfMonth = new Date(year, month, 1).getDay();
-  const firstDayMondayBased = firstDayOfMonth === 0 ? 6 : firstDayOfMonth - 1;
+  const firstDayMondayBased = firstDayOfMonth === 1 ? 7 : firstDayOfMonth - 1;
   const prevMonthLastDate = new Date(year, month, 0).getDate();
   const currMonthDaysAmount = new Date(year, month + 1, 0).getDate();
 

@@ -1,10 +1,13 @@
-import React, { useState } from "react";
+import React, { useCallback, useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 
 import Container from "../components/layout/Container";
 
 import List from "../components/common/List";
 import DatePicker from "../components/common/DatePicker";
 import Button from "../components/common/Button";
+
+import { convertToDateString } from "../utils/dateUtils";
 
 const NOTES = [
   `Svi tečajevi su iskazani za 1 EUR od uvođenja EUR <strong>(01.01.2023)</strong>.`,
@@ -16,6 +19,28 @@ const NOTES = [
 
 const ExchangeRate: React.FC = React.memo(() => {
   const [date, setDate] = useState<Date>(new Date());
+
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const handleSubmit = useCallback(
+    (event: React.FormEvent): void => {
+      event.preventDefault();
+
+      navigate(
+        `/tecaj?datum_primjene=${convertToDateString(date, "YYYY-MM-DD")}`
+      );
+    },
+    [date]
+  );
+
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+
+    const datumPrimjene = searchParams.get("datum_primjene");
+
+    setDate(new Date(datumPrimjene as string));
+  }, []);
 
   return (
     <>
@@ -36,14 +61,17 @@ const ExchangeRate: React.FC = React.memo(() => {
 
         <List content={NOTES} listType="decimal" />
 
-        <form className="w-full sm:w-xl flex flex-col gap-3 mt-6">
+        <form
+          className="w-full sm:w-xl flex flex-col gap-3 mt-6"
+          onSubmit={handleSubmit}
+        >
           <label
             htmlFor="datepicker"
             className="text-lg text-red-600 font-bold"
           >
             Datum primjene
           </label>
-          <div className="flex gap-3 w-full">
+          <div className="flex gap-3 w-full sm:flex-row flex-col">
             <DatePicker
               value={date}
               onChange={setDate}
@@ -51,7 +79,9 @@ const ExchangeRate: React.FC = React.memo(() => {
               max={new Date()}
               id="datepicker"
             />
-            <Button variant="primary">Prikaži listu</Button>
+            <Button variant="primary" className="max-w-none justify-center">
+              Prikaži listu
+            </Button>
           </div>
         </form>
       </Container>
