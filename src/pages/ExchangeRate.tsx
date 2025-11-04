@@ -6,8 +6,13 @@ import Container from "../components/layout/Container";
 import List from "../components/common/List";
 import DatePicker from "../components/common/DatePicker";
 import Button from "../components/common/Button";
+import Loader from "../components/common/Loader";
+
+import { useGetListings } from "../hooks/useGetListing";
 
 import { convertToDateString } from "../utils/dateUtils";
+
+import { MOCK_CONFIG } from "../services/mock/mockData";
 
 const NOTES = [
   `Svi tečajevi su iskazani za 1 EUR od uvođenja EUR <strong>(01.01.2023)</strong>.`,
@@ -19,17 +24,28 @@ const NOTES = [
 
 const ExchangeRate: React.FC = React.memo(() => {
   const [date, setDate] = useState<Date>(new Date());
+  const [data, setData] = useState<Record<string, string>[]>([]);
 
   const navigate = useNavigate();
   const location = useLocation();
+
+  const { getListing, loading, error } = useGetListings();
+
+  const fetchData = useCallback(async (date: string): Promise<void> => {
+    const newData = await getListing(date);
+
+    newData && setData(newData);
+  }, []);
 
   const handleSubmit = useCallback(
     (event: React.FormEvent): void => {
       event.preventDefault();
 
-      navigate(
-        `/tecaj?datum_primjene=${convertToDateString(date, "YYYY-MM-DD")}`
-      );
+      const selectedDate = convertToDateString(date, "YYYY-MM-DD");
+
+      navigate(`/tecaj?datum_primjene=${selectedDate}`);
+
+      fetchData(selectedDate);
     },
     [date]
   );
@@ -38,6 +54,8 @@ const ExchangeRate: React.FC = React.memo(() => {
     const searchParams = new URLSearchParams(location.search);
 
     const datumPrimjene = searchParams.get("datum_primjene");
+
+    datumPrimjene && fetchData(datumPrimjene);
 
     setDate(new Date(datumPrimjene as string));
   }, []);
@@ -86,9 +104,38 @@ const ExchangeRate: React.FC = React.memo(() => {
         </form>
       </Container>
       <Container spacing="medium">
-        <h2 className="text-3xl md:text-3xl text-gray-800 font-bold mb-6">
+        <h2 className="text-3xl md:text-3xl text-gray-800 mb-6">
           Prikaz tečaja
         </h2>
+
+        {loading && <Loader />}
+        {!loading && error && <p className="text-red-600 text-lg">{error}</p>}
+        {!loading && data.length > 0 && (
+          <>
+            <div className="flex flex-col gap-3">
+              <strong className="text-xl text-gray-800">
+                Broj tečajnice:{" "}
+                <span className="font-normal">{data[0].broj_tecajnice}</span>
+              </strong>
+              <strong className="text-xl text-gray-800">
+                Datum primjene:{" "}
+                <span className="font-normal">
+                  {convertToDateString(
+                    new Date(data[0].datum_primjene),
+                    "DD.MM.YYYY"
+                  )}
+                </span>
+              </strong>
+
+              {MOCK_CONFIG.enableMockData && (
+                <small>
+                  Ova tablica koristi testne podatke te će biti ažurirana za
+                  prikaz stvarnih podataka
+                </small>
+              )}
+            </div>
+          </>
+        )}
 
         {/* TODO - Create Table component to display the fetched data */}
       </Container>

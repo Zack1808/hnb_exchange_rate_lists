@@ -12,6 +12,8 @@ import { useChartData } from "../hooks/useChartData";
 
 import { useBaseExchangeRate } from "../context/BaseExchangeRateContext";
 
+import { MOCK_CONFIG } from "../services/mock/mockData";
+
 const Home: React.FC = React.memo(() => {
   const [chartData, setChartData] = useState<Record<string, string>[]>([]);
   const [currency, setCurrency] = useState<string>("");
@@ -93,10 +95,12 @@ const Home: React.FC = React.memo(() => {
           ) : (
             <>
               <Chart chartData={chartData} currency={currency} />
-              <small>
-                Ovaj graf koristi testne podatke te će biti ažurirana za prikaz
-                stvarnih podataka
-              </small>
+              {MOCK_CONFIG.enableMockData && (
+                <small>
+                  Ovaj graf koristi testne podatke te će biti ažurirana za
+                  prikaz stvarnih podataka
+                </small>
+              )}
             </>
           )}
         </div>
