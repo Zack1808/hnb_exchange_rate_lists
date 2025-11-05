@@ -302,7 +302,15 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
           const newDate = new Date(prevState);
           newDate.setMonth(index);
 
-          return newDate;
+          return min && compareDate("month", newDate, min, "less")
+            ? prevState
+            : min && compareDate("day", newDate, min, "less")
+            ? min
+            : max && compareDate("month", newDate, max, "greater")
+            ? prevState
+            : max && compareDate("day", newDate, max, "greater")
+            ? max
+            : newDate;
         });
 
         setSelectYearOrMonth(null);
