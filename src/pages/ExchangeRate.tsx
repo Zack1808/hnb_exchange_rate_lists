@@ -184,7 +184,12 @@ const ExchangeRate: React.FC = React.memo(() => {
                 </small>
               )}
             </div>
-            <Table headers={headers} data={data} linkCols={linkCols} />
+            <Table
+              headers={headers}
+              data={data}
+              filterable
+              linkCols={linkCols}
+            />
           </>
         )}
       </Container>
