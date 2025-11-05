@@ -19,7 +19,7 @@ type ButtonProps = RegularButtonProps | LinkButtonProps | AnchorButtonProps;
 
 const buttonClasses = (variant: string, className: string): string => {
   const baseClasses =
-    "py-2 px-6 flex rounded-sm items-center gap-2 transition max-w-fit text-lg disabled:bg-gray-400 disabled:text-white disabled:border-gray-400 disabled:pointer-events-none";
+    "py-2 px-6 flex rounded-sm items-center gap-2 transition max-w-fit text-lg disabled:bg-gray-200 disabled:text-gray-400 disabled:border-gray-400 disabled:pointer-events-none";
 
   const variantClasses =
     {

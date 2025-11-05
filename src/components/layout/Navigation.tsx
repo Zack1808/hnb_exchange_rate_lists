@@ -5,6 +5,8 @@ import { FaXmark } from "react-icons/fa6";
 
 import Button from "../common/Button";
 
+import { convertToDateString } from "../../utils/dateUtils";
+
 const Navigation: React.FC = React.memo(() => {
   const [menuOpen, setMenuOpen] = useState<boolean>(false);
 
@@ -85,14 +87,23 @@ const Navigation: React.FC = React.memo(() => {
               Početna
             </Button>
             <Button
-              to={`/tecaj?datum_primjene=2025-10-20`}
+              to={`/tecaj?datum_primjene=${convertToDateString(
+                new Date(),
+                "YYYY-MM-DD"
+              )}`}
               className={getLinkClasses()}
               onClick={closeMenu}
             >
               Današnji tečajevi
             </Button>
             <Button
-              to={`/povijest?datum_primjene_od=2025-10-18&datum_primjene_do=2025-10-20`}
+              to={`/povijest?valuta=ALL&datum_primjene_od=${convertToDateString(
+                new Date(new Date().setDate(new Date().getDate() - 2)),
+                "YYYY-MM-DD"
+              )}&datum_primjene_do=${convertToDateString(
+                new Date(),
+                "YYYY-MM-DD"
+              )}`}
               className={getLinkClasses()}
               onClick={closeMenu}
             >
