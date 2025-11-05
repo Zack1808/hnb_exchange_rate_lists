@@ -12,6 +12,8 @@ import { useChartData } from "../hooks/useChartData";
 
 import { useBaseExchangeRate } from "../context/BaseExchangeRateContext";
 
+import { convertToDateString } from "../utils/dateUtils";
+
 import { MOCK_CONFIG } from "../services/mock/mockData";
 
 const Home: React.FC = React.memo(() => {
@@ -122,7 +124,10 @@ const Home: React.FC = React.memo(() => {
         </p>
 
         <Button
-          to={`/tecaj?datum_primjene=2025-10-20`}
+          to={`/tecaj?datum_primjene=${convertToDateString(
+            new Date(),
+            "YYYY-MM-DD"
+          )}`}
           variant="primary"
           className="mt-5"
         >
@@ -141,7 +146,13 @@ const Home: React.FC = React.memo(() => {
         </p>
 
         <Button
-          to={`/povijest?datum_primjene_od=2025-10-18&datum_primjene_do=2025-10-20`}
+          to={`/povijest?valuta=ALL&datum_primjene_od=${convertToDateString(
+            new Date(new Date().setDate(new Date().getDate() - 2)),
+            "YYYY-MM-DD"
+          )}&datum_primjene_do=${convertToDateString(
+            new Date(),
+            "YYYY-MM-DD"
+          )}`}
           variant="primary"
           className="mt-5"
         >

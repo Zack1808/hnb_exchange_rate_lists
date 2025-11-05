@@ -92,7 +92,7 @@ const Table: React.FC<TableProps> = ({
     (header: string, index: number): React.ReactNode => {
       return sortable ? (
         <Button
-          className="px-4 py-2 md:py-4 max-w-none w-full justify-center outline-none focus:inset-ring-4 focus:inset-ring-red-200 items-center"
+          className="px-4 py-2 md:py-4 max-w-none w-full justify-center outline-none focus-visible:inset-ring-4 focus-visible:inset-ring-red-200 items-center"
           onClick={() => handleHeaderButtonPress(index)}
         >
           {header}
