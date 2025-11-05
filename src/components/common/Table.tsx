@@ -1,5 +1,9 @@
 import React, { useCallback, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { FaCaretDown, FaCaretUp } from "react-icons/fa";
+
+import Button from "./Button";
+
 import { convertToDateString } from "../../utils/dateUtils";
 
 interface TableProps {
@@ -24,9 +28,33 @@ const Table: React.FC<TableProps> = ({
   linkCols,
 }) => {
   const [inputValue, setInputValue] = useState<string>("");
+  const [sortingConfig, setSortingConfig] = useState<{
+    headerIndex: number | null;
+    direction: "asc" | "desc";
+  }>({
+    headerIndex: null,
+    direction: "desc",
+  });
 
-  const handleInputChange = useCallback((event: React.ChangeEvent) => {
+  const handleInputChange = useCallback((event: React.ChangeEvent): void => {
     setInputValue((event.target as HTMLInputElement).value);
+  }, []);
+
+  const handleHeaderButtonPress = useCallback((index: number | null): void => {
+    setSortingConfig((prevState) => {
+      const { headerIndex, direction } = prevState;
+
+      let newDirection: "asc" | "desc";
+
+      if (headerIndex === null) newDirection = "desc";
+      else if (headerIndex !== index) newDirection = "desc";
+      else newDirection = direction === "desc" ? "asc" : "desc";
+
+      return {
+        headerIndex: index,
+        direction: newDirection,
+      };
+    });
   }, []);
 
   const renderCellData = useCallback(
@@ -60,8 +88,83 @@ const Table: React.FC<TableProps> = ({
     [linkCols]
   );
 
-  const renderData = useMemo((): Record<string, string>[] => {
+  const renderHeaderData = useCallback(
+    (header: string, index: number): React.ReactNode => {
+      return sortable ? (
+        <Button
+          className="px-4 py-2 md:py-4 max-w-none w-full justify-center outline-none focus:inset-ring-4 focus:inset-ring-red-200 items-center"
+          onClick={() => handleHeaderButtonPress(index)}
+        >
+          {header}
+          {sortingConfig.headerIndex !== null &&
+          sortingConfig.headerIndex === index ? (
+            sortingConfig.direction === "desc" ? (
+              <FaCaretDown />
+            ) : (
+              <FaCaretUp />
+            )
+          ) : null}
+        </Button>
+      ) : (
+        <span className="px-4 py-2 md:py-4 w-full justify-center flex">
+          {header}
+        </span>
+      );
+    },
+    [sortable, sortingConfig]
+  );
+
+  const sortData = useCallback(
+    (
+      data: Record<string, string>[],
+      key: string,
+      direction: "asc" | "desc",
+      isNumber: boolean
+    ): Record<string, string>[] => {
+      const sortedList = [...data];
+
+      return sortedList.sort((a, b) => {
+        if (a.hasOwnProperty(key) && b.hasOwnProperty(key)) {
+          if (isNumber) {
+            if (
+              Number(a[key].replace(",", ".")) >
+              Number(b[key].replace(",", "."))
+            )
+              return direction === "asc" ? -1 : 1;
+            if (
+              Number(a[key].replace(",", ".")) <
+              Number(b[key].replace(",", "."))
+            )
+              return direction === "asc" ? 1 : -1;
+            return 0;
+          } else {
+            if (a[key] > b[key]) return direction === "asc" ? -1 : 1;
+            if (a[key] < b[key]) return direction === "asc" ? 1 : -1;
+            return 0;
+          }
+        }
+        return 0;
+      });
+    },
+    []
+  );
+
+  const dataForRender = useMemo((): Record<string, string>[] => {
     let tempData = [...data];
+
+    if (sortable) {
+      const head = headers[sortingConfig.headerIndex!];
+
+      tempData =
+        sortingConfig.headerIndex !== null
+          ? sortData(
+              tempData,
+              head.value,
+              sortingConfig.direction,
+              head.isNumber
+            )
+          : tempData;
+    }
 
     if (filterable)
       tempData = tempData.filter((row) =>
@@ -70,16 +173,26 @@ const Table: React.FC<TableProps> = ({
               row[key]
                 .toString()
                 .toLowerCase()
-                .includes(inputValue.toLowerCase())
+                .trim()
+                .includes(inputValue.toLowerCase().trim())
             )
           : Object.values(row)
               .toString()
               .toLowerCase()
-              .includes(inputValue.toLowerCase())
+              .trim()
+              .includes(inputValue.toLowerCase().trim())
       );
 
     return tempData;
-  }, [data, inputValue]);
+  }, [
+    filterable,
+    filterableKeys,
+    data,
+    inputValue,
+    sortable,
+    sortingConfig,
+    headers,
+  ]);
 
   return (
     <div className="w-full flex flex-col gap-5 mt-5 items-start">
@@ -99,16 +212,16 @@ const Table: React.FC<TableProps> = ({
               {headers.map((header, index) => (
                 <th
                   key={index}
-                  className={`px-4 py-2 bg-red-600 md:py-4 text-white first:sticky first:left-0 first:z-10`}
+                  className={`bg-red-600 text-white first:sticky first:left-0 first:z-10`}
                 >
-                  {header.title}
+                  {renderHeaderData(header.title, index)}
                 </th>
               ))}
             </tr>
           </thead>
 
           <tbody>
-            {renderData.map((item, rowIndex) => (
+            {dataForRender.map((item, rowIndex) => (
               <tr
                 key={rowIndex}
                 className="divide-x divide-gray-300 odd:bg-gray-200 even:bg-gray-50"

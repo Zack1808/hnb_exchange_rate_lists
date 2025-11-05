@@ -61,6 +61,8 @@ const headers = [
   },
 ];
 
+const keys = ["drzava", "drzava_iso", "sifra_valute", "valuta"];
+
 const ExchangeRate: React.FC = React.memo(() => {
   const [date, setDate] = useState<Date>(new Date());
   const [data, setData] = useState<Record<string, string>[]>([]);
@@ -187,7 +189,9 @@ const ExchangeRate: React.FC = React.memo(() => {
             <Table
               headers={headers}
               data={data}
+              sortable
               filterable
+              filterableKeys={keys}
               linkCols={linkCols}
             />
           </>
