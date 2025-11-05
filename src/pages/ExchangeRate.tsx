@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useEffect } from "react";
+import React, { useCallback, useState, useEffect, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import Container from "../components/layout/Container";
@@ -69,6 +69,17 @@ const ExchangeRate: React.FC = React.memo(() => {
   const location = useLocation();
 
   const { getListing, loading, error } = useGetListings();
+
+  const linkCols = useMemo(
+    () => [
+      {
+        targetCol: "valuta",
+        startLink: "/povijest?",
+        selectedDate: date,
+      },
+    ],
+    [date]
+  );
 
   const fetchData = useCallback(async (date: string): Promise<void> => {
     const newData = await getListing(date);
@@ -173,7 +184,7 @@ const ExchangeRate: React.FC = React.memo(() => {
                 </small>
               )}
             </div>
-            <Table headers={headers} data={data} />
+            <Table headers={headers} data={data} linkCols={linkCols} />
           </>
         )}
       </Container>
