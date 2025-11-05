@@ -7,6 +7,7 @@ import List from "../components/common/List";
 import DatePicker from "../components/common/DatePicker";
 import Button from "../components/common/Button";
 import Loader from "../components/common/Loader";
+import Table from "../components/common/Table";
 
 import { useGetListings } from "../hooks/useGetListing";
 
@@ -21,6 +22,44 @@ const NOTES = [
   "HNB ne može biti odgovoran za korištenje podataka o srednjim tečajevima HNB-a u svrhe za koje to nije namijenjeno.",
   "Pritiskom na valutu u tablici možete provjeriti povjest tečaja odabrane valute.",
 ] as string[];
+
+const headers = [
+  {
+    title: "Valuta",
+    value: "valuta",
+    isNumber: false,
+  },
+  {
+    title: "Država",
+    value: "drzava",
+    isNumber: false,
+  },
+  {
+    title: "Država ISO",
+    value: "drzava_iso",
+    isNumber: false,
+  },
+  {
+    title: "Kupovni tečaj",
+    value: "kupovni_tecaj",
+    isNumber: true,
+  },
+  {
+    title: "Srednji tečaj",
+    value: "srednji_tecaj",
+    isNumber: true,
+  },
+  {
+    title: "Prodajni tečaj",
+    value: "prodajni_tecaj",
+    isNumber: true,
+  },
+  {
+    title: "Šifra valute",
+    value: "sifra_valute",
+    isNumber: true,
+  },
+];
 
 const ExchangeRate: React.FC = React.memo(() => {
   const [date, setDate] = useState<Date>(new Date());
@@ -134,10 +173,9 @@ const ExchangeRate: React.FC = React.memo(() => {
                 </small>
               )}
             </div>
+            <Table headers={headers} data={data} />
           </>
         )}
-
-        {/* TODO - Create Table component to display the fetched data */}
       </Container>
     </>
   );
