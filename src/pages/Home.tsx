@@ -25,7 +25,7 @@ const Home: React.FC = React.memo(() => {
   const { getCurrencyHistory, loading } = useGetListings();
   const { getCurrency, convertToChartData } = useChartData();
 
-  const baseData = useBaseExchangeRate();
+  const { baseData } = useBaseExchangeRate();
 
   const fetchData = useCallback(async () => {
     const historyList = await getCurrencyHistory("2025-01-01", "2025-01-01");
