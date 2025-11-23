@@ -3,6 +3,7 @@ import React from "react";
 import Container from "../components/layout/Container";
 
 import List from "../components/common/List";
+import Select from "../components/common/Select";
 
 const NOTES = [
   `Svi tečajevi su iskazani za 1 EUR od uvođenja EUR <strong>(01.01.2023)</strong>.`,
@@ -30,6 +31,8 @@ const ExchangeHistory: React.FC = React.memo(() => {
         <strong className="text-xl text-red-600 max-w-5xl">Napomena</strong>
 
         <List content={NOTES} listType="decimal" />
+
+        <Select options={[]} value="" />
 
         {/* TODO - build form with selection on what rate the user wants to see and which period */}
       </Container>
