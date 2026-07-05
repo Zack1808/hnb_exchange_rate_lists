@@ -39,9 +39,17 @@ const Select: React.FC<SelectProps<string>> = ({
       </button>
       {/* TODO: Build dropdown */}
       <div
-        className={`${selectOpen ? "flex" : "hidden"} absolute w-full top-full mt-1 bg-white shadow-md`}
+        className={`${selectOpen ? "flex flex-col" : "hidden"} absolute w-full top-full mt-1 bg-white shadow-md max-h-64 overflow-auto`}
       >
-        Otvoreno
+        {options.map((item) => (
+          <button
+            key={item.value}
+            type="button"
+            className={`w-full px-2 py-3 hover:bg-red-400 hover:text-white ${item.value === value ? "bg-red-600 text-white" : ""}`}
+          >
+            {item.label}
+          </button>
+        ))}
       </div>
     </div>
   );
