@@ -13,6 +13,61 @@ const NOTES = [
   "Pritiskom na valutu u tablici možete provjeriti povjest tečaja odabrane valute.",
 ] as string[];
 
+const CURRENCIES = [
+  {
+    value: "AUD",
+    label: "Australski dolar",
+  },
+  {
+    value: "CAD",
+    label: "Kanadski dolar",
+  },
+  {
+    value: "CZK",
+    label: "Češka kruna",
+  },
+  {
+    value: "DKK",
+    label: "Danska kruna",
+  },
+  {
+    value: "HUF",
+    label: "Mađarska forinta",
+  },
+  {
+    value: "JPY",
+    label: "Japanski yen",
+  },
+  {
+    value: "NOK",
+    label: "Norveška kruna",
+  },
+  {
+    value: "SEK",
+    label: "Švedska kruna",
+  },
+  {
+    value: "CHF",
+    label: "Švicarski franak",
+  },
+  {
+    value: "GBP",
+    label: "Britanska funta",
+  },
+  {
+    value: "USD",
+    label: "Američki dolar",
+  },
+  {
+    value: "BAM",
+    label: "Bosanska marka",
+  },
+  {
+    value: "PLN",
+    label: "Poljski zlot",
+  },
+];
+
 const ExchangeHistory: React.FC = React.memo(() => {
   return (
     <>
@@ -32,7 +87,11 @@ const ExchangeHistory: React.FC = React.memo(() => {
 
         <List content={NOTES} listType="decimal" />
 
-        <Select options={[]} value="" placeholder="Odaberi valutu..." />
+        <Select
+          options={CURRENCIES}
+          value="PLN"
+          placeholder="Odaberi valutu..."
+        />
 
         {/* TODO - build form with selection on what rate the user wants to see and which period */}
       </Container>

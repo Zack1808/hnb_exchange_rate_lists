@@ -39,7 +39,7 @@ const Select: React.FC<SelectProps<string>> = ({
       </button>
       {/* TODO: Build dropdown */}
       <div
-        className={`${selectOpen ? "flex" : "hidden"} absolute w-full top-full mt-0.5 bg-white`}
+        className={`${selectOpen ? "flex" : "hidden"} absolute w-full top-full mt-1 bg-white shadow-md`}
       >
         Otvoreno
       </div>
