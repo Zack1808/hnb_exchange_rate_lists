@@ -35,6 +35,7 @@ const Select: React.FC<SelectProps<string>> = ({
       <button
         type="button"
         ref={selectRef}
+        disabled={disabled}
         onClick={() => {
           setSelectOpen((prevState) => !prevState);
         }}
