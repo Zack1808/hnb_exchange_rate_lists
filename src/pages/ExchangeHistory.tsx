@@ -32,7 +32,7 @@ const ExchangeHistory: React.FC = React.memo(() => {
 
         <List content={NOTES} listType="decimal" />
 
-        <Select options={[]} value="" />
+        <Select options={[]} value="" placeholder="Odaberi valutu..." />
 
         {/* TODO - build form with selection on what rate the user wants to see and which period */}
       </Container>
