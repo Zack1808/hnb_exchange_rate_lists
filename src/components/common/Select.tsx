@@ -9,6 +9,7 @@ interface SelectProps<T = string> {
   onChange?: (value: T) => void;
   placeholder?: string;
   disabled?: boolean;
+  id?: string;
 }
 
 const Select: React.FC<SelectProps<string>> = ({
@@ -17,6 +18,7 @@ const Select: React.FC<SelectProps<string>> = ({
   onChange,
   placeholder,
   disabled,
+  id,
 }) => {
   const [selectOpen, setSelectOpen] = useState<boolean>(false);
 
@@ -39,6 +41,7 @@ const Select: React.FC<SelectProps<string>> = ({
         onClick={() => {
           setSelectOpen((prevState) => !prevState);
         }}
+        id={id ?? ""}
         className="flex gap-4 items-center justify-between w-full p-2 border outline-none border-gray-300 bg-white rounded-sm focus:ring-1 ring-red-300 "
       >
         {options.find((o) => o.value === value)?.label ??

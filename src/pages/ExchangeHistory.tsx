@@ -88,11 +88,19 @@ const ExchangeHistory: React.FC = React.memo(() => {
 
         <List content={NOTES} listType="decimal" />
 
+        <label
+          htmlFor="currencySelect"
+          className="text-lg text-red-600 font-bold"
+        >
+          Odabir valute
+        </label>
+
         <Select
           options={CURRENCIES}
           value={selectedCurrency}
           placeholder="Odaberi valutu..."
           onChange={setSelectedCurrency}
+          id="currencySelect"
         />
 
         {/* TODO - build form with selection on what rate the user wants to see and which period */}
