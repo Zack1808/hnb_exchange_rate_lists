@@ -1,6 +1,8 @@
 import React, { useState, useRef, useCallback } from "react";
 import { FaChevronUp, FaChevronDown } from "react-icons/fa6";
 
+import { useOutsideClick } from "../../hooks/useOutsideClick";
+
 type Options<T = string> = { value: T; label: string; disabled?: boolean };
 
 interface SelectProps<T = string> {
@@ -22,7 +24,7 @@ const Select: React.FC<SelectProps<string>> = ({
 }) => {
   const [selectOpen, setSelectOpen] = useState<boolean>(false);
 
-  const selectRef = useRef<HTMLButtonElement>(null);
+  const selectRef = useRef<HTMLDivElement>(null);
 
   const selectItem = useCallback(
     (item: string) => {
@@ -32,11 +34,14 @@ const Select: React.FC<SelectProps<string>> = ({
     [onChange],
   );
 
+  useOutsideClick(selectRef, () => {
+    setSelectOpen(false);
+  });
+
   return (
-    <div className="w-full md:w-xl relative">
+    <div ref={selectRef} className="w-full md:w-xl relative">
       <button
         type="button"
-        ref={selectRef}
         disabled={disabled}
         onClick={() => {
           setSelectOpen((prevState) => !prevState);
