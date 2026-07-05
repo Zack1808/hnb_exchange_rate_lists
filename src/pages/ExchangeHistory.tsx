@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 
 import Container from "../components/layout/Container";
 
@@ -69,6 +69,8 @@ const CURRENCIES = [
 ];
 
 const ExchangeHistory: React.FC = React.memo(() => {
+  const [selectedCurrency, setSelectedCurrency] = useState<string>("");
+
   return (
     <>
       <Container spacing="medium">
@@ -89,8 +91,9 @@ const ExchangeHistory: React.FC = React.memo(() => {
 
         <Select
           options={CURRENCIES}
-          value="PLN"
+          value={selectedCurrency}
           placeholder="Odaberi valutu..."
+          onChange={setSelectedCurrency}
         />
 
         {/* TODO - build form with selection on what rate the user wants to see and which period */}

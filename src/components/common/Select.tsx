@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useCallback } from "react";
 import { FaChevronUp, FaChevronDown } from "react-icons/fa6";
 
 type Options<T = string> = { value: T; label: string; disabled?: boolean };
@@ -22,6 +22,14 @@ const Select: React.FC<SelectProps<string>> = ({
 
   const selectRef = useRef<HTMLButtonElement>(null);
 
+  const selectItem = useCallback(
+    (item: string) => {
+      onChange && onChange(item);
+      setSelectOpen(false);
+    },
+    [onChange],
+  );
+
   return (
     <div className="w-full md:w-xl relative">
       <button
@@ -37,7 +45,6 @@ const Select: React.FC<SelectProps<string>> = ({
           "Select..."}
         {!selectOpen ? <FaChevronDown /> : <FaChevronUp />}
       </button>
-      {/* TODO: Build dropdown */}
       <div
         className={`${selectOpen ? "flex flex-col" : "hidden"} absolute w-full top-full mt-1 bg-white shadow-md max-h-64 overflow-auto`}
       >
@@ -45,7 +52,8 @@ const Select: React.FC<SelectProps<string>> = ({
           <button
             key={item.value}
             type="button"
-            className={`w-full px-2 py-3 hover:bg-red-400 hover:text-white ${item.value === value ? "bg-red-600 text-white" : ""}`}
+            className={`w-full text-left p-3 hover:bg-red-400 hover:text-white ${item.value === value ? "bg-red-600 text-white" : ""}`}
+            onClick={() => selectItem(item.value)}
           >
             {item.label}
           </button>
