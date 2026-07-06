@@ -55,7 +55,7 @@ const Select: React.FC<SelectProps<string>> = ({
           !selectOpen && setSelectOpen(true);
           if (value) {
             const index = options.findIndex((item) => item.value === value);
-            index < options.length &&
+            index < options.length - 1 &&
               onChange &&
               onChange(options[index + 1].value);
           } else {
