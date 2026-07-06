@@ -26,6 +26,50 @@ const Select: React.FC<SelectProps<string>> = ({
 
   const selectRef = useRef<HTMLDivElement>(null);
 
+  const toggleSelect = useCallback(() => {
+    setSelectOpen((prevState) => !prevState);
+  }, []);
+
+  const handleKeyPress = useCallback(
+    (event: React.KeyboardEvent): void => {
+      switch (event.key) {
+        case "Enter":
+        case " ":
+          event.preventDefault();
+          toggleSelect();
+          break;
+        case "ArrowUp":
+          event.preventDefault();
+          if (!options.length) break;
+          !selectOpen && setSelectOpen(true);
+          if (value) {
+            const index = options.findIndex((item) => item.value === value);
+            index > 0 && onChange && onChange(options[index - 1].value);
+          } else {
+            onChange && onChange(options[0].value);
+          }
+          break;
+        case "ArrowDown":
+          event.preventDefault();
+          if (!options.length) break;
+          !selectOpen && setSelectOpen(true);
+          if (value) {
+            const index = options.findIndex((item) => item.value === value);
+            index < options.length &&
+              onChange &&
+              onChange(options[index + 1].value);
+          } else {
+            onChange && onChange(options[0].value);
+          }
+          break;
+        case "Escape":
+          event.preventDefault();
+          setSelectOpen(false);
+      }
+    },
+    [value, onChange, selectOpen],
+  );
+
   const selectItem = useCallback(
     (item: string) => {
       onChange && onChange(item);
@@ -43,9 +87,8 @@ const Select: React.FC<SelectProps<string>> = ({
       <button
         type="button"
         disabled={disabled}
-        onClick={() => {
-          setSelectOpen((prevState) => !prevState);
-        }}
+        onClick={toggleSelect}
+        onKeyDown={handleKeyPress}
         id={id ?? ""}
         className="flex gap-4 items-center justify-between w-full p-2 border outline-none border-gray-300 bg-white rounded-sm focus:ring-1 ring-red-300 "
       >
