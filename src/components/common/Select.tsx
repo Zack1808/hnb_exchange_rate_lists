@@ -26,6 +26,7 @@ const Select: React.FC<SelectProps<string>> = ({
 
   const selectRef = useRef<HTMLDivElement>(null);
   const optionsRef = useRef<(HTMLButtonElement | null)[]>([]);
+  const optionRef = useRef<HTMLDivElement>(null);
 
   const toggleSelect = useCallback(() => {
     setSelectOpen((prevState) => !prevState);
@@ -94,7 +95,7 @@ const Select: React.FC<SelectProps<string>> = ({
   });
 
   return (
-    <div ref={selectRef} className="w-full md:w-xl relative">
+    <div ref={selectRef} className="w-full relative">
       <button
         type="button"
         disabled={disabled}
@@ -109,21 +110,29 @@ const Select: React.FC<SelectProps<string>> = ({
         {!selectOpen ? <FaChevronDown /> : <FaChevronUp />}
       </button>
       <div
-        className={`${selectOpen ? "flex flex-col" : "hidden"} absolute w-full top-full mt-1 bg-white shadow-md max-h-64 overflow-auto`}
+        className={`${selectOpen ? "flex flex-col" : "hidden"} fixed md:absolute z-50 w-full md:top-full top-0 md:bottom-auto bottom-0 md:left-auto left-0 md:right-auto right-0 md:mt-1 bg-black/40 shadow-md md:max-h-64 flex items-center justify-center`}
+        onClick={(event: React.MouseEvent) =>
+          event.target !== optionRef?.current && setSelectOpen(false)
+        }
       >
-        {options.map((item, index: number) => (
-          <button
-            key={item.value}
-            ref={(el) => {
-              optionsRef.current[index] = el;
-            }}
-            type="button"
-            className={`w-full text-left p-3 hover:bg-red-400 hover:text-white ${item.value === value ? "bg-red-600 text-white" : ""}`}
-            onClick={() => selectItem(item.value)}
-          >
-            {item.label}
-          </button>
-        ))}
+        <div
+          className="bg-white md:w-full w-sm rounded-md overflow-auto md:max-h-64 max-h-7/12"
+          ref={optionRef}
+        >
+          {options.map((item, index: number) => (
+            <button
+              key={item.value}
+              ref={(el) => {
+                optionsRef.current[index] = el;
+              }}
+              type="button"
+              className={`w-full text-left p-3 hover:bg-red-400 hover:text-white ${item.value === value ? "bg-red-600 text-white" : ""}`}
+              onClick={() => selectItem(item.value)}
+            >
+              {item.label}
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   );
