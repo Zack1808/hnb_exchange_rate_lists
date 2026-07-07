@@ -25,6 +25,7 @@ const Select: React.FC<SelectProps<string>> = ({
   const [selectOpen, setSelectOpen] = useState<boolean>(false);
 
   const selectRef = useRef<HTMLDivElement>(null);
+  const optionsRef = useRef<(HTMLButtonElement | null)[]>([]);
 
   const toggleSelect = useCallback(() => {
     setSelectOpen((prevState) => !prevState);
@@ -44,7 +45,13 @@ const Select: React.FC<SelectProps<string>> = ({
           !selectOpen && setSelectOpen(true);
           if (value) {
             const index = options.findIndex((item) => item.value === value);
-            index > 0 && onChange && onChange(options[index - 1].value);
+            if (index > 0) {
+              onChange && onChange(options[index - 1].value);
+              optionsRef.current[index - 1]?.scrollIntoView({
+                block: "nearest",
+                behavior: "instant",
+              });
+            }
           } else {
             onChange && onChange(options[0].value);
           }
@@ -55,9 +62,13 @@ const Select: React.FC<SelectProps<string>> = ({
           !selectOpen && setSelectOpen(true);
           if (value) {
             const index = options.findIndex((item) => item.value === value);
-            index < options.length - 1 &&
-              onChange &&
-              onChange(options[index + 1].value);
+            if (index < options.length - 1) {
+              onChange && onChange(options[index + 1].value);
+              optionsRef.current[index + 1]?.scrollIntoView({
+                block: "nearest",
+                behavior: "instant",
+              });
+            }
           } else {
             onChange && onChange(options[0].value);
           }
@@ -100,9 +111,12 @@ const Select: React.FC<SelectProps<string>> = ({
       <div
         className={`${selectOpen ? "flex flex-col" : "hidden"} absolute w-full top-full mt-1 bg-white shadow-md max-h-64 overflow-auto`}
       >
-        {options.map((item) => (
+        {options.map((item, index: number) => (
           <button
             key={item.value}
+            ref={(el) => {
+              optionsRef.current[index] = el;
+            }}
             type="button"
             className={`w-full text-left p-3 hover:bg-red-400 hover:text-white ${item.value === value ? "bg-red-600 text-white" : ""}`}
             onClick={() => selectItem(item.value)}
