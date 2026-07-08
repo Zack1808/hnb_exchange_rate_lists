@@ -32,6 +32,7 @@ const Select: React.FC<SelectProps<string>> = ({
 
   const toggleSelect = useCallback(() => {
     setSelectOpen((prevState) => !prevState);
+    checkSpace();
   }, []);
 
   const handleKeyPress = useCallback(
@@ -100,7 +101,7 @@ const Select: React.FC<SelectProps<string>> = ({
 
     const availableSpace = window.innerHeight - select.bottom;
 
-    selectOpen && setHasSpaceBellow(options < availableSpace);
+    setHasSpaceBellow(options < availableSpace);
   }, [selectOpen, buttonRef.current, optionRef.current]);
 
   useOutsideClick(selectRef, () => {
@@ -108,6 +109,10 @@ const Select: React.FC<SelectProps<string>> = ({
   });
 
   useEffect(() => {
+    if (!selectOpen) return;
+
+    checkSpace();
+
     window.addEventListener("scroll", checkSpace, true);
 
     return () => {
