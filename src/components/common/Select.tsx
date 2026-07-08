@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from "react";
+import React, { useState, useRef, useCallback, useEffect } from "react";
 import { FaChevronUp, FaChevronDown } from "react-icons/fa6";
 
 import { useOutsideClick } from "../../hooks/useOutsideClick";
@@ -23,8 +23,10 @@ const Select: React.FC<SelectProps<string>> = ({
   id,
 }) => {
   const [selectOpen, setSelectOpen] = useState<boolean>(false);
+  const [hasSpaceBellow, setHasSpaceBellow] = useState<boolean>(true);
 
   const selectRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
   const optionsRef = useRef<(HTMLButtonElement | null)[]>([]);
   const optionRef = useRef<HTMLDivElement>(null);
 
@@ -90,13 +92,33 @@ const Select: React.FC<SelectProps<string>> = ({
     [onChange],
   );
 
+  const checkSpace = useCallback(() => {
+    if (!buttonRef.current || !optionRef.current) return;
+
+    const select = buttonRef.current.getBoundingClientRect();
+    const options = optionRef.current.offsetHeight;
+
+    const availableSpace = window.innerHeight - select.bottom;
+
+    selectOpen && setHasSpaceBellow(options < availableSpace);
+  }, [selectOpen, buttonRef.current, optionRef.current]);
+
   useOutsideClick(selectRef, () => {
     setSelectOpen(false);
   });
 
+  useEffect(() => {
+    window.addEventListener("scroll", checkSpace, true);
+
+    return () => {
+      window.removeEventListener("scroll", checkSpace, true);
+    };
+  }, [selectOpen]);
+
   return (
     <div ref={selectRef} className="w-full relative">
       <button
+        ref={buttonRef}
         type="button"
         disabled={disabled}
         onClick={toggleSelect}
@@ -110,7 +132,7 @@ const Select: React.FC<SelectProps<string>> = ({
         {!selectOpen ? <FaChevronDown /> : <FaChevronUp />}
       </button>
       <div
-        className={`${selectOpen ? "flex flex-col" : "hidden"} fixed md:absolute z-50 w-full md:top-full top-0 md:bottom-auto bottom-0 md:left-auto left-0 md:right-auto right-0 md:mt-1 bg-black/40 shadow-md md:max-h-64 flex items-center justify-center`}
+        className={`${selectOpen ? "flex flex-col" : "hidden"} fixed md:absolute z-50 w-full ${hasSpaceBellow ? "md:top-full md:mt-1 md:bottom-auto" : "md:bottom-full md:mb-1 md:top-auto"} top-0 bottom-0 md:left-auto left-0 md:right-auto right-0 bg-black/40 shadow-md md:max-h-64 flex items-center justify-center`}
         onClick={(event: React.MouseEvent) =>
           event.target !== optionRef?.current && setSelectOpen(false)
         }
