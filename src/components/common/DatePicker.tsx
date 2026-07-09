@@ -31,10 +31,6 @@ interface DatePickerProps {
   max?: Date;
   disabled?: boolean;
   id?: string;
-  selectedRange?: {
-    from: Date;
-    to: Date;
-  };
   format?: DateFormat;
 }
 
@@ -55,16 +51,7 @@ const MONTHS = [
 ] as const;
 
 const DatePicker: React.FC<DatePickerProps> = React.memo(
-  ({
-    value,
-    onChange,
-    min,
-    max,
-    disabled,
-    id,
-    selectedRange,
-    format = "DD.MM.YYYY",
-  }) => {
+  ({ value, onChange, min, max, disabled, id, format = "DD.MM.YYYY" }) => {
     const [isOpen, setIsOpen] = useState<boolean>(false);
     const [selectYearOrMonth, setSelectYearOrMonth] = useState<
       null | "month" | "year"
@@ -93,11 +80,47 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
       setIsOpen(false);
     }, []);
 
+    const updateDate = useCallback(
+      (dateSegment: "day" | "month" | "year", ammount: number): void => {
+        onChange?.((prevState) => {
+          const newDate = new Date(prevState);
+
+          switch (dateSegment) {
+            case "day":
+              newDate.setDate(newDate.getDate() + ammount);
+              return (min && compareDate("day", newDate, min, "less")) ||
+                (max && compareDate("day", newDate, max, "greater"))
+                ? prevState
+                : newDate;
+            case "month":
+              newDate.setMonth(newDate.getMonth() + ammount);
+              return min && compareDate("month", newDate, min, "less")
+                ? prevState
+                : min && compareDate("day", newDate, min, "less")
+                  ? min
+                  : max && compareDate("month", newDate, max, "greater")
+                    ? prevState
+                    : max && compareDate("day", newDate, max, "greater")
+                      ? max
+                      : newDate;
+            case "year":
+              newDate.setFullYear(newDate.getFullYear() + ammount);
+              return min && compareDate("day", newDate, min, "less")
+                ? min
+                : max && compareDate("day", newDate, max, "greater")
+                  ? max
+                  : newDate;
+          }
+        });
+      },
+      [onChange, min, max],
+    );
+
     const handleKeyPress = useCallback(
       (
         element: string,
         segment: "day" | "month" | "year",
-        event: React.KeyboardEvent
+        event: React.KeyboardEvent,
       ): void => {
         switch (event.key) {
           case "Enter":
@@ -161,43 +184,7 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
             break;
         }
       },
-      []
-    );
-
-    const updateDate = useCallback(
-      (dateSegment: "day" | "month" | "year", ammount: number): void => {
-        onChange?.((prevState) => {
-          const newDate = new Date(prevState);
-
-          switch (dateSegment) {
-            case "day":
-              newDate.setDate(newDate.getDate() + ammount);
-              return (min && compareDate("day", newDate, min, "less")) ||
-                (max && compareDate("day", newDate, max, "greater"))
-                ? prevState
-                : newDate;
-            case "month":
-              newDate.setMonth(newDate.getMonth() + ammount);
-              return min && compareDate("month", newDate, min, "less")
-                ? prevState
-                : min && compareDate("day", newDate, min, "less")
-                ? min
-                : max && compareDate("month", newDate, max, "greater")
-                ? prevState
-                : max && compareDate("day", newDate, max, "greater")
-                ? max
-                : newDate;
-            case "year":
-              newDate.setFullYear(newDate.getFullYear() + ammount);
-              return min && compareDate("day", newDate, min, "less")
-                ? min
-                : max && compareDate("day", newDate, max, "greater")
-                ? max
-                : newDate;
-          }
-        });
-      },
-      [onChange]
+      [updateDate, resetDatePickerState],
     );
 
     const handleToggleDatePicker = useCallback(
@@ -209,7 +196,7 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
           return !prevState;
         });
       },
-      []
+      [],
     );
 
     const handleInputKeypressToggleDatePicker = useCallback(
@@ -218,7 +205,7 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
 
         handleKeyPress(element, "day", event);
       },
-      []
+      [],
     );
 
     const handleYearOrMonthButtonClick = useCallback(
@@ -227,7 +214,7 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
           return prevState === selection ? null : selection;
         });
       },
-      []
+      [],
     );
 
     const incrementDate = useCallback((): void => {
@@ -292,7 +279,7 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
           </button>
         );
       });
-    }, [value, onChange, resetDatePickerState, selectYearOrMonth]);
+    }, [value, onChange, resetDatePickerState, selectYearOrMonth, min, max]);
 
     const generateMonthButtons = useCallback((): React.ReactNode => {
       const handleClick = (index: number, event: React.MouseEvent): void => {
@@ -305,12 +292,12 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
           return min && compareDate("month", newDate, min, "less")
             ? prevState
             : min && compareDate("day", newDate, min, "less")
-            ? min
-            : max && compareDate("month", newDate, max, "greater")
-            ? prevState
-            : max && compareDate("day", newDate, max, "greater")
-            ? max
-            : newDate;
+              ? min
+              : max && compareDate("month", newDate, max, "greater")
+                ? prevState
+                : max && compareDate("day", newDate, max, "greater")
+                  ? max
+                  : newDate;
         });
 
         setSelectYearOrMonth(null);
@@ -329,14 +316,14 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
               "month",
               new Date(value.getFullYear(), index, 1),
               min,
-              "less"
+              "less",
             )) ||
           (max &&
             compareDate(
               "month",
               new Date(value.getFullYear(), index, 1),
               max,
-              "greater"
+              "greater",
             ));
 
         return (
@@ -359,7 +346,7 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
           </button>
         );
       });
-    }, [value, onChange]);
+    }, [value, onChange, min, max]);
 
     const generateYearButtons = useCallback((): React.ReactNode => {
       const currentYear = new Date().getFullYear();
@@ -380,8 +367,8 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
           return min && compareDate("day", newDate, min, "less")
             ? min
             : max && compareDate("day", newDate, max, "greater")
-            ? max
-            : newDate;
+              ? max
+              : newDate;
         });
 
         setSelectYearOrMonth(null);
@@ -420,7 +407,7 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
           </button>
         );
       });
-    }, [selectYearOrMonth, value, onChange]);
+    }, [selectYearOrMonth, value, onChange, min, max]);
 
     useOutsideClick(datePickerRef, resetDatePickerState);
 
@@ -560,7 +547,7 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
         </div>
       </div>
     );
-  }
+  },
 );
 
 export default DatePicker;

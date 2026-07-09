@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 
 import Container from "../components/layout/Container";
 
 import List from "../components/common/List";
 import Select from "../components/common/Select";
+import DatePicker from "../components/common/DatePicker";
 
 const NOTES = [
   `Svi tečajevi su iskazani za 1 EUR od uvođenja EUR <strong>(01.01.2023)</strong>.`,
@@ -69,6 +70,24 @@ const CURRENCIES = [
 
 const ExchangeHistory: React.FC = React.memo(() => {
   const [selectedCurrency, setSelectedCurrency] = useState<string>("");
+  const [fromDate, setFromDate] = useState<Date>(new Date());
+  const [toDate, setToDate] = useState<Date>(() => {
+    const d = new Date();
+    d.setDate(d.getDate() - 2);
+    return d;
+  });
+
+  const fromMin = useMemo(() => {
+    const d = new Date(toDate);
+    d.setDate(d.getDate() + 2);
+    return d;
+  }, [toDate]);
+
+  const toMax = useMemo(() => {
+    const d = new Date(fromDate);
+    d.setDate(d.getDate() - 2);
+    return d;
+  }, [fromDate]);
 
   return (
     <>
@@ -88,20 +107,51 @@ const ExchangeHistory: React.FC = React.memo(() => {
 
         <List content={NOTES} listType="decimal" />
 
-        <label
-          htmlFor="currencySelect"
-          className="text-lg text-red-600 font-bold"
-        >
-          Odabir valute
-        </label>
+        <form className="w-full md:max-w-6/12 flex flex-col gap-4">
+          <fieldset className="flex flex-col gap-2">
+            <label
+              htmlFor="currencySelect"
+              className="text-lg text-red-600 font-bold"
+            >
+              Odabir valute
+            </label>
 
-        <Select
-          options={CURRENCIES}
-          value={selectedCurrency}
-          placeholder="Odaberi valutu..."
-          onChange={setSelectedCurrency}
-          id="currencySelect"
-        />
+            <Select
+              options={CURRENCIES}
+              value={selectedCurrency}
+              placeholder="Odaberi valutu..."
+              onChange={setSelectedCurrency}
+              id="currencySelect"
+            />
+          </fieldset>
+          <fieldset className="flex flex-col gap-2">
+            <label htmlFor="toDate" className="text-lg text-red-600 font-bold">
+              Datum do
+            </label>
+            <DatePicker
+              value={toDate}
+              onChange={setToDate}
+              min={new Date(2023, 0, 1)}
+              max={toMax}
+              id="fromDate"
+            />
+          </fieldset>
+          <fieldset className="flex flex-col gap-2">
+            <label
+              htmlFor="fromDate"
+              className="text-lg text-red-600 font-bold"
+            >
+              Datum od
+            </label>
+            <DatePicker
+              value={fromDate}
+              onChange={setFromDate}
+              min={fromMin}
+              max={new Date()}
+              id="fromDate"
+            />
+          </fieldset>
+        </form>
 
         {/* TODO - build form with selection on what rate the user wants to see and which period */}
       </Container>
