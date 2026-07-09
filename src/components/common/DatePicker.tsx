@@ -57,12 +57,13 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
       null | "month" | "year"
     >(null);
 
-    const datePickerRef = useRef<HTMLDivElement>(null);
+    const dateRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
     const scrollToSelectedYearRef = useRef<HTMLDivElement>(null);
     const selectedDayRef = useRef<HTMLButtonElement>(null);
     const selectedMonthRef = useRef<HTMLButtonElement>(null);
     const selectedYearRef = useRef<HTMLButtonElement>(null);
+    const datePickerRef = useRef<HTMLDivElement>(null);
 
     const incrementDisabled = useMemo(() => {
       const maxDisabled =
@@ -189,7 +190,7 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
 
     const handleToggleDatePicker = useCallback(
       (event: React.MouseEvent): void => {
-        event.stopPropagation();
+        event.preventDefault();
 
         setIsOpen((prevState) => {
           !prevState && setSelectYearOrMonth(null);
@@ -436,7 +437,7 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
     }, [isOpen, selectYearOrMonth, value]);
 
     return (
-      <div className="relative flex-1">
+      <div className="relative flex-1 w-full" ref={datePickerRef}>
         <div className="flex border border-gray-300 bg-white rounded-sm focus-within:ring-1 ring-red-300">
           <Button
             className="text-red-600 py-3 hover:bg-gray-100"
@@ -480,12 +481,12 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
         </div>
 
         <div
-          className={`sm:absolute fixed sm:top-full sm:bottom-auto top-0 bottom-0 right-0 left-0 sm:mt-0.5 bg-black/40 sm:bg-transparent z-50 flex justify-center items-center ${
+          className={`sm:absolute sm:mx-auto fixed sm:top-full sm:bottom-auto top-0 bottom-0 sm:max-w-sm right-0 left-0 sm:mt-0.5 bg-black/40 sm:bg-transparent z-50 flex justify-center items-center ${
             isOpen ? "opacity-100 visible" : "opacity-0 invisible"
           }`}
         >
           <div
-            ref={datePickerRef}
+            ref={dateRef}
             className="flex flex-col bg-white border border-gray-300 rounded-sm w-full max-w-sm transition shadow-lg p-2"
             role="dialog"
             aria-modal="true"

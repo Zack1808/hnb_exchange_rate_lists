@@ -124,7 +124,7 @@ const ExchangeHistory: React.FC = React.memo(() => {
               id="currencySelect"
             />
           </fieldset>
-          <fieldset className="flex flex-col gap-2">
+          <fieldset className="flex flex-col gap-2 items-start">
             <label htmlFor="toDate" className="text-lg text-red-600 font-bold">
               Datum do
             </label>
@@ -133,10 +133,10 @@ const ExchangeHistory: React.FC = React.memo(() => {
               onChange={setToDate}
               min={new Date(2023, 0, 1)}
               max={toMax}
-              id="fromDate"
+              id="toDate"
             />
           </fieldset>
-          <fieldset className="flex flex-col gap-2">
+          <fieldset className="flex flex-col gap-2 items-start">
             <label
               htmlFor="fromDate"
               className="text-lg text-red-600 font-bold"
