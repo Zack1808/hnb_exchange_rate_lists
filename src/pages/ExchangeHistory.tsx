@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 
 import Container from "../components/layout/Container";
 
@@ -81,6 +82,8 @@ const ExchangeHistory: React.FC = React.memo(() => {
     return d;
   });
 
+  const location = useLocation();
+
   const toMax = useMemo(() => {
     const d = new Date();
     d.setDate(d.getDate() - 2);
@@ -116,6 +119,17 @@ const ExchangeHistory: React.FC = React.memo(() => {
         return d;
       });
   }, [fromDate]);
+
+  useEffect(() => {
+    const search = new URLSearchParams(location.search);
+    const dateFrom = search.get("datum_primjene_od");
+    const dateTo = search.get("datum_primjene_do");
+    const currency = search.get("valuta");
+    if (!dateFrom || !dateTo || !currency) return;
+    setFromDate(new Date(dateFrom));
+    setToDate(new Date(dateTo));
+    setSelectedCurrency(currency);
+  }, []);
 
   return (
     <>
@@ -182,10 +196,10 @@ const ExchangeHistory: React.FC = React.memo(() => {
             />
           </fieldset>
 
-          <Button variant="primary">Prikaži</Button>
+          <Button className="self-end" variant="primary">
+            Prikaži
+          </Button>
         </form>
-
-        {/* TODO - build form with selection on what rate the user wants to see and which period */}
       </Container>
       <Container spacing="medium">
         <h2 className="text-3xl md:text-3xl text-gray-800 mb-6">
