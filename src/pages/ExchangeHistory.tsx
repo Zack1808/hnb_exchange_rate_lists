@@ -7,6 +7,7 @@ import Select from "../components/common/Select";
 import DatePicker from "../components/common/DatePicker";
 
 import { compareDate } from "../utils/dateUtils";
+import Button from "../components/common/Button";
 
 const NOTES = [
   `Svi tečajevi su iskazani za 1 EUR od uvođenja EUR <strong>(01.01.2023)</strong>.`,
@@ -81,10 +82,10 @@ const ExchangeHistory: React.FC = React.memo(() => {
   });
 
   const toMax = useMemo(() => {
-    const d = new Date(toDate);
+    const d = new Date();
     d.setDate(d.getDate() - 2);
     return d;
-  }, [toDate]);
+  }, []);
 
   useEffect(() => {
     const d = new Date(fromDate);
@@ -100,6 +101,21 @@ const ExchangeHistory: React.FC = React.memo(() => {
         return d;
       });
   }, [toDate]);
+
+  useEffect(() => {
+    const d = new Date(toDate);
+    d.setDate(d.getDate() - 2);
+    const compareDay = compareDate("day", d, fromDate, "less");
+    const compareMonth = compareDate("month", d, fromDate, "less");
+    const compareYear = compareDate("year", d, fromDate, "less");
+
+    if (compareDay || compareMonth || compareYear)
+      setToDate(() => {
+        const d = new Date(fromDate);
+        d.setDate(d.getDate() + 2);
+        return d;
+      });
+  }, [fromDate]);
 
   return (
     <>
@@ -119,7 +135,7 @@ const ExchangeHistory: React.FC = React.memo(() => {
 
         <List content={NOTES} listType="decimal" />
 
-        <form className="w-full md:max-w-6/12 flex flex-col gap-4">
+        <form className="w-full md:max-w-6/12 flex flex-col gap-4 mt-10">
           <fieldset className="flex flex-col gap-2">
             <label
               htmlFor="currencySelect"
@@ -142,7 +158,7 @@ const ExchangeHistory: React.FC = React.memo(() => {
               htmlFor="fromDate"
               className="text-lg text-red-600 font-bold"
             >
-              Datum od
+              Datum primjene od
             </label>
             <DatePicker
               value={fromDate}
@@ -155,16 +171,18 @@ const ExchangeHistory: React.FC = React.memo(() => {
 
           <fieldset className="flex flex-col gap-2 items-start">
             <label htmlFor="toDate" className="text-lg text-red-600 font-bold">
-              Datum do
+              Datum primjene do
             </label>
             <DatePicker
               value={toDate}
               onChange={setToDate}
-              min={new Date(2023, 0, 1)}
+              min={new Date(2023, 0, 3)}
               max={new Date()}
               id="toDate"
             />
           </fieldset>
+
+          <Button variant="primary">Prikaži</Button>
         </form>
 
         {/* TODO - build form with selection on what rate the user wants to see and which period */}
