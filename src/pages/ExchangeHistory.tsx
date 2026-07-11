@@ -87,9 +87,11 @@ const ExchangeHistory: React.FC = React.memo(() => {
   }, [toDate]);
 
   useEffect(() => {
-    const compareDay = compareDate("day", fromDate, toDate, "greater");
-    const compareMonth = compareDate("month", fromDate, toDate, "greater");
-    const compareYear = compareDate("year", fromDate, toDate, "greater");
+    const d = new Date(fromDate);
+    d.setDate(d.getDate() + 2);
+    const compareDay = compareDate("day", d, toDate, "greater");
+    const compareMonth = compareDate("month", d, toDate, "greater");
+    const compareYear = compareDate("year", d, toDate, "greater");
 
     if (compareDay || compareMonth || compareYear)
       setFromDate(() => {
