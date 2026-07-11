@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 
 import Container from "../components/layout/Container";
 
@@ -6,11 +6,14 @@ import List from "../components/common/List";
 import Select from "../components/common/Select";
 import DatePicker from "../components/common/DatePicker";
 
+import { compareDate } from "../utils/dateUtils";
+
 const NOTES = [
   `Svi tečajevi su iskazani za 1 EUR od uvođenja EUR <strong>(01.01.2023)</strong>.`,
-  'Srednji tečajevi za euro u odnosu na druge valute koji su objavljeni u tečajnoj listi HNB-a imaju za cilj pružiti informaciju o tečaju eura u odnosu na druge valute u specifičnom vremenskom razdoblju na datum objave tečajne liste i kao takvi se mogu koristiti isključivo u svrhe predviđene odredbom članka 17. stavka 2. Zakona o uvođenju eura kao službene valute u Republici Hrvatskoj <strong>("Narodne novine" broj 57/2022 i 88/2022).</strong>',
+  `Srednji tečajevi za euro u odnosu na druge valute koji su objavljeni u tečajnoj listi HNB-a imaju za cilj pružiti informaciju o tečaju eura u odnosu na druge valute u specifičnom vremenskom razdoblju na datum objave tečajne liste i kao takvi se mogu koristiti isključivo u svrhe predviđene odredbom članka 17. stavka 2. Zakona o uvođenju eura kao službene valute u Republici Hrvatskoj <strong>("Narodne novine" broj 57/2022 i 88/2022).</strong>`,
   "Srednji tečajevi HNB-a nisu namijenjeni za korištenje u pravnim poslovima koji su nastali nakon uvođenja eura kao službene valute u Republici Hrvatskoj, niti bi se oni trebali koristiti, direktno ili indirektno (kao referentna vrijednost) za sklapanje bilo kojih novih pravnih poslova, već je njihovo korištenje ograničeno na pravne poslove u kojima je pozivanje na srednji tečaj HNB-a određeno prije datuma uvođenja eura, osim ako nekim propisom nije drugačije uređeno.",
   "HNB ne može biti odgovoran za korištenje podataka o srednjim tečajevima HNB-a u svrhe za koje to nije namijenjeno.",
+  `Za prikaz povijesti tečaja potrebno je odabrati dva datuma koja moraju biti udaljena najmanje <strong>2 dana</strong>.`,
 ] as string[];
 
 const CURRENCIES = [
@@ -70,24 +73,31 @@ const CURRENCIES = [
 
 const ExchangeHistory: React.FC = React.memo(() => {
   const [selectedCurrency, setSelectedCurrency] = useState<string>("");
-  const [fromDate, setFromDate] = useState<Date>(new Date());
-  const [toDate, setToDate] = useState<Date>(() => {
+  const [toDate, setToDate] = useState<Date>(new Date());
+  const [fromDate, setFromDate] = useState<Date>(() => {
     const d = new Date();
     d.setDate(d.getDate() - 2);
     return d;
   });
 
-  const fromMin = useMemo(() => {
+  const toMax = useMemo(() => {
     const d = new Date(toDate);
-    d.setDate(d.getDate() + 2);
+    d.setDate(d.getDate() - 2);
     return d;
   }, [toDate]);
 
-  const toMax = useMemo(() => {
-    const d = new Date(fromDate);
-    d.setDate(d.getDate() - 2);
-    return d;
-  }, [fromDate]);
+  useEffect(() => {
+    const compareDay = compareDate("day", fromDate, toDate, "greater");
+    const compareMonth = compareDate("month", fromDate, toDate, "greater");
+    const compareYear = compareDate("year", fromDate, toDate, "greater");
+
+    if (compareDay || compareMonth || compareYear)
+      setFromDate(() => {
+        const d = new Date(toDate);
+        d.setDate(d.getDate() - 2);
+        return d;
+      });
+  }, [toDate]);
 
   return (
     <>
@@ -124,18 +134,7 @@ const ExchangeHistory: React.FC = React.memo(() => {
               id="currencySelect"
             />
           </fieldset>
-          <fieldset className="flex flex-col gap-2 items-start">
-            <label htmlFor="toDate" className="text-lg text-red-600 font-bold">
-              Datum do
-            </label>
-            <DatePicker
-              value={toDate}
-              onChange={setToDate}
-              min={new Date(2023, 0, 1)}
-              max={toMax}
-              id="toDate"
-            />
-          </fieldset>
+
           <fieldset className="flex flex-col gap-2 items-start">
             <label
               htmlFor="fromDate"
@@ -146,9 +145,22 @@ const ExchangeHistory: React.FC = React.memo(() => {
             <DatePicker
               value={fromDate}
               onChange={setFromDate}
-              min={fromMin}
-              max={new Date()}
+              min={new Date(2023, 0, 1)}
+              max={toMax}
               id="fromDate"
+            />
+          </fieldset>
+
+          <fieldset className="flex flex-col gap-2 items-start">
+            <label htmlFor="toDate" className="text-lg text-red-600 font-bold">
+              Datum do
+            </label>
+            <DatePicker
+              value={toDate}
+              onChange={setToDate}
+              min={new Date(2023, 0, 1)}
+              max={new Date()}
+              id="toDate"
             />
           </fieldset>
         </form>
