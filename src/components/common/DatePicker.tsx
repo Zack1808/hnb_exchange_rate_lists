@@ -484,9 +484,10 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
           className={`sm:absolute sm:mx-auto fixed sm:top-full sm:bottom-auto top-0 bottom-0 sm:max-w-sm right-0 left-0 sm:mt-0.5 bg-black/40 sm:bg-transparent z-50 flex justify-center items-center ${
             isOpen ? "opacity-100 visible" : "opacity-0 invisible"
           }`}
-          onClick={(event) =>
-            event.target !== dateRef.current && resetDatePickerState()
-          }
+          onClick={(event) => {
+            !dateRef.current?.contains(event.target as Node) &&
+              resetDatePickerState();
+          }}
         >
           <div
             ref={dateRef}
