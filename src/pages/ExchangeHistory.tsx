@@ -1,14 +1,15 @@
-import React, { useState, useMemo, useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import React, { useState, useMemo, useEffect, useCallback } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 
 import Container from "../components/layout/Container";
 
 import List from "../components/common/List";
 import Select from "../components/common/Select";
 import DatePicker from "../components/common/DatePicker";
+import Button from "../components/common/Button";
 
 import { compareDate } from "../utils/dateUtils";
-import Button from "../components/common/Button";
+import { convertToDateString } from "../utils/dateUtils";
 
 const NOTES = [
   `Svi tečajevi su iskazani za 1 EUR od uvođenja EUR <strong>(01.01.2023)</strong>.`,
@@ -83,12 +84,47 @@ const ExchangeHistory: React.FC = React.memo(() => {
   });
 
   const location = useLocation();
+  const navigate = useNavigate();
 
   const toMax = useMemo(() => {
     const d = new Date();
     d.setDate(d.getDate() - 2);
     return d;
   }, []);
+
+  const handleSubmit = useCallback(
+    (event: React.FormEvent) => {
+      event.preventDefault();
+
+      const search = new URLSearchParams(location.search);
+
+      const dateFrom = search.get("datum_primjene_od");
+      const dateTo = search.get("datum_primjene_do");
+      const currency = search.get("valuta");
+
+      const compareFrom =
+        compareDate("day", new Date(dateFrom as string), fromDate, "same") &&
+        compareDate("month", new Date(dateFrom as string), fromDate, "same") &&
+        compareDate("year", new Date(dateFrom as string), fromDate, "same");
+
+      const compareTo =
+        compareDate("day", new Date(dateTo as string), toDate, "same") &&
+        compareDate("month", new Date(dateTo as string), toDate, "same") &&
+        compareDate("year", new Date(dateTo as string), toDate, "same");
+
+      if (currency === selectedCurrency && compareFrom && compareTo) return;
+
+      navigate(
+        `/povijest?valuta=${selectedCurrency}&datum_primjene_od=${convertToDateString(
+          new Date(fromDate),
+          "YYYY-MM-DD",
+        )}&datum_primjene_do=${convertToDateString(new Date(toDate), "YYYY-MM-DD")}`,
+      );
+
+      // TODO: Add fetching function for the history of the selected currency
+    },
+    [selectedCurrency, fromDate, toDate],
+  );
 
   useEffect(() => {
     const d = new Date(fromDate);
@@ -122,10 +158,13 @@ const ExchangeHistory: React.FC = React.memo(() => {
 
   useEffect(() => {
     const search = new URLSearchParams(location.search);
+
     const dateFrom = search.get("datum_primjene_od");
     const dateTo = search.get("datum_primjene_do");
     const currency = search.get("valuta");
+
     if (!dateFrom || !dateTo || !currency) return;
+
     setFromDate(new Date(dateFrom));
     setToDate(new Date(dateTo));
     setSelectedCurrency(currency);
@@ -149,7 +188,10 @@ const ExchangeHistory: React.FC = React.memo(() => {
 
         <List content={NOTES} listType="decimal" />
 
-        <form className="w-full md:max-w-6/12 flex flex-col gap-4 mt-10">
+        <form
+          className="w-full md:max-w-6/12 flex flex-col gap-4 mt-10"
+          onSubmit={handleSubmit}
+        >
           <fieldset className="flex flex-col gap-2">
             <label
               htmlFor="currencySelect"
