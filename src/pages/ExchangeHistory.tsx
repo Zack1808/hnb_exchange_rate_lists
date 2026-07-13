@@ -11,6 +11,8 @@ import Button from "../components/common/Button";
 import { compareDate } from "../utils/dateUtils";
 import { convertToDateString } from "../utils/dateUtils";
 
+import { useGetListings } from "../hooks/useGetListing";
+
 const NOTES = [
   `Svi tečajevi su iskazani za 1 EUR od uvođenja EUR <strong>(01.01.2023)</strong>.`,
   `Srednji tečajevi za euro u odnosu na druge valute koji su objavljeni u tečajnoj listi HNB-a imaju za cilj pružiti informaciju o tečaju eura u odnosu na druge valute u specifičnom vremenskom razdoblju na datum objave tečajne liste i kao takvi se mogu koristiti isključivo u svrhe predviđene odredbom članka 17. stavka 2. Zakona o uvođenju eura kao službene valute u Republici Hrvatskoj <strong>("Narodne novine" broj 57/2022 i 88/2022).</strong>`,
@@ -82,9 +84,21 @@ const ExchangeHistory: React.FC = React.memo(() => {
     d.setDate(d.getDate() - 2);
     return d;
   });
+  const [data, setData] = useState<Record<string, string>[]>([]);
 
   const location = useLocation();
   const navigate = useNavigate();
+
+  const { getCurrencyHistory } = useGetListings();
+
+  const fetchData = useCallback(
+    async (dateFrom: string, dateTo: string): Promise<void> => {
+      const newData = await getCurrencyHistory(dateFrom, dateTo);
+
+      newData && setData(newData);
+    },
+    [],
+  );
 
   const toMax = useMemo(() => {
     const d = new Date();
@@ -164,6 +178,8 @@ const ExchangeHistory: React.FC = React.memo(() => {
     const currency = search.get("valuta");
 
     if (!dateFrom || !dateTo || !currency) return;
+
+    fetchData(dateFrom, dateTo);
 
     setFromDate(new Date(dateFrom));
     setToDate(new Date(dateTo));
@@ -247,6 +263,8 @@ const ExchangeHistory: React.FC = React.memo(() => {
         <h2 className="text-3xl md:text-3xl text-gray-800 mb-6">
           Prikaz povjesti tečaja
         </h2>
+
+        {data.length && data[0].broj_tecajnice}
 
         {/* TODO - build table & chart to display the percentage of growth/fall of the selected currency. If the user wants to se the data for all currencies, display only table and growth/fall percentage since 1.1.2023. Create pagination for when the data for all curencies needs to be displayed */}
       </Container>
