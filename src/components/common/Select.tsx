@@ -1,37 +1,51 @@
 import React, { useState, useRef, useCallback, useEffect } from "react";
-import { FaChevronUp, FaChevronDown } from "react-icons/fa6";
+import { FaCaretUp, FaCaretDown, FaX } from "react-icons/fa6";
 
 import { useOutsideClick } from "../../hooks/useOutsideClick";
 
+import Button from "./Button";
+
 type Options<T = string> = { value: T; label: string; disabled?: boolean };
 
-interface SelectProps<T = string> {
-  options: Options<T>[];
-  value: T | null;
-  onChange?: (value: T) => void;
+interface SingleSelectProps {
+  value: string | null;
+}
+
+interface MultiSelectProps {
+  value: string[] | null;
+  multiple: true;
+}
+
+type SelectProps = {
+  options: Options<string>[];
+  onChange?: (value: string) => void;
   placeholder?: string;
   disabled?: boolean;
   id?: string;
-}
+  multiple?: boolean;
+} & (SingleSelectProps | MultiSelectProps);
 
-const Select: React.FC<SelectProps<string>> = ({
+const Select: React.FC<SelectProps> = ({
   options,
   value,
   onChange,
   placeholder,
   disabled,
+  multiple,
   id,
 }) => {
   const [selectOpen, setSelectOpen] = useState<boolean>(false);
   const [hasSpaceBellow, setHasSpaceBellow] = useState<boolean>(true);
+  const [highlightedIndex, setHighlightedIndex] = useState<number | null>(null);
 
   const selectRef = useRef<HTMLDivElement>(null);
-  const buttonRef = useRef<HTMLButtonElement>(null);
+  const divRef = useRef<HTMLDivElement>(null);
   const optionsRef = useRef<(HTMLButtonElement | null)[]>([]);
   const optionRef = useRef<HTMLDivElement>(null);
 
   const toggleSelect = useCallback(() => {
     setSelectOpen((prevState) => !prevState);
+    setHighlightedIndex(null);
     checkSpace();
   }, []);
 
@@ -41,71 +55,82 @@ const Select: React.FC<SelectProps<string>> = ({
         case "Enter":
         case " ":
           event.preventDefault();
-          toggleSelect();
+          if (!selectOpen) {
+            setSelectOpen(true);
+            checkSpace();
+            setHighlightedIndex(0);
+          } else {
+            onChange?.(options[highlightedIndex as number].value);
+            !multiple && toggleSelect();
+          }
           break;
         case "ArrowUp":
           event.preventDefault();
           if (!options.length) break;
-          !selectOpen && setSelectOpen(true);
-          if (value) {
-            const index = options.findIndex((item) => item.value === value);
-            if (index > 0) {
-              onChange && onChange(options[index - 1].value);
-              optionsRef.current[index - 1]?.scrollIntoView({
-                block: "nearest",
-                behavior: "instant",
-              });
-            }
-          } else {
-            onChange && onChange(options[0].value);
+          if (!selectOpen) {
+            setSelectOpen(true);
+            setHighlightedIndex(0);
+            break;
+          }
+          const arrowUp = (highlightedIndex as number) - 1;
+          if (arrowUp >= 0) {
+            setHighlightedIndex(arrowUp);
+            optionsRef.current[arrowUp]?.scrollIntoView({
+              behavior: "smooth",
+              block: "nearest",
+            });
           }
           break;
         case "ArrowDown":
           event.preventDefault();
           if (!options.length) break;
-          !selectOpen && setSelectOpen(true);
-          if (value) {
-            const index = options.findIndex((item) => item.value === value);
-            if (index < options.length - 1) {
-              onChange && onChange(options[index + 1].value);
-              optionsRef.current[index + 1]?.scrollIntoView({
-                block: "nearest",
-                behavior: "instant",
-              });
-            }
-          } else {
-            onChange && onChange(options[0].value);
+          if (!selectOpen) {
+            setSelectOpen(true);
+            setHighlightedIndex(0);
+            break;
+          }
+          const arrowDown = (highlightedIndex as number) + 1;
+          if (arrowDown < options.length) {
+            setHighlightedIndex(arrowDown);
+            optionsRef.current[arrowDown]?.scrollIntoView({
+              behavior: "smooth",
+              block: "nearest",
+            });
           }
           break;
         case "Escape":
           event.preventDefault();
           setSelectOpen(false);
+          setHighlightedIndex(null);
       }
     },
-    [value, onChange, selectOpen],
+    [value, onChange, selectOpen, highlightedIndex, highlightedIndex],
   );
 
   const selectItem = useCallback(
     (item: string) => {
       onChange && onChange(item);
-      setSelectOpen(false);
+      !multiple && setSelectOpen(false);
     },
-    [onChange],
+    [onChange, multiple],
   );
 
   const checkSpace = useCallback(() => {
-    if (!buttonRef.current || !optionRef.current) return;
+    if (!divRef.current || !optionRef.current) return;
 
-    const select = buttonRef.current.getBoundingClientRect();
+    const select = divRef.current.getBoundingClientRect();
     const options = optionRef.current.offsetHeight;
 
     const availableSpace = window.innerHeight - select.bottom;
 
     setHasSpaceBellow(options < availableSpace);
-  }, [selectOpen, buttonRef.current, optionRef.current]);
+  }, [selectOpen, divRef.current, optionRef.current]);
 
   useOutsideClick(selectRef, () => {
-    setSelectOpen(false);
+    (() => {
+      setSelectOpen(false);
+      setHighlightedIndex(null);
+    })();
   });
 
   useEffect(() => {
@@ -122,29 +147,53 @@ const Select: React.FC<SelectProps<string>> = ({
 
   return (
     <div ref={selectRef} className="w-full relative">
-      <button
-        ref={buttonRef}
-        type="button"
-        disabled={disabled}
-        onClick={toggleSelect}
-        onKeyDown={handleKeyPress}
+      <div
+        ref={divRef}
+        onClick={() => !disabled && toggleSelect()}
+        onKeyDown={(e) => !disabled && handleKeyPress(e)}
         id={id ?? ""}
-        className="flex gap-4 items-center justify-between w-full p-2 border outline-none border-gray-300 bg-white rounded-sm focus:ring-1 ring-red-300 "
+        tabIndex={disabled ? -1 : 0}
+        className={`flex gap-4 items-center justify-between w-full p-2 border outline-none border-gray-300 bg-white rounded-sm ${!disabled ? "focus-within:ring-1 ring-red-300" : ""} `}
       >
-        {options.find((o) => o.value === value)?.label ??
-          placeholder ??
-          "Select..."}
-        {!selectOpen ? <FaChevronDown /> : <FaChevronUp />}
-      </button>
+        <span className="w-full border-r-1 border-gray-400 flex gap-1 flex-wrap ">
+          {multiple && value?.length
+            ? (value as string[]).map((item, index) => (
+                <Button
+                  variant="primary"
+                  className="border-none !px-2 !py-0.5 text-sm"
+                  type="button"
+                  key={index}
+                  onClick={(e: React.MouseEvent) => {
+                    e.stopPropagation();
+                    onChange?.(item);
+                  }}
+                >
+                  {options.find((o) => o.value === item)?.label}
+                  <FaX />
+                </Button>
+              ))
+            : !multiple && value
+              ? options.find((o) => o.value === value)?.label
+              : placeholder
+                ? placeholder
+                : "Select..."}
+        </span>
+        {!selectOpen ? <FaCaretDown /> : <FaCaretUp />}
+      </div>
       <div
         className={`${selectOpen ? "flex flex-col" : "hidden"} fixed md:absolute z-50 w-full ${hasSpaceBellow ? "md:top-full md:mt-1 md:bottom-auto" : "md:bottom-full md:mb-1 md:top-auto"} top-0 bottom-0 md:left-auto left-0 md:right-auto right-0 bg-black/40 shadow-md md:max-h-64 flex items-center justify-center`}
-        onClick={(event: React.MouseEvent) =>
-          event.target !== optionRef?.current && setSelectOpen(false)
-        }
+        onClick={() => setSelectOpen(false)}
       >
         <div
           className="bg-white md:w-full w-sm rounded-md overflow-auto md:max-h-64 max-h-7/12"
           ref={optionRef}
+          onClick={(event: React.MouseEvent) => {
+            event.stopPropagation();
+            event.target !== optionRef?.current &&
+              !multiple &&
+              setSelectOpen(false) &&
+              setHighlightedIndex(null);
+          }}
         >
           {options.map((item, index: number) => (
             <button
@@ -153,7 +202,7 @@ const Select: React.FC<SelectProps<string>> = ({
                 optionsRef.current[index] = el;
               }}
               type="button"
-              className={`w-full text-left p-3 hover:bg-red-400 hover:text-white ${item.value === value ? "bg-red-600 text-white" : ""}`}
+              className={`w-full text-left p-3 hover:bg-red-400 hover:text-white  ${item.value === value ? "bg-red-600 text-white" : multiple && value?.includes(item.value) ? "bg-red-600 text-white" : ""} ${highlightedIndex === index ? "!bg-red-400 text-white" : ""}`}
               onClick={() => selectItem(item.value)}
             >
               {item.label}

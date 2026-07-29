@@ -77,7 +77,7 @@ const CURRENCIES = [
 ];
 
 const ExchangeHistory: React.FC = React.memo(() => {
-  const [selectedCurrency, setSelectedCurrency] = useState<string>("");
+  const [selectedCurrency, setSelectedCurrency] = useState<string[]>([]);
   const [toDate, setToDate] = useState<Date>(new Date());
   const [fromDate, setFromDate] = useState<Date>(() => {
     const d = new Date();
@@ -114,7 +114,9 @@ const ExchangeHistory: React.FC = React.memo(() => {
 
       const dateFrom = search.get("datum_primjene_od");
       const dateTo = search.get("datum_primjene_do");
-      const currency = search.get("valuta");
+      const currency = JSON.parse(
+        decodeURIComponent(search.get("valuta") as string),
+      );
 
       const compareFrom =
         compareDate("day", new Date(dateFrom as string), fromDate, "same") &&
@@ -126,10 +128,18 @@ const ExchangeHistory: React.FC = React.memo(() => {
         compareDate("month", new Date(dateTo as string), toDate, "same") &&
         compareDate("year", new Date(dateTo as string), toDate, "same");
 
-      if (currency === selectedCurrency && compareFrom && compareTo) return;
+      if (
+        currency.length === selectedCurrency.length &&
+        currency.every(
+          (value: string, index: number) => value === selectedCurrency[index],
+        ) &&
+        compareFrom &&
+        compareTo
+      )
+        return;
 
       navigate(
-        `/povijest?valuta=${selectedCurrency}&datum_primjene_od=${convertToDateString(
+        `/povijest?valuta=${encodeURIComponent(JSON.stringify(selectedCurrency))}&datum_primjene_od=${convertToDateString(
           new Date(fromDate),
           "YYYY-MM-DD",
         )}&datum_primjene_do=${convertToDateString(new Date(toDate), "YYYY-MM-DD")}`,
@@ -138,6 +148,18 @@ const ExchangeHistory: React.FC = React.memo(() => {
       // TODO: Add fetching function for the history of the selected currency
     },
     [selectedCurrency, fromDate, toDate],
+  );
+
+  const handleChange = useCallback(
+    (value: string) => {
+      let curr = [...selectedCurrency];
+
+      if (curr.includes(value)) curr = curr.filter((val) => val !== value);
+      else curr = [...curr, value];
+
+      setSelectedCurrency(curr);
+    },
+    [selectedCurrency],
   );
 
   useEffect(() => {
@@ -183,7 +205,6 @@ const ExchangeHistory: React.FC = React.memo(() => {
 
     setFromDate(new Date(dateFrom));
     setToDate(new Date(dateTo));
-    setSelectedCurrency(currency);
   }, []);
 
   return (
@@ -220,8 +241,9 @@ const ExchangeHistory: React.FC = React.memo(() => {
               options={CURRENCIES}
               value={selectedCurrency}
               placeholder="Odaberi valutu..."
-              onChange={setSelectedCurrency}
+              onChange={handleChange}
               id="currencySelect"
+              multiple
             />
           </fieldset>
 
