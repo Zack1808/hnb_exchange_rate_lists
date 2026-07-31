@@ -197,7 +197,9 @@ const ExchangeHistory: React.FC = React.memo(() => {
 
     const dateFrom = search.get("datum_primjene_od");
     const dateTo = search.get("datum_primjene_do");
-    const currency = search.get("valuta");
+    const currency = JSON.parse(
+      decodeURIComponent(search.get("valuta") as string),
+    );
 
     if (!dateFrom || !dateTo || !currency) return;
 
@@ -205,6 +207,7 @@ const ExchangeHistory: React.FC = React.memo(() => {
 
     setFromDate(new Date(dateFrom));
     setToDate(new Date(dateTo));
+    setSelectedCurrency(currency);
   }, []);
 
   return (

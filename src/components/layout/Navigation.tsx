@@ -97,7 +97,7 @@ const Navigation: React.FC = React.memo(() => {
               Današnji tečajevi
             </Button>
             <Button
-              to={`/povijest?valuta=AUD&datum_primjene_od=${convertToDateString(
+              to={`/povijest?valuta=${encodeURIComponent(JSON.stringify(["AUD"]))}&datum_primjene_od=${convertToDateString(
                 new Date(new Date().setDate(new Date().getDate() - 2)),
                 "YYYY-MM-DD",
               )}&datum_primjene_do=${convertToDateString(
