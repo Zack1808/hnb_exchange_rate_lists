@@ -129,14 +129,18 @@ const ExchangeHistory: React.FC = React.memo(() => {
         compareDate("year", new Date(dateTo as string), toDate, "same");
 
       if (
-        currency.length === selectedCurrency.length &&
-        currency.every(
-          (value: string, index: number) => value === selectedCurrency[index],
-        ) &&
+        (currency.length === selectedCurrency.length ||
+          !selectedCurrency.length) &&
+        (!selectedCurrency.length ||
+          currency.every(
+            (value: string, index: number) => value === selectedCurrency[index],
+          )) &&
         compareFrom &&
         compareTo
       )
         return;
+
+      console.log(selectedCurrency.length);
 
       navigate(
         `/povijest?valuta=${encodeURIComponent(JSON.stringify(selectedCurrency))}&datum_primjene_od=${convertToDateString(
