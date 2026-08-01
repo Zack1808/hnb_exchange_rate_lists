@@ -8,10 +8,9 @@ import Select from "../components/common/Select";
 import DatePicker from "../components/common/DatePicker";
 import Button from "../components/common/Button";
 
-import { compareDate } from "../utils/dateUtils";
-import { convertToDateString } from "../utils/dateUtils";
+import { compareDate, convertToDateString } from "../utils/dateUtils";
 
-import { getSpecificItemList } from "../utils/dataUtils";
+import { getSpecificItemList, getUniqueList } from "../utils/dataUtils";
 
 import { useGetListings } from "../hooks/useGetListing";
 
@@ -99,6 +98,9 @@ const ExchangeHistory: React.FC = React.memo(() => {
       if (!newData?.length) return;
 
       newData = getSpecificItemList(newData, "valuta", selectedCurrency);
+      newData = getUniqueList(newData, "broj_tecajnice");
+
+      console.log(newData);
 
       newData && setData(newData);
     },
