@@ -11,6 +11,8 @@ import Button from "../components/common/Button";
 import { compareDate } from "../utils/dateUtils";
 import { convertToDateString } from "../utils/dateUtils";
 
+import { getSpecificItemList } from "../utils/dataUtils";
+
 import { useGetListings } from "../hooks/useGetListing";
 
 const NOTES = [
@@ -93,11 +95,14 @@ const ExchangeHistory: React.FC = React.memo(() => {
 
   const fetchData = useCallback(
     async (dateFrom: string, dateTo: string): Promise<void> => {
-      const newData = await getCurrencyHistory(dateFrom, dateTo);
+      let newData = await getCurrencyHistory(dateFrom, dateTo);
+      if (!newData?.length) return;
+
+      newData = getSpecificItemList(newData, "valuta", selectedCurrency);
 
       newData && setData(newData);
     },
-    [],
+    [selectedCurrency],
   );
 
   const toMax = useMemo(() => {
@@ -140,8 +145,6 @@ const ExchangeHistory: React.FC = React.memo(() => {
       )
         return;
 
-      console.log(selectedCurrency.length);
-
       navigate(
         `/povijest?valuta=${encodeURIComponent(JSON.stringify(selectedCurrency))}&datum_primjene_od=${convertToDateString(
           new Date(fromDate),
@@ -149,7 +152,10 @@ const ExchangeHistory: React.FC = React.memo(() => {
         )}&datum_primjene_do=${convertToDateString(new Date(toDate), "YYYY-MM-DD")}`,
       );
 
-      // TODO: Add fetching function for the history of the selected currency
+      fetchData(
+        convertToDateString(new Date(fromDate), "YYYY-MM-DD"),
+        convertToDateString(new Date(toDate), "YYYY-MM-DD"),
+      );
     },
     [selectedCurrency, fromDate, toDate],
   );
