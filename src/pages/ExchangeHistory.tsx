@@ -7,6 +7,7 @@ import List from "../components/common/List";
 import Select from "../components/common/Select";
 import DatePicker from "../components/common/DatePicker";
 import Button from "../components/common/Button";
+import Loader from "../components/common/Loader";
 
 import { compareDate, convertToDateString } from "../utils/dateUtils";
 
@@ -90,21 +91,23 @@ const ExchangeHistory: React.FC = React.memo(() => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const { getCurrencyHistory } = useGetListings();
+  const { getCurrencyHistory, loading } = useGetListings();
 
   const fetchData = useCallback(
-    async (dateFrom: string, dateTo: string): Promise<void> => {
+    async (
+      dateFrom: string,
+      dateTo: string,
+      currency: string[],
+    ): Promise<void> => {
       let newData = await getCurrencyHistory(dateFrom, dateTo);
       if (!newData?.length) return;
 
-      newData = getSpecificItemList(newData, "valuta", selectedCurrency);
-      newData = getUniqueList(newData, "broj_tecajnice");
+      newData = getSpecificItemList(newData, "valuta", currency);
+      newData = getUniqueList(newData, ["broj_tecajnice", "valuta"]);
 
-      console.log(newData);
-
-      newData && setData(newData);
+      setData(newData);
     },
-    [selectedCurrency],
+    [],
   );
 
   const toMax = useMemo(() => {
@@ -157,6 +160,7 @@ const ExchangeHistory: React.FC = React.memo(() => {
       fetchData(
         convertToDateString(new Date(fromDate), "YYYY-MM-DD"),
         convertToDateString(new Date(toDate), "YYYY-MM-DD"),
+        selectedCurrency,
       );
     },
     [selectedCurrency, fromDate, toDate],
@@ -214,12 +218,11 @@ const ExchangeHistory: React.FC = React.memo(() => {
     );
 
     if (!dateFrom || !dateTo || !currency) return;
-
-    fetchData(dateFrom, dateTo);
-
     setFromDate(new Date(dateFrom));
     setToDate(new Date(dateTo));
     setSelectedCurrency(currency);
+
+    fetchData(dateFrom, dateTo, currency);
   }, []);
 
   return (
@@ -301,7 +304,7 @@ const ExchangeHistory: React.FC = React.memo(() => {
           Prikaz povjesti tečaja
         </h2>
 
-        {data.length && data[0].broj_tecajnice}
+        {loading ? <Loader /> : data.length && data[0].broj_tecajnice}
 
         {/* TODO - build table & chart to display the percentage of growth/fall of the selected currency. If the user wants to se the data for all currencies, display only table and growth/fall percentage since 1.1.2023. Create pagination for when the data for all curencies needs to be displayed */}
       </Container>

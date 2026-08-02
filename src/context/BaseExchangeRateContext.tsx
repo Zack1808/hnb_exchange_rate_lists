@@ -1,10 +1,4 @@
-import React, {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  useCallback,
-} from "react";
+import React, { createContext, useContext, useState, useEffect } from "react";
 
 import { useGetListings } from "../hooks/useGetListing";
 
@@ -14,12 +8,10 @@ interface BaseExchangeRateProviderProps {
 
 interface BaseExchangeRateReturnProps {
   baseData: Record<string, string>[];
-  currency: Array<string>;
 }
 
 const BaseExchangeRateContext = createContext<BaseExchangeRateReturnProps>({
   baseData: [],
-  currency: [],
 });
 
 export const useBaseExchangeRate = () => {
@@ -30,13 +22,8 @@ const BaseExchangeRateProvider = ({
   children,
 }: BaseExchangeRateProviderProps) => {
   const [baseData, setBaseData] = useState<Record<string, string>[]>([]);
-  const [currency, setCurrency] = useState<Array<string>>([]);
 
   const { getListing } = useGetListings();
-
-  const getAllCurrencies = useCallback((data: Record<string, string>[]) => {
-    return data.map((item: Record<string, string>): string => item.valuta);
-  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -44,17 +31,14 @@ const BaseExchangeRateProvider = ({
 
       if (!newData) return;
 
-      const currs = getAllCurrencies(newData);
-
       setBaseData(newData);
-      setCurrency(currs);
     };
 
     fetchData();
   }, []);
 
   return (
-    <BaseExchangeRateContext.Provider value={{ baseData, currency }}>
+    <BaseExchangeRateContext.Provider value={{ baseData }}>
       {children}
     </BaseExchangeRateContext.Provider>
   );

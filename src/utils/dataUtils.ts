@@ -8,22 +8,20 @@ export const getSpecificItemList = <T extends Record<string, string>>(
 
 export const getUniqueList = <T extends Record<string, string>>(
   data: T[],
-  filterBy: keyof T,
+  groupBy: (keyof T)[],
 ) => {
-  if (!data.length) return [];
+  const map = new Map<string, T>();
 
-  const map = new Map();
+  for (const item of data) {
+    const key = groupBy.map((k) => item[k]).join("|");
 
-  data.forEach((item) => {
-    if (item.hasOwnProperty(filterBy)) {
-      const key = item[filterBy];
-      const date = new Date(item["datum_primjene"]);
-
-      if (!map.has(key) || date < new Date(map.get(key)["datum_primjene"])) {
-        map.set(key, item);
-      }
+    if (
+      !map.has(key) ||
+      new Date(item.datum_primjene) < new Date(map.get(key)!.datum_primjene)
+    ) {
+      map.set(key, item);
     }
-  });
+  }
 
-  return Array.from(map.values());
+  return [...map.values()];
 };
