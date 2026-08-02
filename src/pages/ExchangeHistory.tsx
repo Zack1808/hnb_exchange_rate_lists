@@ -11,7 +11,11 @@ import Loader from "../components/common/Loader";
 
 import { compareDate, convertToDateString } from "../utils/dateUtils";
 
-import { getSpecificItemList, getUniqueList } from "../utils/dataUtils";
+import {
+  getSpecificItemList,
+  getUniqueList,
+  addPercentageChange,
+} from "../utils/dataUtils";
 
 import { useGetListings } from "../hooks/useGetListing";
 
@@ -104,6 +108,9 @@ const ExchangeHistory: React.FC = React.memo(() => {
 
       newData = getSpecificItemList(newData, "valuta", currency);
       newData = getUniqueList(newData, ["broj_tecajnice", "valuta"]);
+      newData = addPercentageChange(newData);
+
+      console.log(newData);
 
       setData(newData);
     },

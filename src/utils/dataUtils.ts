@@ -25,3 +25,31 @@ export const getUniqueList = <T extends Record<string, string>>(
 
   return [...map.values()];
 };
+
+export const addPercentageChange = (data: Record<string, string>[]) => {
+  const prevRate: Record<string, number> = {};
+
+  data.sort((a, b) => {
+    if (a.valuta !== b.valuta) {
+      return a.valuta.localeCompare(b.valuta);
+    }
+
+    return Number(b.broj_tecajnice) - Number(a.broj_tecajnice);
+  });
+
+  for (const item of data) {
+    const prev = prevRate[item.valuta];
+
+    if (prev !== undefined) {
+      item.postotak = `${(((Number(item.kupovni_tecaj.replace(",", ".")) - prev) / prev) * 100).toPrecision(2).replace(".", ",")}%`;
+    } else {
+      item.postotak = "Nije dostupno";
+    }
+
+    prevRate[item.valuta] = Number(item.kupovni_tecaj.replace(",", "."));
+  }
+
+  data.sort((a, b) => Number(a.broj_tecajnice) - Number(b.broj_tecajnice));
+
+  return data;
+};
