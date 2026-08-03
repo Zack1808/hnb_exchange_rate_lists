@@ -15,9 +15,12 @@ import {
   getSpecificItemList,
   getUniqueList,
   addPercentageChange,
+  addPercentageFixed,
 } from "../utils/dataUtils";
 
 import { useGetListings } from "../hooks/useGetListing";
+
+import { BASE_DATA as baseData } from "../utils/baseData";
 
 const NOTES = [
   `Svi tečajevi su iskazani za 1 EUR od uvođenja EUR <strong>(01.01.2023)</strong>.`,
@@ -104,17 +107,20 @@ const ExchangeHistory: React.FC = React.memo(() => {
       currency: string[],
     ): Promise<void> => {
       let newData = await getCurrencyHistory(dateFrom, dateTo);
+
       if (!newData?.length) return;
+
+      let base = [...baseData];
+      base = getSpecificItemList(base, "valuta", currency);
 
       newData = getSpecificItemList(newData, "valuta", currency);
       newData = getUniqueList(newData, ["broj_tecajnice", "valuta"]);
       newData = addPercentageChange(newData);
-
-      console.log(newData);
+      newData = addPercentageFixed(newData, base);
 
       setData(newData);
     },
-    [],
+    [baseData],
   );
 
   const toMax = useMemo(() => {

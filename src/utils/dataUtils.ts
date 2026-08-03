@@ -29,27 +29,38 @@ export const getUniqueList = <T extends Record<string, string>>(
 export const addPercentageChange = (data: Record<string, string>[]) => {
   const prevRate: Record<string, number> = {};
 
-  data.sort((a, b) => {
-    if (a.valuta !== b.valuta) {
-      return a.valuta.localeCompare(b.valuta);
-    }
-
-    return Number(b.broj_tecajnice) - Number(a.broj_tecajnice);
-  });
-
   for (const item of data) {
     const prev = prevRate[item.valuta];
 
     if (prev !== undefined) {
-      item.postotak = `${(((Number(item.kupovni_tecaj.replace(",", ".")) - prev) / prev) * 100).toPrecision(2).replace(".", ",")}%`;
+      item.postotak_od_prosle_liste = `${(((Number(item.kupovni_tecaj.replace(",", ".")) - prev) / prev) * 100).toPrecision(2).replace(".", ",")}%`;
     } else {
-      item.postotak = "Nije dostupno";
+      item.postotak_od_prosle_liste = "Nije dostupno";
     }
 
     prevRate[item.valuta] = Number(item.kupovni_tecaj.replace(",", "."));
   }
 
-  data.sort((a, b) => Number(a.broj_tecajnice) - Number(b.broj_tecajnice));
+  return data;
+};
+
+export const addPercentageFixed = (
+  data: Record<string, string>[],
+  reference: Record<string, string>[],
+) => {
+  const firstRateMap: Record<string, number> = {};
+
+  for (const item of reference) {
+    firstRateMap[item.valuta] = Number(item.kupovni_tecaj.replace(",", "."));
+  }
+
+  for (const item of data) {
+    const firstRate = firstRateMap[item.valuta];
+
+    if (firstRate !== undefined) {
+      item.postotak_od_pocetka = `${(((Number(item.kupovni_tecaj.replace(",", ".")) - firstRate) / firstRate) * 100).toPrecision(2).replace(".", ",")}%`;
+    } else item.postotak_od_pocetka = "Nije dostupno";
+  }
 
   return data;
 };

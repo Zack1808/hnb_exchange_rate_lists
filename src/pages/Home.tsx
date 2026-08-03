@@ -10,11 +10,11 @@ import Loader from "../components/common/Loader";
 import { useGetListings } from "../hooks/useGetListing";
 import { useChartData } from "../hooks/useChartData";
 
-import { useBaseExchangeRate } from "../context/BaseExchangeRateContext";
-
 import { convertToDateString } from "../utils/dateUtils";
 
 import { MOCK_CONFIG } from "../services/mock/mockData";
+
+import { BASE_DATA as baseData } from "../utils/baseData.ts";
 
 const Home: React.FC = React.memo(() => {
   const [chartData, setChartData] = useState<Record<string, string>[]>([]);
@@ -24,8 +24,6 @@ const Home: React.FC = React.memo(() => {
 
   const { getCurrencyHistory, loading } = useGetListings();
   const { getCurrency, convertToChartData } = useChartData();
-
-  const { baseData } = useBaseExchangeRate();
 
   const fetchData = useCallback(async () => {
     const historyList = await getCurrencyHistory("2025-01-01", "2025-01-01");
@@ -39,7 +37,7 @@ const Home: React.FC = React.memo(() => {
     const data = convertToChartData(historyList, baseData, curr);
 
     setChartData(data);
-  }, [baseData]);
+  }, []);
 
   const handleHeroButtonClick = useCallback(() => {
     if (!containerRef.current) return;
@@ -126,7 +124,7 @@ const Home: React.FC = React.memo(() => {
         <Button
           to={`/tecaj?datum_primjene=${convertToDateString(
             new Date(),
-            "YYYY-MM-DD"
+            "YYYY-MM-DD",
           )}`}
           variant="primary"
           className="mt-5"
@@ -148,10 +146,10 @@ const Home: React.FC = React.memo(() => {
         <Button
           to={`/povijest?valuta=ALL&datum_primjene_od=${convertToDateString(
             new Date(new Date().setDate(new Date().getDate() - 2)),
-            "YYYY-MM-DD"
+            "YYYY-MM-DD",
           )}&datum_primjene_do=${convertToDateString(
             new Date(),
-            "YYYY-MM-DD"
+            "YYYY-MM-DD",
           )}`}
           variant="primary"
           className="mt-5"
