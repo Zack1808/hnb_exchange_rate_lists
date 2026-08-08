@@ -5,6 +5,7 @@ import { FaCaretDown, FaCaretUp } from "react-icons/fa";
 import Button from "./Button";
 
 import { convertToDateString } from "../../utils/dateUtils";
+import { sortData } from "../../utils/dataUtils";
 
 interface TableProps {
   headers: Array<{ title: string; value: string; isNumber: boolean }>;
@@ -77,7 +78,7 @@ const Table: React.FC<TableProps> = ({
             row[header]
           }&datum_primjene_od=${convertToDateString(
             fromDate,
-            "YYYY-MM-DD"
+            "YYYY-MM-DD",
           )}&datum_primjene_do=${convertToDateString(toDate, "YYYY-MM-DD")}`}
           className="px-4 py-2 md:py-4 flex items-center justify-center outline-none focus:inset-ring-2 focus:inset-ring-red-300"
         >
@@ -85,7 +86,7 @@ const Table: React.FC<TableProps> = ({
         </Link>
       );
     },
-    [linkCols]
+    [linkCols],
   );
 
   const renderHeaderData = useCallback(
@@ -111,42 +112,7 @@ const Table: React.FC<TableProps> = ({
         </span>
       );
     },
-    [sortable, sortingConfig]
-  );
-
-  const sortData = useCallback(
-    (
-      data: Record<string, string>[],
-      key: string,
-      direction: "asc" | "desc",
-      isNumber: boolean
-    ): Record<string, string>[] => {
-      const sortedList = [...data];
-
-      return sortedList.sort((a, b) => {
-        if (a.hasOwnProperty(key) && b.hasOwnProperty(key)) {
-          if (isNumber) {
-            if (
-              Number(a[key].replace(",", ".")) >
-              Number(b[key].replace(",", "."))
-            )
-              return direction === "asc" ? -1 : 1;
-            if (
-              Number(a[key].replace(",", ".")) <
-              Number(b[key].replace(",", "."))
-            )
-              return direction === "asc" ? 1 : -1;
-            return 0;
-          } else {
-            if (a[key] > b[key]) return direction === "asc" ? -1 : 1;
-            if (a[key] < b[key]) return direction === "asc" ? 1 : -1;
-            return 0;
-          }
-        }
-        return 0;
-      });
-    },
-    []
+    [sortable, sortingConfig],
   );
 
   const dataForRender = useMemo((): Record<string, string>[] => {
@@ -161,7 +127,7 @@ const Table: React.FC<TableProps> = ({
               tempData,
               head.value,
               sortingConfig.direction,
-              head.isNumber
+              head.isNumber,
             )
           : tempData;
     }
@@ -174,13 +140,13 @@ const Table: React.FC<TableProps> = ({
                 .toString()
                 .toLowerCase()
                 .trim()
-                .includes(inputValue.toLowerCase().trim())
+                .includes(inputValue.toLowerCase().trim()),
             )
           : Object.values(row)
               .toString()
               .toLowerCase()
               .trim()
-              .includes(inputValue.toLowerCase().trim())
+              .includes(inputValue.toLowerCase().trim()),
       );
 
     return tempData;
