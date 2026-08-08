@@ -129,6 +129,8 @@ const headers = [
   },
 ];
 
+const sortableKeys = ["drzava", "valuta"];
+
 const ExchangeHistory: React.FC = React.memo(() => {
   const [selectedCurrency, setSelectedCurrency] = useState<string[]>([]);
   const [toDate, setToDate] = useState<Date>(new Date());
@@ -372,7 +374,12 @@ const ExchangeHistory: React.FC = React.memo(() => {
         {loading ? (
           <Loader />
         ) : (
-          <Table headers={headers} data={data} sortable />
+          <Table
+            headers={headers}
+            data={data}
+            sortable
+            sortableKeys={sortableKeys}
+          />
         )}
 
         {/* TODO - build table & chart to display the percentage of growth/fall of the selected currency. If the user wants to se the data for all currencies, display only table and growth/fall percentage since 1.1.2023. Create pagination for when the data for all curencies needs to be displayed */}

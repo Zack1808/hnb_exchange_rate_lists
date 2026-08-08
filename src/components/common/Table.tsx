@@ -12,6 +12,7 @@ interface TableProps {
   headers: Array<{ title: string; value: string; isNumber: boolean }>;
   data: Record<string, string>[];
   sortable?: boolean;
+  sortableKeys?: string[];
   filterable?: boolean;
   filterableKeys?: Array<string>;
   linkCols?: Array<{
@@ -25,6 +26,7 @@ const Table: React.FC<TableProps> = ({
   headers,
   data,
   sortable,
+  sortableKeys,
   filterable,
   filterableKeys,
   linkCols,
@@ -42,22 +44,29 @@ const Table: React.FC<TableProps> = ({
     setInputValue((event.target as HTMLInputElement).value);
   }, []);
 
-  const handleHeaderButtonPress = useCallback((index: number | null): void => {
-    setSortingConfig((prevState) => {
-      const { headerIndex, direction } = prevState;
+  const handleHeaderButtonPress = useCallback(
+    (index: number): void => {
+      setSortingConfig((prevState) => {
+        const { headerIndex, direction } = prevState;
+        if (
+          sortableKeys?.length &&
+          !sortableKeys.includes(headers[index].value)
+        )
+          return prevState;
+        let newDirection: "asc" | "desc";
 
-      let newDirection: "asc" | "desc";
+        if (headerIndex === null) newDirection = "desc";
+        else if (headerIndex !== index) newDirection = "desc";
+        else newDirection = direction === "desc" ? "asc" : "desc";
 
-      if (headerIndex === null) newDirection = "desc";
-      else if (headerIndex !== index) newDirection = "desc";
-      else newDirection = direction === "desc" ? "asc" : "desc";
-
-      return {
-        headerIndex: index,
-        direction: newDirection,
-      };
-    });
-  }, []);
+        return {
+          headerIndex: index,
+          direction: newDirection,
+        };
+      });
+    },
+    [sortableKeys, headers],
+  );
 
   const renderCellData = useCallback(
     (row: Record<string, string>, header: string): React.ReactNode => {
