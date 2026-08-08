@@ -12,6 +12,7 @@ import Table from "../components/common/Table";
 
 import { compareDate, convertToDateString } from "../utils/dateUtils";
 import {
+  sortData,
   getSpecificItemList,
   getUniqueList,
   addPercentageChange,
@@ -171,6 +172,8 @@ const ExchangeHistory: React.FC = React.memo(() => {
       const newChartData = convertToChartData(newData, currency);
 
       setChartData(newChartData);
+
+      newData = sortData(newData, "broj_tecajnice", "asc", true);
 
       setData(newData);
     },
