@@ -8,6 +8,7 @@ import Select from "../components/common/Select";
 import DatePicker from "../components/common/DatePicker";
 import Button from "../components/common/Button";
 import Loader from "../components/common/Loader";
+import Table from "../components/common/Table";
 
 import { compareDate, convertToDateString } from "../utils/dateUtils";
 import {
@@ -82,6 +83,49 @@ const CURRENCIES = [
   {
     value: "PLN",
     label: "Poljski zlot",
+  },
+];
+
+const headers = [
+  {
+    title: "Država",
+    value: "drzava",
+    isNumber: false,
+  },
+  {
+    title: "Valuta",
+    value: "valuta",
+    isNumber: false,
+  },
+  {
+    title: "Broj tečajnice",
+    value: "broj_tecajnice",
+    isNumber: true,
+  },
+  {
+    title: "Kupovni tečaj",
+    value: "kupovni_tecaj",
+    isNumber: true,
+  },
+  {
+    title: "Srednji tečaj",
+    value: "srednji_tecaj",
+    isNumber: true,
+  },
+  {
+    title: "Prodajni tečaj",
+    value: "prodajni_tecaj",
+    isNumber: true,
+  },
+  {
+    title: "Rast/pad tečaja kroz vrijeme",
+    value: "postotak_od_prosle_liste",
+    isNumber: true,
+  },
+  {
+    title: "Rast/pad tečaja od uvođenja EUR",
+    value: "postotak_od_pocetka",
+    isNumber: true,
   },
 ];
 
@@ -325,7 +369,11 @@ const ExchangeHistory: React.FC = React.memo(() => {
           Prikaz povjesti tečaja
         </h2>
 
-        {loading ? <Loader /> : data.length && data[0].broj_tecajnice}
+        {loading ? (
+          <Loader />
+        ) : (
+          <Table headers={headers} data={data} sortable />
+        )}
 
         {/* TODO - build table & chart to display the percentage of growth/fall of the selected currency. If the user wants to se the data for all currencies, display only table and growth/fall percentage since 1.1.2023. Create pagination for when the data for all curencies needs to be displayed */}
       </Container>

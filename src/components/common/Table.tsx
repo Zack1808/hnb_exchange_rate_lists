@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { FaCaretDown, FaCaretUp } from "react-icons/fa";
+import { ImArrowDown, ImArrowUp } from "react-icons/im";
 
 import Button from "./Button";
 
@@ -63,9 +64,28 @@ const Table: React.FC<TableProps> = ({
       const linkKey = linkCols?.find((link) => link.targetCol === header);
       if (!linkKey)
         return (
-          <span className="px-4 py-2 md:py-4 flex items-center justify-center">
-            {row[header]}
-          </span>
+          <div className="px-4 py-2 md:py-4 flex items-center justify-center">
+            {header === "postotak_od_prosle_liste" ||
+            header === "postotak_od_pocetka" ? (
+              <span
+                className={`flex gap-2 items-center ${
+                  Number(row[header].replace(",", ".")) > 0
+                    ? "text-green-700"
+                    : Number(row[header].replace(",", ".")) !== 0 &&
+                      "text-red-500"
+                }`}
+              >
+                {Number(row[header].replace(",", ".")) > 0 ? (
+                  <ImArrowUp />
+                ) : (
+                  Number(row[header].replace(",", ".")) !== 0 && <ImArrowDown />
+                )}
+                {row[header]}%
+              </span>
+            ) : (
+              row[header]
+            )}
+          </div>
         );
 
       const toDate = new Date(linkKey.selectedDate);
@@ -82,7 +102,26 @@ const Table: React.FC<TableProps> = ({
           )}&datum_primjene_do=${convertToDateString(toDate, "YYYY-MM-DD")}`}
           className="px-4 py-2 md:py-4 flex items-center justify-center outline-none focus:inset-ring-2 focus:inset-ring-red-300"
         >
-          {row[header]}
+          {header === "postotak_od_prosle_liste" ||
+          header === "postotak_od_pocetka" ? (
+            <span
+              className={`flex gap-2 items-center ${
+                Number(row[header].replace(",", ".")) > 0
+                  ? "text-green-700"
+                  : Number(row[header].replace(",", ".")) !== 0 &&
+                    "text-red-500"
+              }`}
+            >
+              {Number(row[header].replace(",", ".")) > 0 ? (
+                <ImArrowUp />
+              ) : (
+                Number(row[header].replace(",", ".")) !== 0 && <ImArrowDown />
+              )}
+              {row[header]}%
+            </span>
+          ) : (
+            row[header]
+          )}
         </Link>
       );
     },
