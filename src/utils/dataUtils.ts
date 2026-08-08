@@ -26,16 +26,24 @@ export const getUniqueList = <T extends Record<string, string>>(
   return [...map.values()];
 };
 
-export const addPercentageChange = (data: Record<string, string>[]) => {
+export const addPercentageChange = (
+  data: Record<string, string>[],
+  dataType: "number" | "string" = "string",
+) => {
   const prevRate: Record<string, number> = {};
 
   for (const item of data) {
     const prev = prevRate[item.valuta];
 
     if (prev !== undefined) {
-      item.postotak_od_prosle_liste = `${(((Number(item.kupovni_tecaj.replace(",", ".")) - prev) / prev) * 100).toPrecision(2).replace(".", ",")}%`;
+      const percentage = (
+        ((Number(item.kupovni_tecaj.replace(",", ".")) - prev) / prev) *
+        100
+      ).toPrecision(2);
+      if (dataType === "number") item.postotak_od_prosle_liste = percentage;
+      else item.postotak_od_prosle_liste = `${percentage.replace(".", ",")}%`;
     } else {
-      item.postotak_od_prosle_liste = "Nije dostupno";
+      item.postotak_od_prosle_liste = "0,0";
     }
 
     prevRate[item.valuta] = Number(item.kupovni_tecaj.replace(",", "."));
@@ -47,6 +55,7 @@ export const addPercentageChange = (data: Record<string, string>[]) => {
 export const addPercentageFixed = (
   data: Record<string, string>[],
   reference: Record<string, string>[],
+  dataType: "number" | "string" = "string",
 ) => {
   const firstRateMap: Record<string, number> = {};
 
@@ -58,8 +67,14 @@ export const addPercentageFixed = (
     const firstRate = firstRateMap[item.valuta];
 
     if (firstRate !== undefined) {
-      item.postotak_od_pocetka = `${(((Number(item.kupovni_tecaj.replace(",", ".")) - firstRate) / firstRate) * 100).toPrecision(2).replace(".", ",")}%`;
-    } else item.postotak_od_pocetka = "Nije dostupno";
+      const percentage = (
+        ((Number(item.kupovni_tecaj.replace(",", ".")) - firstRate) /
+          firstRate) *
+        100
+      ).toPrecision(2);
+      if (dataType === "number") item.postotak_od_pocetka = percentage;
+      else item.postotak_od_pocetka = `${percentage.replace(".", ",")}%`;
+    } else item.postotak_od_pocetka = "0,0";
   }
 
   return data;

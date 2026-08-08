@@ -36,6 +36,8 @@ const Home: React.FC = React.memo(() => {
 
     const data = convertToChartData(historyList, baseData, curr);
 
+    console.log(data);
+
     setChartData(data);
   }, []);
 

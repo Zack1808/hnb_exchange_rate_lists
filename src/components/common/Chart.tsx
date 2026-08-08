@@ -57,7 +57,7 @@ const Chart: React.FC<ChartProps> = ({ chartData = [], currency = "" }) => {
 
             const indiciesWithSameMonth = data
               .map((item: Record<string, string>, indx: number) =>
-                new Date(item.datum_primjene).getMonth() === month ? indx : -1
+                new Date(item.datum_primjene).getMonth() === month ? indx : -1,
               )
               .filter((indx: number) => indx !== -1);
 
@@ -86,7 +86,7 @@ const Chart: React.FC<ChartProps> = ({ chartData = [], currency = "" }) => {
         <Line
           dot={false}
           strokeWidth={2}
-          dataKey="percentage_history"
+          dataKey="postotak_od_pocetka"
           name={`Rast/pad ${currency}-a od uvođenja EUR 01.01.2023`}
         />
 
@@ -94,7 +94,7 @@ const Chart: React.FC<ChartProps> = ({ chartData = [], currency = "" }) => {
           dot={false}
           strokeWidth={2}
           stroke="gray"
-          dataKey="percentage"
+          dataKey="postotak_od_prosle_liste"
           name={`Dnevni rast/pad ${currency}-a`}
         />
 
@@ -110,8 +110,8 @@ const CustomTooltip = ({ active, payload }: any) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
     const specificDate = new Date(data.datum_primjene);
-    const percentage = data.percentage;
-    const historyPercentage = data.percentage_history;
+    const percentage = data.postotak_od_prosle_liste;
+    const historyPercentage = data.postotak_od_pocetka;
 
     return (
       <div className="bg-white p-3 border border-gray-300 rounded shadow-md flex flex-col gap-3 min-w-max">

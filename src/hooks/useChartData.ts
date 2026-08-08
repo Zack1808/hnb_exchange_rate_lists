@@ -1,11 +1,15 @@
 import { useCallback } from "react";
 
+import { addPercentageChange, addPercentageFixed } from "../utils/dataUtils";
+
+import { BASE_DATA as baseData } from "../utils/baseData";
+
 interface UseChartDataReturnProps {
   getCurrency: (data: Record<string, string>[]) => string;
   convertToChartData: (
     data: Record<string, string>[],
     baseData: Record<string, string>[],
-    curr: string
+    curr: string,
   ) => Record<string, string>[];
 }
 
@@ -23,80 +27,49 @@ export const useChartData = (): UseChartDataReturnProps => {
         .map((item: Record<string, string>) => item.valuta)
         .filter(
           (value: string, index: number, self: string[]) =>
-            self.indexOf(value) === index
+            self.indexOf(value) === index,
         );
 
       const randomNumber = getRandomNumber(0, newData.length - 1);
 
       return newData[randomNumber];
     },
-    [getRandomNumber]
+    [getRandomNumber],
   );
 
   const addPercentageCalculation = useCallback(
     (
       data: Record<string, string>[],
-      percentageOfKey: string,
-      addedKey: string,
-      percentageOfValue?: number
+      percentageOfValue: "fixed" | "not fixed" = "not fixed",
     ): Record<string, string>[] => {
-      return data.map(
-        (
-          item: Record<string, string>,
-          index: number,
-          self: Record<string, string>[]
-        ) => {
-          if (index <= 0 && !percentageOfValue) {
-            item[addedKey] = "0.0";
-            return item;
-          }
-
-          const prevRate =
-            percentageOfValue ||
-            Number(self[index - 1][percentageOfKey].replace(",", "."));
-          const currRate = Number(item[percentageOfKey].replace(",", "."));
-          item[addedKey] = `${(
-            ((currRate - prevRate) / prevRate) *
-            100
-          ).toPrecision(2)}`;
-
-          return item;
-        }
-      );
+      return percentageOfValue === "not fixed"
+        ? addPercentageChange(data, "number")
+        : addPercentageFixed(data, baseData, "number");
     },
-    []
+    [],
   );
 
   const convertToChartData = useCallback(
     (
       data: Record<string, string>[],
       baseData: Record<string, string>[],
-      curr: string
+      curr: string,
     ): Record<string, string>[] => {
       let newData = data.filter(
-        (value: Record<string, string>) => value.valuta === curr
+        (value: Record<string, string>) => value.valuta === curr,
       );
 
       const newBaseData = baseData.filter(
-        (value: Record<string, string>) => value.valuta === curr
+        (value: Record<string, string>) => value.valuta === curr,
       );
 
       if (!newBaseData.length) return newData;
 
-      newData = addPercentageCalculation(
-        newData,
-        "srednji_tecaj",
-        "percentage"
-      );
+      newData = addPercentageCalculation(newData);
 
-      return addPercentageCalculation(
-        newData,
-        "srednji_tecaj",
-        "percentage_history",
-        Number(newBaseData[0].srednji_tecaj.replace(",", "."))
-      );
+      return addPercentageCalculation(newData, "fixed");
     },
-    [addPercentageCalculation]
+    [addPercentageCalculation],
   );
 
   return { getCurrency, convertToChartData };
