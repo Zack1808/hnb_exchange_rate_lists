@@ -103,9 +103,8 @@ const Table: React.FC<TableProps> = ({
 
       return (
         <Link
-          to={`${linkKey.startLink}valuta=${
-            row[header]
-          }&datum_primjene_od=${convertToDateString(
+          to={`${linkKey.startLink}valuta=${encodeURIComponent(JSON.stringify([`${row[header]}`]))}
+          &datum_primjene_od=${convertToDateString(
             fromDate,
             "YYYY-MM-DD",
           )}&datum_primjene_do=${convertToDateString(toDate, "YYYY-MM-DD")}`}
