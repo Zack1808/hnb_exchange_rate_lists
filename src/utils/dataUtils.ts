@@ -69,7 +69,9 @@ export const addPercentageChange = (
       if (dataType === "number") item.postotak_od_prosle_liste = percentage;
       else item.postotak_od_prosle_liste = `${percentage.replace(".", ",")}%`;
     } else {
-      item.postotak_od_prosle_liste = "0,0";
+      dataType === "string"
+        ? (item.postotak_od_prosle_liste = "0,0")
+        : (item.postotak_od_prosle_liste = "0.0");
     }
 
     prevRate[item.valuta] = Number(item.kupovni_tecaj.replace(",", "."));
@@ -100,7 +102,10 @@ export const addPercentageFixed = (
       ).toPrecision(2);
       if (dataType === "number") item.postotak_od_pocetka = percentage;
       else item.postotak_od_pocetka = `${percentage.replace(".", ",")}%`;
-    } else item.postotak_od_pocetka = "0,0";
+    } else
+      dataType === "string"
+        ? (item.postotak_od_pocetka = "0,0")
+        : (item.postotak_od_pocetka = "0.0");
   }
 
   return data;

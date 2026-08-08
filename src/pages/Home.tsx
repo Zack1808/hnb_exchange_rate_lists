@@ -14,8 +14,6 @@ import { convertToDateString } from "../utils/dateUtils";
 
 import { MOCK_CONFIG } from "../services/mock/mockData";
 
-import { BASE_DATA as baseData } from "../utils/baseData.ts";
-
 const Home: React.FC = React.memo(() => {
   const [chartData, setChartData] = useState<Record<string, string>[]>([]);
   const [currency, setCurrency] = useState<string>("");
@@ -34,7 +32,7 @@ const Home: React.FC = React.memo(() => {
 
     setCurrency(curr);
 
-    const data = convertToChartData(historyList, baseData, curr);
+    const data = convertToChartData(historyList, curr);
 
     console.log(data);
 

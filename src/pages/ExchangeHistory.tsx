@@ -10,7 +10,6 @@ import Button from "../components/common/Button";
 import Loader from "../components/common/Loader";
 
 import { compareDate, convertToDateString } from "../utils/dateUtils";
-
 import {
   getSpecificItemList,
   getUniqueList,
@@ -19,6 +18,7 @@ import {
 } from "../utils/dataUtils";
 
 import { useGetListings } from "../hooks/useGetListing";
+import { useChartData } from "../hooks/useChartData";
 
 import { BASE_DATA as baseData } from "../utils/baseData";
 
@@ -94,9 +94,13 @@ const ExchangeHistory: React.FC = React.memo(() => {
     return d;
   });
   const [data, setData] = useState<Record<string, string>[]>([]);
+  const [chartData, setChartData] = useState<Record<string, number | string>[]>(
+    [],
+  );
 
   const location = useLocation();
   const navigate = useNavigate();
+  const { convertToChartData } = useChartData();
 
   const { getCurrencyHistory, loading } = useGetListings();
 
@@ -117,6 +121,10 @@ const ExchangeHistory: React.FC = React.memo(() => {
       newData = getUniqueList(newData, ["broj_tecajnice", "valuta"]);
       newData = addPercentageChange(newData);
       newData = addPercentageFixed(newData, base);
+
+      const newChartData = convertToChartData(newData, currency);
+
+      setChartData(newChartData);
 
       setData(newData);
     },

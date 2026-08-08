@@ -8,8 +8,7 @@ interface UseChartDataReturnProps {
   getCurrency: (data: Record<string, string>[]) => string;
   convertToChartData: (
     data: Record<string, string>[],
-    baseData: Record<string, string>[],
-    curr: string,
+    curr: string | string[],
   ) => Record<string, string>[];
 }
 
@@ -52,18 +51,13 @@ export const useChartData = (): UseChartDataReturnProps => {
   const convertToChartData = useCallback(
     (
       data: Record<string, string>[],
-      baseData: Record<string, string>[],
-      curr: string,
+      curr: string | string[],
     ): Record<string, string>[] => {
-      let newData = data.filter(
-        (value: Record<string, string>) => value.valuta === curr,
-      );
+      const currs = Array.isArray(curr) ? curr : [curr];
 
-      const newBaseData = baseData.filter(
-        (value: Record<string, string>) => value.valuta === curr,
+      let newData = data.filter((value: Record<string, string>) =>
+        currs.includes(value.valuta),
       );
-
-      if (!newBaseData.length) return newData;
 
       newData = addPercentageCalculation(newData);
 
