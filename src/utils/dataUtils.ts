@@ -67,7 +67,7 @@ export const addPercentageChange = (
         100
       ).toPrecision(2);
       if (dataType === "number") item.postotak_od_prosle_liste = percentage;
-      else item.postotak_od_prosle_liste = `${percentage.replace(".", ",")}%`;
+      else item.postotak_od_prosle_liste = `${percentage.replace(".", ",")}`;
     } else {
       dataType === "string"
         ? (item.postotak_od_prosle_liste = "0,0")
@@ -101,7 +101,7 @@ export const addPercentageFixed = (
         100
       ).toPrecision(2);
       if (dataType === "number") item.postotak_od_pocetka = percentage;
-      else item.postotak_od_pocetka = `${percentage.replace(".", ",")}%`;
+      else item.postotak_od_pocetka = `${percentage.replace(".", ",")}`;
     } else
       dataType === "string"
         ? (item.postotak_od_pocetka = "0,0")

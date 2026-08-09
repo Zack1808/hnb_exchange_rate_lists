@@ -145,6 +145,7 @@ const ExchangeHistory: React.FC = React.memo(() => {
   const [chartData, setChartData] = useState<Record<string, string | number>[]>(
     [],
   );
+  const [display, setDisplay] = useState<"table" | "chart">("table");
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -166,7 +167,9 @@ const ExchangeHistory: React.FC = React.memo(() => {
       base = getSpecificItemList(base, "valuta", currency);
 
       newData = getSpecificItemList(newData, "valuta", currency);
+
       const newChartData = convertToChartData(newData, currency, true);
+
       newData = getUniqueList(newData, ["broj_tecajnice", "valuta"]);
       newData = addPercentageChange(newData);
       newData = addPercentageFixed(newData, base);
@@ -374,15 +377,34 @@ const ExchangeHistory: React.FC = React.memo(() => {
           Prikaz povjesti tečaja
         </h2>
 
+        <div className="flex flex-col gap-3 mb-10">
+          <p className="text-lg text-gray-800 max-w-5xl">Prikaži podatke u:</p>
+          <div className="flex gap-2">
+            <Button
+              variant={display === "table" ? "primary" : "secondary"}
+              onClick={() => setDisplay("table")}
+            >
+              U tabličnom obliku
+            </Button>
+            <Button
+              variant={display === "chart" ? "primary" : "secondary"}
+              onClick={() => setDisplay("chart")}
+            >
+              U grafičkom obliku obliku
+            </Button>
+          </div>
+        </div>
+
         {loading ? (
           <Loader />
+        ) : display === "table" ? (
+          <Table
+            headers={headers}
+            data={data}
+            sortable
+            sortableKeys={sortableKeys}
+          />
         ) : (
-          // <Table
-          //   headers={headers}
-          //   data={data}
-          //   sortable
-          //   sortableKeys={sortableKeys}
-          // />
           <div className="md:h-100 h-200 w-full">
             <Chart chartData={chartData} currency={selectedCurrency} multiple />
           </div>

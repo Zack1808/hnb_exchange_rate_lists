@@ -144,7 +144,7 @@ const Home: React.FC = React.memo(() => {
         </p>
 
         <Button
-          to={`/povijest?valuta=ALL&datum_primjene_od=${convertToDateString(
+          to={`/povijest?valuta=${encodeURIComponent(JSON.stringify(["AUD"]))}&datum_primjene_od=${convertToDateString(
             new Date(new Date().setDate(new Date().getDate() - 2)),
             "YYYY-MM-DD",
           )}&datum_primjene_do=${convertToDateString(
