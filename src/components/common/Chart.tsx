@@ -12,8 +12,9 @@ import {
 } from "recharts";
 
 interface ChartProps {
-  chartData: Record<string, string>[];
-  currency: string;
+  chartData: Record<string, string | number>[];
+  currency: string | string[];
+  multiple?: boolean;
 }
 
 const MONTHS = [
@@ -31,7 +32,68 @@ const MONTHS = [
   "Pro",
 ] as const;
 
-const Chart: React.FC<ChartProps> = ({ chartData = [], currency = "" }) => {
+export const CURRENCY_COLORS = {
+  AUD: {
+    primary: "#2563EB",
+    secondary: "#93C5FD",
+  },
+  BAM: {
+    primary: "#16A34A",
+    secondary: "#86EFAC",
+  },
+  CAD: {
+    primary: "#DC2626",
+    secondary: "#FCA5A5",
+  },
+  CHF: {
+    primary: "#9333EA",
+    secondary: "#D8B4FE",
+  },
+  CZK: {
+    primary: "#EA580C",
+    secondary: "#FDBA74",
+  },
+  DKK: {
+    primary: "#0891B2",
+    secondary: "#67E8F9",
+  },
+  GBP: {
+    primary: "#4F46E5",
+    secondary: "#A5B4FC",
+  },
+  HUF: {
+    primary: "#CA8A04",
+    secondary: "#FDE047",
+  },
+  JPY: {
+    primary: "#DB2777",
+    secondary: "#F9A8D4",
+  },
+  NOK: {
+    primary: "#0F766E",
+    secondary: "#5EEAD4",
+  },
+  PLN: {
+    primary: "#7C3AED",
+    secondary: "#C4B5FD",
+  },
+  SEK: {
+    primary: "#0284C7",
+    secondary: "#7DD3FC",
+  },
+  USD: {
+    primary: "#15803D",
+    secondary: "#86EFAC",
+  },
+};
+
+const Chart: React.FC<ChartProps> = ({
+  chartData = [],
+  currency,
+  multiple,
+}) => {
+  const currs = Array.isArray(currency) ? currency : [currency];
+
   return (
     <ResponsiveContainer width="100%" height="100%">
       <LineChart
@@ -56,7 +118,7 @@ const Chart: React.FC<ChartProps> = ({ chartData = [], currency = "" }) => {
             const year = date.getFullYear();
 
             const indiciesWithSameMonth = data
-              .map((item: Record<string, string>, indx: number) =>
+              .map((item: Record<string, string | number>, indx: number) =>
                 new Date(item.datum_primjene).getMonth() === month ? indx : -1,
               )
               .filter((indx: number) => indx !== -1);
@@ -74,7 +136,7 @@ const Chart: React.FC<ChartProps> = ({ chartData = [], currency = "" }) => {
 
         <YAxis
           label={{
-            value: `Rast/Pad tečaja ${currency}-a u %`,
+            value: `Rast/Pad tečaja ${!multiple ? `${currs[0]}-a` : ""} u %`,
             angle: -90,
             position: {
               x: 5,
@@ -83,37 +145,106 @@ const Chart: React.FC<ChartProps> = ({ chartData = [], currency = "" }) => {
           }}
         />
 
-        <Line
-          dot={false}
-          strokeWidth={2}
-          dataKey="postotak_od_pocetka"
-          name={`Rast/pad ${currency}-a od uvođenja EUR 01.01.2023`}
-        />
+        {currs.map((item) => (
+          <React.Fragment key={item}>
+            <Line
+              dot={false}
+              strokeWidth={2}
+              dataKey={
+                multiple ? `${item}_postotak_od_pocetka` : "postotak_od_pocetka"
+              }
+              name={`Rast/pad ${item}-a od uvođenja EUR 01.01.2023`}
+              stroke={
+                CURRENCY_COLORS[item as keyof typeof CURRENCY_COLORS].primary
+              }
+            />
 
-        <Line
-          dot={false}
-          strokeWidth={2}
-          stroke="gray"
-          dataKey="postotak_od_prosle_liste"
-          name={`Dnevni rast/pad ${currency}-a`}
-        />
+            <Line
+              dot={false}
+              strokeWidth={2}
+              stroke={
+                CURRENCY_COLORS[item as keyof typeof CURRENCY_COLORS].secondary
+              }
+              dataKey={
+                multiple
+                  ? `${item}_postotak_od_prosle_liste`
+                  : "postotak_od_prosle_liste"
+              }
+              name={`Dnevni rast/pad ${item}-a`}
+            />
+          </React.Fragment>
+        ))}
 
         <Legend iconType="diamond" iconSize={15} align="left" />
 
-        <Tooltip content={<CustomTooltip />} />
+        <Tooltip
+          content={<CustomTooltip multiple={multiple} currencies={currs} />}
+        />
       </LineChart>
     </ResponsiveContainer>
   );
 };
 
-const CustomTooltip = ({ active, payload }: any) => {
+const CustomTooltip = ({ active, payload, multiple, currencies }: any) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
     const specificDate = new Date(data.datum_primjene);
     const percentage = data.postotak_od_prosle_liste;
     const historyPercentage = data.postotak_od_pocetka;
 
-    return (
+    return multiple ? (
+      <div className="bg-white p-3 border border-gray-300 rounded shadow-md flex flex-col gap-3 min-w-max">
+        <p className="font-semibold">{`Datum: ${specificDate.getDate()}.${specificDate.getMonth()}.${specificDate.getFullYear()}`}</p>
+        {currencies.map((curr: string) => (
+          <div key={curr} className="text-sm flex flex-col gap-1 mb-3">
+            <p>Valuta: {curr}</p>
+            <p>Srednji tečaj: {data[`${curr}_srednji_tecaj`]}</p>
+            <p>
+              Dnevni rast/pad:{" "}
+              <span
+                className={`${
+                  Number(data[`${curr}_postotak_od_prosle_liste`]) !== 0
+                    ? Number(data[`${curr}_postotak_od_prosle_liste`]) <= 0
+                      ? "text-red-600"
+                      : "text-green-700"
+                    : ""
+                } flex items-center justify-center gap-2`}
+              >
+                {Number(data[`${curr}_postotak_od_prosle_liste`]) !== 0 ? (
+                  Number(data[`${curr}_postotak_od_prosle_liste`]) <= 0 ? (
+                    <ImArrowDown />
+                  ) : (
+                    <ImArrowUp />
+                  )
+                ) : null}
+                {data[`${curr}_postotak_od_prosle_liste`]}%
+              </span>
+            </p>
+            <p>
+              Rast/pad od uvođenja EUR:{" "}
+              <span
+                className={`${
+                  Number(data[`${curr}_postotak_od_pocetka`]) !== 0
+                    ? Number(data[`${curr}_postotak_od_pocetka`]) <= 0
+                      ? "text-red-600"
+                      : "text-green-700"
+                    : ""
+                } flex items-center justify-center gap-2`}
+              >
+                {Number(data[`${curr}_postotak_od_pocetka`]) !== 0 ? (
+                  Number(data[`${curr}_postotak_od_pocetka`]) <= 0 ? (
+                    <ImArrowDown />
+                  ) : (
+                    <ImArrowUp />
+                  )
+                ) : null}
+                {data[`${curr}_postotak_od_pocetka`]}%
+              </span>
+            </p>
+          </div>
+        ))}
+      </div>
+    ) : (
       <div className="bg-white p-3 border border-gray-300 rounded shadow-md flex flex-col gap-3 min-w-max">
         <p className="font-semibold">{`Datum: ${specificDate.getDate()}.${specificDate.getMonth()}.${specificDate.getFullYear()}`}</p>
         <div className="text-sm flex flex-col gap-1">

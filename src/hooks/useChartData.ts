@@ -9,7 +9,8 @@ interface UseChartDataReturnProps {
   convertToChartData: (
     data: Record<string, string>[],
     curr: string | string[],
-  ) => Record<string, string>[];
+    multi?: boolean,
+  ) => Record<string, string | number>[];
 }
 
 export const useChartData = (): UseChartDataReturnProps => {
@@ -48,11 +49,40 @@ export const useChartData = (): UseChartDataReturnProps => {
     [],
   );
 
+  const convertToMultiChartData = useCallback(
+    (data: Record<string, string | number>[]) => {
+      let newData: Record<string, string | number>[] = [];
+
+      for (const item of data) {
+        const date = item.datum_primjene;
+
+        const dataChunk = {
+          datum_primjene: item.datum_primjene,
+          [`${item.valuta}_srednji_tecaj`]: item.srednji_tecaj,
+          [`${item.valuta}_postotak_od_pocetka`]: item.postotak_od_pocetka,
+          [`${item.valuta}_postotak_od_prosle_liste`]:
+            item.postotak_od_prosle_liste,
+        };
+
+        const existing = newData.find((it) => it.datum_primjene === date);
+
+        if (existing) {
+          Object.assign(existing, dataChunk);
+        } else {
+          newData = [...newData, dataChunk];
+        }
+      }
+      return newData;
+    },
+    [],
+  );
+
   const convertToChartData = useCallback(
     (
       data: Record<string, string>[],
       curr: string | string[],
-    ): Record<string, string>[] => {
+      multi?: boolean,
+    ): Record<string, string | number>[] => {
       const currs = Array.isArray(curr) ? curr : [curr];
 
       let newData = data.filter((value: Record<string, string>) =>
@@ -61,7 +91,9 @@ export const useChartData = (): UseChartDataReturnProps => {
 
       newData = addPercentageCalculation(newData);
 
-      return addPercentageCalculation(newData, "fixed");
+      newData = addPercentageCalculation(newData, "fixed");
+
+      return multi ? convertToMultiChartData(newData) : newData;
     },
     [addPercentageCalculation],
   );

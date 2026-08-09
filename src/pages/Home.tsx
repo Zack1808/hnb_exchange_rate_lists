@@ -15,7 +15,9 @@ import { convertToDateString } from "../utils/dateUtils";
 import { MOCK_CONFIG } from "../services/mock/mockData";
 
 const Home: React.FC = React.memo(() => {
-  const [chartData, setChartData] = useState<Record<string, string>[]>([]);
+  const [chartData, setChartData] = useState<Record<string, string | number>[]>(
+    [],
+  );
   const [currency, setCurrency] = useState<string>("");
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -33,8 +35,6 @@ const Home: React.FC = React.memo(() => {
     setCurrency(curr);
 
     const data = convertToChartData(historyList, curr);
-
-    console.log(data);
 
     setChartData(data);
   }, []);
@@ -90,7 +90,7 @@ const Home: React.FC = React.memo(() => {
           </Button>
         </div>
         <div className="hidden relative xl:flex xl:flex-col w-[50%] h-[400px]">
-          {loading ? (
+          {loading || !currency ? (
             <Loader />
           ) : (
             <>

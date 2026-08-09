@@ -9,6 +9,7 @@ import DatePicker from "../components/common/DatePicker";
 import Button from "../components/common/Button";
 import Loader from "../components/common/Loader";
 import Table from "../components/common/Table";
+import Chart from "../components/common/Chart";
 
 import { compareDate, convertToDateString } from "../utils/dateUtils";
 import {
@@ -141,7 +142,7 @@ const ExchangeHistory: React.FC = React.memo(() => {
     return d;
   });
   const [data, setData] = useState<Record<string, string>[]>([]);
-  const [chartData, setChartData] = useState<Record<string, number | string>[]>(
+  const [chartData, setChartData] = useState<Record<string, string | number>[]>(
     [],
   );
 
@@ -165,11 +166,10 @@ const ExchangeHistory: React.FC = React.memo(() => {
       base = getSpecificItemList(base, "valuta", currency);
 
       newData = getSpecificItemList(newData, "valuta", currency);
+      const newChartData = convertToChartData(newData, currency, true);
       newData = getUniqueList(newData, ["broj_tecajnice", "valuta"]);
       newData = addPercentageChange(newData);
       newData = addPercentageFixed(newData, base);
-
-      const newChartData = convertToChartData(newData, currency);
 
       setChartData(newChartData);
 
@@ -377,15 +377,16 @@ const ExchangeHistory: React.FC = React.memo(() => {
         {loading ? (
           <Loader />
         ) : (
-          <Table
-            headers={headers}
-            data={data}
-            sortable
-            sortableKeys={sortableKeys}
-          />
+          // <Table
+          //   headers={headers}
+          //   data={data}
+          //   sortable
+          //   sortableKeys={sortableKeys}
+          // />
+          <div className="md:h-100 h-200 w-full">
+            <Chart chartData={chartData} currency={selectedCurrency} multiple />
+          </div>
         )}
-
-        {/* TODO - build table & chart to display the percentage of growth/fall of the selected currency. If the user wants to se the data for all currencies, display only table and growth/fall percentage since 1.1.2023. Create pagination for when the data for all curencies needs to be displayed */}
       </Container>
     </>
   );
