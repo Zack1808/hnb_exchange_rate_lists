@@ -101,8 +101,8 @@ const Chart: React.FC<ChartProps> = ({
         margin={{
           top: 20,
           right: 30,
-          left: 20,
-          bottom: 20,
+          left: 10,
+          bottom: 10,
         }}
       >
         <CartesianGrid stroke="#ddd" strokeDasharray="5 5" vertical={false} />
@@ -139,8 +139,8 @@ const Chart: React.FC<ChartProps> = ({
             value: `Rast/Pad tečaja ${!multiple ? `${currs[0]}-a` : ""} u %`,
             angle: -90,
             position: {
-              x: 5,
-              y: 50,
+              x: 10,
+              y: multiple ? 150 : 50,
             },
           }}
         />
@@ -153,7 +153,7 @@ const Chart: React.FC<ChartProps> = ({
               dataKey={
                 multiple ? `${item}_postotak_od_pocetka` : "postotak_od_pocetka"
               }
-              name={`Rast/pad ${item}-a od uvođenja EUR 01.01.2023`}
+              name={`${item} - od uvođenja EUR`}
               stroke={
                 CURRENCY_COLORS[item as keyof typeof CURRENCY_COLORS].primary
               }
@@ -170,15 +170,28 @@ const Chart: React.FC<ChartProps> = ({
                   ? `${item}_postotak_od_prosle_liste`
                   : "postotak_od_prosle_liste"
               }
-              name={`Dnevni rast/pad ${item}-a`}
+              name={`${item} - dnevno`}
             />
           </React.Fragment>
         ))}
 
-        <Legend iconType="diamond" iconSize={15} align="left" />
+        <Legend
+          iconType="diamond"
+          iconSize={15}
+          align="left"
+          wrapperStyle={{
+            paddingTop: 10,
+          }}
+        />
 
         <Tooltip
-          content={<CustomTooltip multiple={multiple} currencies={currs} />}
+          content={
+            <CustomTooltip
+              multiple={multiple}
+              currencies={currs}
+              allowEscapeViewBox={{ x: false, y: false }}
+            />
+          }
         />
       </LineChart>
     </ResponsiveContainer>
@@ -193,56 +206,60 @@ const CustomTooltip = ({ active, payload, multiple, currencies }: any) => {
     const historyPercentage = data.postotak_od_pocetka;
 
     return multiple ? (
-      <div className="bg-white p-3 border border-gray-300 rounded shadow-md flex flex-col gap-3 min-w-max">
+      <div
+        className="bg-white p-3 border border-gray-300 rounded shadow-md flex flex-col gap-3 md:max-w-lg max-w-[calc(100vw-50px)]
+    max-h-[70vh]"
+      >
         <p className="font-semibold">{`Datum: ${specificDate.getDate()}.${specificDate.getMonth()}.${specificDate.getFullYear()}`}</p>
-        {currencies.map((curr: string) => (
-          <div key={curr} className="text-sm flex flex-col gap-1 mb-3">
-            <p>Valuta: {curr}</p>
-            <p>Srednji tečaj: {data[`${curr}_srednji_tecaj`]}</p>
-            <p>
-              Dnevni rast/pad:{" "}
-              <span
-                className={`${
-                  Number(data[`${curr}_postotak_od_prosle_liste`]) !== 0
-                    ? Number(data[`${curr}_postotak_od_prosle_liste`]) <= 0
-                      ? "text-red-600"
-                      : "text-green-700"
-                    : ""
-                } flex items-center justify-center gap-2`}
-              >
-                {Number(data[`${curr}_postotak_od_prosle_liste`]) !== 0 ? (
-                  Number(data[`${curr}_postotak_od_prosle_liste`]) <= 0 ? (
-                    <ImArrowDown />
-                  ) : (
-                    <ImArrowUp />
-                  )
-                ) : null}
-                {data[`${curr}_postotak_od_prosle_liste`]}%
-              </span>
-            </p>
-            <p>
-              Rast/pad od uvođenja EUR:{" "}
-              <span
-                className={`${
-                  Number(data[`${curr}_postotak_od_pocetka`]) !== 0
-                    ? Number(data[`${curr}_postotak_od_pocetka`]) <= 0
-                      ? "text-red-600"
-                      : "text-green-700"
-                    : ""
-                } flex items-center justify-center gap-2`}
-              >
-                {Number(data[`${curr}_postotak_od_pocetka`]) !== 0 ? (
-                  Number(data[`${curr}_postotak_od_pocetka`]) <= 0 ? (
-                    <ImArrowDown />
-                  ) : (
-                    <ImArrowUp />
-                  )
-                ) : null}
-                {data[`${curr}_postotak_od_pocetka`]}%
-              </span>
-            </p>
-          </div>
-        ))}
+        <div className="max-w flex flex-wrap gap-5">
+          {currencies.map((curr: string) => (
+            <div key={curr} className="text-sm flex flex-col gap-1 mb-3">
+              <strong>{curr}</strong>
+              <p className="min-w-max flex gap-2 text-xs">
+                Dnevno:{" "}
+                <span
+                  className={`${
+                    Number(data[`${curr}_postotak_od_prosle_liste`]) !== 0
+                      ? Number(data[`${curr}_postotak_od_prosle_liste`]) <= 0
+                        ? "text-red-600"
+                        : "text-green-700"
+                      : ""
+                  } flex items-center justify-center gap-2`}
+                >
+                  {Number(data[`${curr}_postotak_od_prosle_liste`]) !== 0 ? (
+                    Number(data[`${curr}_postotak_od_prosle_liste`]) <= 0 ? (
+                      <ImArrowDown />
+                    ) : (
+                      <ImArrowUp />
+                    )
+                  ) : null}
+                  {data[`${curr}_postotak_od_prosle_liste`]}%
+                </span>
+              </p>
+              <p className="min-w-max flex gap-2 text-xs">
+                od 01.01.2023:{" "}
+                <span
+                  className={`${
+                    Number(data[`${curr}_postotak_od_pocetka`]) !== 0
+                      ? Number(data[`${curr}_postotak_od_pocetka`]) <= 0
+                        ? "text-red-600"
+                        : "text-green-700"
+                      : ""
+                  } flex items-center justify-center gap-2`}
+                >
+                  {Number(data[`${curr}_postotak_od_pocetka`]) !== 0 ? (
+                    Number(data[`${curr}_postotak_od_pocetka`]) <= 0 ? (
+                      <ImArrowDown />
+                    ) : (
+                      <ImArrowUp />
+                    )
+                  ) : null}
+                  {data[`${curr}_postotak_od_pocetka`]}%
+                </span>
+              </p>
+            </div>
+          ))}
+        </div>
       </div>
     ) : (
       <div className="bg-white p-3 border border-gray-300 rounded shadow-md flex flex-col gap-3 min-w-max">

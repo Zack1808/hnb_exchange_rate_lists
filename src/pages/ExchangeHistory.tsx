@@ -405,7 +405,7 @@ const ExchangeHistory: React.FC = React.memo(() => {
             sortableKeys={sortableKeys}
           />
         ) : (
-          <div className="md:h-100 h-200 w-full">
+          <div className="md:h-120 h-200 w-full">
             <Chart chartData={chartData} currency={selectedCurrency} multiple />
           </div>
         )}
