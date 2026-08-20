@@ -10,6 +10,7 @@ import Button from "../components/common/Button";
 import Loader from "../components/common/Loader";
 import Table from "../components/common/Table";
 import Chart from "../components/common/Chart";
+import Tabs from "../components/common/Tabs";
 
 import { compareDate, convertToDateString } from "../utils/dateUtils";
 import {
@@ -145,7 +146,7 @@ const ExchangeHistory: React.FC = React.memo(() => {
   const [chartData, setChartData] = useState<Record<string, string | number>[]>(
     [],
   );
-  const [display, setDisplay] = useState<"table" | "chart">("table");
+  const [display, setDisplay] = useState<string>("table");
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -377,7 +378,41 @@ const ExchangeHistory: React.FC = React.memo(() => {
           Prikaz povjesti tečaja
         </h2>
 
-        <div className="flex flex-col gap-3 mb-10">
+        <p className="text-lg text-gray-800 max-w-5xl">Prikaži podatke u:</p>
+
+        <Tabs
+          value={display}
+          onChange={setDisplay}
+          tabs={[
+            {
+              value: "table",
+              label: "U tabličnom obliku",
+              content: (
+                <Table
+                  headers={headers}
+                  data={data}
+                  sortable
+                  sortableKeys={sortableKeys}
+                />
+              ),
+            },
+            {
+              value: "chart",
+              label: "U grafičkom obliku",
+              content: (
+                <div className="md:h-120 h-200 w-full">
+                  <Chart
+                    chartData={chartData}
+                    currency={selectedCurrency}
+                    multiple
+                  />
+                </div>
+              ),
+            },
+          ]}
+        />
+
+        {/* <div className="flex flex-col gap-3 mb-10">
           <p className="text-lg text-gray-800 max-w-5xl">Prikaži podatke u:</p>
           <div className="flex gap-2">
             <Button
@@ -408,7 +443,7 @@ const ExchangeHistory: React.FC = React.memo(() => {
           <div className="md:h-120 h-200 w-full">
             <Chart chartData={chartData} currency={selectedCurrency} multiple />
           </div>
-        )}
+        )} */}
       </Container>
     </>
   );
