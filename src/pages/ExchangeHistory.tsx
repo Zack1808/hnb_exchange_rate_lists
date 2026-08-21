@@ -380,70 +380,41 @@ const ExchangeHistory: React.FC = React.memo(() => {
 
         <p className="text-lg text-gray-800 max-w-5xl">Prikaži podatke u:</p>
 
-        <Tabs
-          value={display}
-          onChange={setDisplay}
-          tabs={[
-            {
-              value: "table",
-              label: "U tabličnom obliku",
-              content: (
-                <Table
-                  headers={headers}
-                  data={data}
-                  sortable
-                  sortableKeys={sortableKeys}
-                />
-              ),
-            },
-            {
-              value: "chart",
-              label: "U grafičkom obliku",
-              content: (
-                <div className="md:h-120 h-200 w-full">
-                  <Chart
-                    chartData={chartData}
-                    currency={selectedCurrency}
-                    multiple
-                  />
-                </div>
-              ),
-            },
-          ]}
-        />
-
-        {/* <div className="flex flex-col gap-3 mb-10">
-          <p className="text-lg text-gray-800 max-w-5xl">Prikaži podatke u:</p>
-          <div className="flex gap-2">
-            <Button
-              variant={display === "table" ? "primary" : "secondary"}
-              onClick={() => setDisplay("table")}
-            >
-              U tabličnom obliku
-            </Button>
-            <Button
-              variant={display === "chart" ? "primary" : "secondary"}
-              onClick={() => setDisplay("chart")}
-            >
-              U grafičkom obliku obliku
-            </Button>
-          </div>
-        </div>
-
         {loading ? (
           <Loader />
-        ) : display === "table" ? (
-          <Table
-            headers={headers}
-            data={data}
-            sortable
-            sortableKeys={sortableKeys}
-          />
         ) : (
-          <div className="md:h-120 h-200 w-full">
-            <Chart chartData={chartData} currency={selectedCurrency} multiple />
-          </div>
-        )} */}
+          <Tabs
+            value={display}
+            onChange={setDisplay}
+            tabs={[
+              {
+                value: "table",
+                label: "U tabličnom obliku",
+                content: (
+                  <Table
+                    headers={headers}
+                    data={data}
+                    sortable
+                    sortableKeys={sortableKeys}
+                  />
+                ),
+              },
+              {
+                value: "chart",
+                label: "U grafičkom obliku",
+                content: (
+                  <div className="md:h-120 h-200 w-full">
+                    <Chart
+                      chartData={chartData}
+                      currency={selectedCurrency}
+                      multiple
+                    />
+                  </div>
+                ),
+              },
+            ]}
+          />
+        )}
       </Container>
     </>
   );
