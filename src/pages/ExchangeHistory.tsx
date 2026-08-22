@@ -101,6 +101,11 @@ const headers = [
     isNumber: false,
   },
   {
+    title: "Datum primjene",
+    value: "datum_primjene",
+    isNumber: false,
+  },
+  {
     title: "Broj tečajnice",
     value: "broj_tecajnice",
     isNumber: true,
@@ -252,6 +257,10 @@ const ExchangeHistory: React.FC = React.memo(() => {
     [selectedCurrency],
   );
 
+  const handleExport = useCallback(() => {
+    console.log("exported");
+  }, [data]);
+
   useEffect(() => {
     const d = new Date(fromDate);
     d.setDate(d.getDate() + 2);
@@ -386,6 +395,16 @@ const ExchangeHistory: React.FC = React.memo(() => {
           <Tabs
             value={display}
             onChange={setDisplay}
+            actionButton={
+              <Button
+                variant="primary"
+                type="button"
+                onClick={handleExport}
+                className="md:max-w-fit max-w-none justify-center w-full"
+              >
+                Preuzmi Excel datoteku
+              </Button>
+            }
             tabs={[
               {
                 value: "table",
