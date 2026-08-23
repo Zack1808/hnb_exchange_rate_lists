@@ -234,7 +234,7 @@ const ExchangeHistory: React.FC = React.memo(() => {
         `/povijest?valuta=${encodeURIComponent(JSON.stringify(selectedCurrency))}&datum_primjene_od=${convertToDateString(
           new Date(fromDate),
           "YYYY-MM-DD",
-        )}&datum_primjene_do=${convertToDateString(new Date(toDate), "YYYY-MM-DD")}`,
+        )}&datum_primjene_do=${convertToDateString(new Date(toDate), "YYYY-MM-DD")}&prikaz=table`,
       );
 
       fetchData(
@@ -242,8 +242,9 @@ const ExchangeHistory: React.FC = React.memo(() => {
         convertToDateString(new Date(toDate), "YYYY-MM-DD"),
         selectedCurrency,
       );
+      setDisplay("table");
     },
-    [selectedCurrency, fromDate, toDate],
+    [selectedCurrency, fromDate, toDate, location.search, navigate, fetchData],
   );
 
   const handleChange = useCallback(
@@ -338,11 +339,13 @@ const ExchangeHistory: React.FC = React.memo(() => {
     const currency = JSON.parse(
       decodeURIComponent(search.get("valuta") as string),
     );
+    const view = search.get("prikaz");
 
-    if (!dateFrom || !dateTo || !currency) return;
+    if (!dateFrom || !dateTo || !currency || !view) return;
     setFromDate(new Date(dateFrom));
     setToDate(new Date(dateTo));
     setSelectedCurrency(currency);
+    setDisplay(view);
 
     fetchData(dateFrom, dateTo, currency);
   }, []);
@@ -448,6 +451,10 @@ const ExchangeHistory: React.FC = React.memo(() => {
               {
                 value: "table",
                 label: "U tabličnom obliku",
+                link: `/povijest?valuta=${encodeURIComponent(JSON.stringify(selectedCurrency))}&datum_primjene_od=${convertToDateString(
+                  new Date(fromDate),
+                  "YYYY-MM-DD",
+                )}&datum_primjene_do=${convertToDateString(new Date(toDate), "YYYY-MM-DD")}&prikaz=table`,
                 content: (
                   <Table
                     headers={HEADERS}
@@ -460,6 +467,10 @@ const ExchangeHistory: React.FC = React.memo(() => {
               {
                 value: "chart",
                 label: "U grafičkom obliku",
+                link: `/povijest?valuta=${encodeURIComponent(JSON.stringify(selectedCurrency))}&datum_primjene_od=${convertToDateString(
+                  new Date(fromDate),
+                  "YYYY-MM-DD",
+                )}&datum_primjene_do=${convertToDateString(new Date(toDate), "YYYY-MM-DD")}&prikaz=chart`,
                 content: (
                   <div className="md:h-120 h-200 w-full">
                     <Chart

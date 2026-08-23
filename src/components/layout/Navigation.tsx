@@ -103,7 +103,7 @@ const Navigation: React.FC = React.memo(() => {
               )}&datum_primjene_do=${convertToDateString(
                 new Date(),
                 "YYYY-MM-DD",
-              )}`}
+              )}&prikaz=table`}
               className={getLinkClasses()}
               onClick={closeMenu}
             >

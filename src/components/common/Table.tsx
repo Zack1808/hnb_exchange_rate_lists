@@ -103,11 +103,10 @@ const Table: React.FC<TableProps> = ({
 
       return (
         <Link
-          to={`${linkKey.startLink}valuta=${encodeURIComponent(JSON.stringify([`${row[header]}`]))}
-          &datum_primjene_od=${convertToDateString(
-            fromDate,
+          to={`${linkKey.startLink}valuta=${encodeURIComponent(JSON.stringify([`${row[header]}`]))}&datum_primjene_od=${convertToDateString(
+            new Date(fromDate),
             "YYYY-MM-DD",
-          )}&datum_primjene_do=${convertToDateString(toDate, "YYYY-MM-DD")}`}
+          )}&datum_primjene_do=${convertToDateString(new Date(toDate), "YYYY-MM-DD")}&prikaz=table`}
           className="px-4 py-2 md:py-4 flex items-center justify-center outline-none focus:inset-ring-2 focus:inset-ring-red-300"
         >
           {header === "postotak_od_prosle_liste" ||
