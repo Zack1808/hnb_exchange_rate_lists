@@ -102,14 +102,14 @@ const HEADERS = [
     isNumber: false,
   },
   {
-    title: "Datum primjene",
-    value: "datum_primjene",
-    isNumber: false,
-  },
-  {
     title: "Broj tečajnice",
     value: "broj_tecajnice",
     isNumber: true,
+  },
+  {
+    title: "Datum primjene",
+    value: "datum_primjene",
+    isNumber: false,
   },
   {
     title: "Kupovni tečaj",
@@ -138,7 +138,7 @@ const HEADERS = [
   },
 ];
 
-const sortableKeys = ["drzava", "valuta"];
+const SORTABLE_KEYS = ["drzava", "valuta", "broj_tecajnice"];
 
 const ExchangeHistory: React.FC = React.memo(() => {
   const [selectedCurrency, setSelectedCurrency] = useState<string[]>([]);
@@ -265,8 +265,8 @@ const ExchangeHistory: React.FC = React.memo(() => {
     const arrayData = workingData.map((item) => [
       item.drzava,
       item.valuta,
-      item.datum_primjene,
       item.broj_tecajnice,
+      item.datum_primjene,
       item.kupovni_tecaj,
       item.srednji_tecaj,
       item.prodajni_tecaj,
@@ -291,7 +291,7 @@ const ExchangeHistory: React.FC = React.memo(() => {
     const worksheet = XLSX.utils.aoa_to_sheet(excelData);
 
     worksheet["!autofilter"] = {
-      ref: `A1:B${data.length}`,
+      ref: `A1:C${data.length}`,
     };
 
     worksheet["!cols"] = columnWidths;
@@ -460,7 +460,7 @@ const ExchangeHistory: React.FC = React.memo(() => {
                     headers={HEADERS}
                     data={data}
                     sortable
-                    sortableKeys={sortableKeys}
+                    sortableKeys={SORTABLE_KEYS}
                   />
                 ),
               },
