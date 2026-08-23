@@ -1,12 +1,16 @@
 import { useCallback } from "react";
 
+import { addPercentageChange, addPercentageFixed } from "../utils/dataUtils";
+
+import { BASE_DATA as baseData } from "../utils/baseData";
+
 interface UseChartDataReturnProps {
   getCurrency: (data: Record<string, string>[]) => string;
   convertToChartData: (
     data: Record<string, string>[],
-    baseData: Record<string, string>[],
-    curr: string
-  ) => Record<string, string>[];
+    curr: string | string[],
+    multi?: boolean,
+  ) => Record<string, string | number>[];
 }
 
 export const useChartData = (): UseChartDataReturnProps => {
@@ -23,80 +27,75 @@ export const useChartData = (): UseChartDataReturnProps => {
         .map((item: Record<string, string>) => item.valuta)
         .filter(
           (value: string, index: number, self: string[]) =>
-            self.indexOf(value) === index
+            self.indexOf(value) === index,
         );
 
       const randomNumber = getRandomNumber(0, newData.length - 1);
 
       return newData[randomNumber];
     },
-    [getRandomNumber]
+    [getRandomNumber],
   );
 
   const addPercentageCalculation = useCallback(
     (
       data: Record<string, string>[],
-      percentageOfKey: string,
-      addedKey: string,
-      percentageOfValue?: number
+      percentageOfValue: "fixed" | "not fixed" = "not fixed",
     ): Record<string, string>[] => {
-      return data.map(
-        (
-          item: Record<string, string>,
-          index: number,
-          self: Record<string, string>[]
-        ) => {
-          if (index <= 0 && !percentageOfValue) {
-            item[addedKey] = "0.0";
-            return item;
-          }
-
-          const prevRate =
-            percentageOfValue ||
-            Number(self[index - 1][percentageOfKey].replace(",", "."));
-          const currRate = Number(item[percentageOfKey].replace(",", "."));
-          item[addedKey] = `${(
-            ((currRate - prevRate) / prevRate) *
-            100
-          ).toPrecision(2)}`;
-
-          return item;
-        }
-      );
+      return percentageOfValue === "not fixed"
+        ? addPercentageChange(data, "number")
+        : addPercentageFixed(data, baseData, "number");
     },
-    []
+    [],
+  );
+
+  const convertToMultiChartData = useCallback(
+    (data: Record<string, string | number>[]) => {
+      let newData: Record<string, string | number>[] = [];
+
+      for (const item of data) {
+        const date = item.datum_primjene;
+
+        const dataChunk = {
+          datum_primjene: item.datum_primjene,
+          [`${item.valuta}_srednji_tecaj`]: item.srednji_tecaj,
+          [`${item.valuta}_postotak_od_pocetka`]: item.postotak_od_pocetka,
+          [`${item.valuta}_postotak_od_prosle_liste`]:
+            item.postotak_od_prosle_liste,
+        };
+
+        const existing = newData.find((it) => it.datum_primjene === date);
+
+        if (existing) {
+          Object.assign(existing, dataChunk);
+        } else {
+          newData = [...newData, dataChunk];
+        }
+      }
+      return newData;
+    },
+    [],
   );
 
   const convertToChartData = useCallback(
     (
       data: Record<string, string>[],
-      baseData: Record<string, string>[],
-      curr: string
-    ): Record<string, string>[] => {
-      let newData = data.filter(
-        (value: Record<string, string>) => value.valuta === curr
+      curr: string | string[],
+      multi?: boolean,
+    ): Record<string, string | number>[] => {
+      const currs = Array.isArray(curr) ? curr : [curr];
+
+      let newData = data.filter((value: Record<string, string>) =>
+        currs.includes(value.valuta),
       );
 
-      const newBaseData = baseData.filter(
-        (value: Record<string, string>) => value.valuta === curr
-      );
+      newData = addPercentageCalculation(newData);
 
-      if (!newBaseData.length) return newData;
+      newData = addPercentageCalculation(newData, "fixed");
 
-      newData = addPercentageCalculation(
-        newData,
-        "srednji_tecaj",
-        "percentage"
-      );
-
-      return addPercentageCalculation(
-        newData,
-        "srednji_tecaj",
-        "percentage_history",
-        Number(newBaseData[0].srednji_tecaj.replace(",", "."))
-      );
+      return multi ? convertToMultiChartData(newData) : newData;
     },
-    [addPercentageCalculation]
+    [addPercentageCalculation],
   );
 
   return { getCurrency, convertToChartData };

@@ -1,15 +1,18 @@
 import React, { useCallback, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { FaCaretDown, FaCaretUp } from "react-icons/fa";
+import { ImArrowDown, ImArrowUp } from "react-icons/im";
 
 import Button from "./Button";
 
 import { convertToDateString } from "../../utils/dateUtils";
+import { sortData } from "../../utils/dataUtils";
 
 interface TableProps {
   headers: Array<{ title: string; value: string; isNumber: boolean }>;
   data: Record<string, string>[];
   sortable?: boolean;
+  sortableKeys?: string[];
   filterable?: boolean;
   filterableKeys?: Array<string>;
   linkCols?: Array<{
@@ -23,6 +26,7 @@ const Table: React.FC<TableProps> = ({
   headers,
   data,
   sortable,
+  sortableKeys,
   filterable,
   filterableKeys,
   linkCols,
@@ -40,31 +44,57 @@ const Table: React.FC<TableProps> = ({
     setInputValue((event.target as HTMLInputElement).value);
   }, []);
 
-  const handleHeaderButtonPress = useCallback((index: number | null): void => {
-    setSortingConfig((prevState) => {
-      const { headerIndex, direction } = prevState;
+  const handleHeaderButtonPress = useCallback(
+    (index: number): void => {
+      setSortingConfig((prevState) => {
+        const { headerIndex, direction } = prevState;
+        if (
+          sortableKeys?.length &&
+          !sortableKeys.includes(headers[index].value)
+        )
+          return prevState;
+        let newDirection: "asc" | "desc";
 
-      let newDirection: "asc" | "desc";
+        if (headerIndex === null) newDirection = "desc";
+        else if (headerIndex !== index) newDirection = "desc";
+        else newDirection = direction === "desc" ? "asc" : "desc";
 
-      if (headerIndex === null) newDirection = "desc";
-      else if (headerIndex !== index) newDirection = "desc";
-      else newDirection = direction === "desc" ? "asc" : "desc";
-
-      return {
-        headerIndex: index,
-        direction: newDirection,
-      };
-    });
-  }, []);
+        return {
+          headerIndex: index,
+          direction: newDirection,
+        };
+      });
+    },
+    [sortableKeys, headers],
+  );
 
   const renderCellData = useCallback(
     (row: Record<string, string>, header: string): React.ReactNode => {
       const linkKey = linkCols?.find((link) => link.targetCol === header);
       if (!linkKey)
         return (
-          <span className="px-4 py-2 md:py-4 flex items-center justify-center">
-            {row[header]}
-          </span>
+          <div className="px-4 py-2 md:py-4 flex items-center justify-center">
+            {header === "postotak_od_prosle_liste" ||
+            header === "postotak_od_pocetka" ? (
+              <span
+                className={`flex gap-2 items-center ${
+                  Number(row[header].replace(",", ".")) > 0
+                    ? "text-green-700"
+                    : Number(row[header].replace(",", ".")) !== 0 &&
+                      "text-red-500"
+                }`}
+              >
+                {Number(row[header].replace(",", ".")) > 0 ? (
+                  <ImArrowUp />
+                ) : (
+                  Number(row[header].replace(",", ".")) !== 0 && <ImArrowDown />
+                )}
+                {row[header]}%
+              </span>
+            ) : (
+              row[header]
+            )}
+          </div>
         );
 
       const toDate = new Date(linkKey.selectedDate);
@@ -73,19 +103,36 @@ const Table: React.FC<TableProps> = ({
 
       return (
         <Link
-          to={`${linkKey.startLink}valuta=${
-            row[header]
-          }&datum_primjene_od=${convertToDateString(
-            fromDate,
-            "YYYY-MM-DD"
-          )}&datum_primjene_do=${convertToDateString(toDate, "YYYY-MM-DD")}`}
+          to={`${linkKey.startLink}valuta=${encodeURIComponent(JSON.stringify([`${row[header]}`]))}&datum_primjene_od=${convertToDateString(
+            new Date(fromDate),
+            "YYYY-MM-DD",
+          )}&datum_primjene_do=${convertToDateString(new Date(toDate), "YYYY-MM-DD")}&prikaz=table`}
           className="px-4 py-2 md:py-4 flex items-center justify-center outline-none focus:inset-ring-2 focus:inset-ring-red-300"
         >
-          {row[header]}
+          {header === "postotak_od_prosle_liste" ||
+          header === "postotak_od_pocetka" ? (
+            <span
+              className={`flex gap-2 items-center ${
+                Number(row[header].replace(",", ".")) > 0
+                  ? "text-green-700"
+                  : Number(row[header].replace(",", ".")) !== 0 &&
+                    "text-red-500"
+              }`}
+            >
+              {Number(row[header].replace(",", ".")) > 0 ? (
+                <ImArrowUp />
+              ) : (
+                Number(row[header].replace(",", ".")) !== 0 && <ImArrowDown />
+              )}
+              {row[header]}%
+            </span>
+          ) : (
+            row[header]
+          )}
         </Link>
       );
     },
-    [linkCols]
+    [linkCols],
   );
 
   const renderHeaderData = useCallback(
@@ -111,42 +158,7 @@ const Table: React.FC<TableProps> = ({
         </span>
       );
     },
-    [sortable, sortingConfig]
-  );
-
-  const sortData = useCallback(
-    (
-      data: Record<string, string>[],
-      key: string,
-      direction: "asc" | "desc",
-      isNumber: boolean
-    ): Record<string, string>[] => {
-      const sortedList = [...data];
-
-      return sortedList.sort((a, b) => {
-        if (a.hasOwnProperty(key) && b.hasOwnProperty(key)) {
-          if (isNumber) {
-            if (
-              Number(a[key].replace(",", ".")) >
-              Number(b[key].replace(",", "."))
-            )
-              return direction === "asc" ? -1 : 1;
-            if (
-              Number(a[key].replace(",", ".")) <
-              Number(b[key].replace(",", "."))
-            )
-              return direction === "asc" ? 1 : -1;
-            return 0;
-          } else {
-            if (a[key] > b[key]) return direction === "asc" ? -1 : 1;
-            if (a[key] < b[key]) return direction === "asc" ? 1 : -1;
-            return 0;
-          }
-        }
-        return 0;
-      });
-    },
-    []
+    [sortable, sortingConfig],
   );
 
   const dataForRender = useMemo((): Record<string, string>[] => {
@@ -161,7 +173,7 @@ const Table: React.FC<TableProps> = ({
               tempData,
               head.value,
               sortingConfig.direction,
-              head.isNumber
+              head.isNumber,
             )
           : tempData;
     }
@@ -174,13 +186,13 @@ const Table: React.FC<TableProps> = ({
                 .toString()
                 .toLowerCase()
                 .trim()
-                .includes(inputValue.toLowerCase().trim())
+                .includes(inputValue.toLowerCase().trim()),
             )
           : Object.values(row)
               .toString()
               .toLowerCase()
               .trim()
-              .includes(inputValue.toLowerCase().trim())
+              .includes(inputValue.toLowerCase().trim()),
       );
 
     return tempData;

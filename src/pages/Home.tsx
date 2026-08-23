@@ -10,22 +10,20 @@ import Loader from "../components/common/Loader";
 import { useGetListings } from "../hooks/useGetListing";
 import { useChartData } from "../hooks/useChartData";
 
-import { useBaseExchangeRate } from "../context/BaseExchangeRateContext";
-
 import { convertToDateString } from "../utils/dateUtils";
 
 import { MOCK_CONFIG } from "../services/mock/mockData";
 
 const Home: React.FC = React.memo(() => {
-  const [chartData, setChartData] = useState<Record<string, string>[]>([]);
+  const [chartData, setChartData] = useState<Record<string, string | number>[]>(
+    [],
+  );
   const [currency, setCurrency] = useState<string>("");
 
   const containerRef = useRef<HTMLDivElement>(null);
 
   const { getCurrencyHistory, loading } = useGetListings();
   const { getCurrency, convertToChartData } = useChartData();
-
-  const baseData = useBaseExchangeRate();
 
   const fetchData = useCallback(async () => {
     const historyList = await getCurrencyHistory("2025-01-01", "2025-01-01");
@@ -36,10 +34,10 @@ const Home: React.FC = React.memo(() => {
 
     setCurrency(curr);
 
-    const data = convertToChartData(historyList, baseData, curr);
+    const data = convertToChartData(historyList, curr);
 
     setChartData(data);
-  }, [baseData]);
+  }, []);
 
   const handleHeroButtonClick = useCallback(() => {
     if (!containerRef.current) return;
@@ -92,7 +90,7 @@ const Home: React.FC = React.memo(() => {
           </Button>
         </div>
         <div className="hidden relative xl:flex xl:flex-col w-[50%] h-[400px]">
-          {loading ? (
+          {loading || !currency ? (
             <Loader />
           ) : (
             <>
@@ -126,7 +124,7 @@ const Home: React.FC = React.memo(() => {
         <Button
           to={`/tecaj?datum_primjene=${convertToDateString(
             new Date(),
-            "YYYY-MM-DD"
+            "YYYY-MM-DD",
           )}`}
           variant="primary"
           className="mt-5"
@@ -146,13 +144,13 @@ const Home: React.FC = React.memo(() => {
         </p>
 
         <Button
-          to={`/povijest?valuta=ALL&datum_primjene_od=${convertToDateString(
+          to={`/povijest?valuta=${encodeURIComponent(JSON.stringify(["AUD"]))}&datum_primjene_od=${convertToDateString(
             new Date(new Date().setDate(new Date().getDate() - 2)),
-            "YYYY-MM-DD"
+            "YYYY-MM-DD",
           )}&datum_primjene_do=${convertToDateString(
             new Date(),
-            "YYYY-MM-DD"
-          )}`}
+            "YYYY-MM-DD",
+          )}&prikaz=table`}
           variant="primary"
           className="mt-5"
         >

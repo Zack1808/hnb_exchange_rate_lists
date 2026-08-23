@@ -80,7 +80,7 @@ const ExchangeRate: React.FC = React.memo(() => {
         selectedDate: date,
       },
     ],
-    [date]
+    [date],
   );
 
   const fetchData = useCallback(async (date: string): Promise<void> => {
@@ -99,10 +99,11 @@ const ExchangeRate: React.FC = React.memo(() => {
 
       fetchData(selectedDate);
     },
-    [date]
+    [date],
   );
 
   useEffect(() => {
+    window.scrollTo(0, 0);
     const searchParams = new URLSearchParams(location.search);
 
     const datumPrimjene = searchParams.get("datum_primjene");
@@ -174,7 +175,7 @@ const ExchangeRate: React.FC = React.memo(() => {
                 <span className="font-normal">
                   {convertToDateString(
                     new Date(data[0].datum_primjene),
-                    "DD.MM.YYYY"
+                    "DD.MM.YYYY",
                   )}
                 </span>
               </strong>

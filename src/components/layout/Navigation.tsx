@@ -29,7 +29,7 @@ const Navigation: React.FC = React.memo(() => {
       `md:py-3 py-5 px-3 shadow-lg flex justify-center items-center ${
         location.pathname === "/" ? "fixed" : "sticky"
       } top-0 w-full z-40 bg-white`.trim(),
-    [location.pathname]
+    [location.pathname],
   );
 
   const navClasses = useMemo(
@@ -37,7 +37,7 @@ const Navigation: React.FC = React.memo(() => {
       `flex justify-end left-0 fixed md:static bg-black/40 md:bg-transparent w-full bottom-0 top-0 transition ${
         menuOpen ? "opacity-100 visible" : "opacity-0 invisible"
       } md:opacity-100 md:visible`,
-    [menuOpen]
+    [menuOpen],
   );
 
   const getLinkClasses = useCallback(
@@ -45,12 +45,12 @@ const Navigation: React.FC = React.memo(() => {
       `py-5 px-10 md:py-2 md:px-6 opacity-0 md:opacity-100 max-w-none ${
         menuOpen && delay ? "opacity-100" : ""
       }`,
-    [menuOpen]
+    [menuOpen],
   );
 
   const closeButtonClasses = useMemo(
     () => `opacity-0 ml-auto mb-5 md:hidden px-2 ${menuOpen && "opacity-100"}`,
-    [menuOpen]
+    [menuOpen],
   );
 
   const closeMenu = useCallback(() => {
@@ -89,7 +89,7 @@ const Navigation: React.FC = React.memo(() => {
             <Button
               to={`/tecaj?datum_primjene=${convertToDateString(
                 new Date(),
-                "YYYY-MM-DD"
+                "YYYY-MM-DD",
               )}`}
               className={getLinkClasses()}
               onClick={closeMenu}
@@ -97,13 +97,13 @@ const Navigation: React.FC = React.memo(() => {
               Današnji tečajevi
             </Button>
             <Button
-              to={`/povijest?valuta=ALL&datum_primjene_od=${convertToDateString(
+              to={`/povijest?valuta=${encodeURIComponent(JSON.stringify(["AUD"]))}&datum_primjene_od=${convertToDateString(
                 new Date(new Date().setDate(new Date().getDate() - 2)),
-                "YYYY-MM-DD"
+                "YYYY-MM-DD",
               )}&datum_primjene_do=${convertToDateString(
                 new Date(),
-                "YYYY-MM-DD"
-              )}`}
+                "YYYY-MM-DD",
+              )}&prikaz=table`}
               className={getLinkClasses()}
               onClick={closeMenu}
             >
