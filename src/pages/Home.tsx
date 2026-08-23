@@ -150,7 +150,7 @@ const Home: React.FC = React.memo(() => {
           )}&datum_primjene_do=${convertToDateString(
             new Date(),
             "YYYY-MM-DD",
-          )}`}
+          )}&prikaz=table`}
           variant="primary"
           className="mt-5"
         >

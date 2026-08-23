@@ -332,6 +332,7 @@ const ExchangeHistory: React.FC = React.memo(() => {
   }, [fromDate]);
 
   useEffect(() => {
+    window.scrollTo(0, 0);
     const search = new URLSearchParams(location.search);
 
     const dateFrom = search.get("datum_primjene_od");
