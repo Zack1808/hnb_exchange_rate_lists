@@ -1,5 +1,4 @@
 import React from "react";
-import { Link } from "react-router-dom";
 
 import Button from "./Button";
 
@@ -26,15 +25,14 @@ const Tabs: React.FC<TabsProps> = ({ value, onChange, actionButton, tabs }) => {
         <div className="flex rounded-sm bg-gray-100 flex-wrap">
           {tabs.map((tab) =>
             tab.link ? (
-              <Link to={tab.link} key={tab.value}>
-                <Button
-                  variant="none"
-                  className={`${tab.value === value ? "bg-white text-red-600" : "text-gray-600"} px-10! py-4! cursor-pointer md:max-w-fit max-w-none justify-center w-full`}
-                  onClick={() => onChange(tab.value)}
-                >
-                  {tab.label}
-                </Button>
-              </Link>
+              <Button
+                to={tab.link}
+                variant="none"
+                className={`${tab.value === value ? "bg-white text-red-600" : "text-gray-600"} px-10! py-4! cursor-pointer md:max-w-fit max-w-none justify-center w-full`}
+                onClick={() => onChange(tab.value)}
+              >
+                {tab.label}
+              </Button>
             ) : (
               <Button
                 key={tab.value}

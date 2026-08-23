@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Home from "./pages/Home";
 import ExchangeRate from "./pages/ExchangeRate";
 import ExchangeHistory from "./pages/ExchangeHistory";
+import ExchangeConversion from "./pages/ExchangeConversion";
 import PageNotFound from "./pages/PageNotFound";
 
 import Navigation from "./components/layout/Navigation";
@@ -18,6 +19,7 @@ const App: React.FC = () => {
           <Route path="/" element={<Home />} />
           <Route path="/tecaj" element={<ExchangeRate />} />
           <Route path="/povijest" element={<ExchangeHistory />} />
+          <Route path="/konverzija_tecaja" element={<ExchangeConversion />} />
           <Route path="*" element={<PageNotFound />} />
         </Routes>
       </main>
