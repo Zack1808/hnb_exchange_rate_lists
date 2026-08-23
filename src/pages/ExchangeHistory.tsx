@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import * as XLSX from "xlsx";
 
 import Container from "../components/layout/Container";
 
@@ -89,7 +90,7 @@ const CURRENCIES = [
   },
 ];
 
-const headers = [
+const HEADERS = [
   {
     title: "Država",
     value: "drzava",
@@ -258,8 +259,46 @@ const ExchangeHistory: React.FC = React.memo(() => {
   );
 
   const handleExport = useCallback(() => {
-    console.log("exported");
-  }, [data]);
+    const workingData = [...data];
+    const headers = HEADERS.map((header) => header.title);
+    const arrayData = workingData.map((item) => [
+      item.drzava,
+      item.valuta,
+      item.datum_primjene,
+      item.broj_tecajnice,
+      item.kupovni_tecaj,
+      item.srednji_tecaj,
+      item.prodajni_tecaj,
+      `${item.postotak_od_prosle_liste}%`,
+      `${item.postotak_od_pocetka}%`,
+    ]);
+    const excelData = [headers, ...arrayData];
+
+    const columnWidths = excelData[0].map((_, columnIndex) => {
+      const maxLength = Math.max(
+        ...excelData.map((row) => {
+          const value = row[columnIndex];
+          return value == null ? 0 : String(value).length;
+        }),
+      );
+
+      return { wch: maxLength + 2 };
+    });
+
+    const workbook = XLSX.utils.book_new();
+
+    const worksheet = XLSX.utils.aoa_to_sheet(excelData);
+
+    worksheet["!autofilter"] = {
+      ref: `A1:B${data.length}`,
+    };
+
+    worksheet["!cols"] = columnWidths;
+
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Izvještaj");
+
+    XLSX.writeFile(workbook, "Izvještaj_promjene_vrijednosti_valuta.xlsx");
+  }, [data, HEADERS]);
 
   useEffect(() => {
     const d = new Date(fromDate);
@@ -411,7 +450,7 @@ const ExchangeHistory: React.FC = React.memo(() => {
                 label: "U tabličnom obliku",
                 content: (
                   <Table
-                    headers={headers}
+                    headers={HEADERS}
                     data={data}
                     sortable
                     sortableKeys={sortableKeys}
