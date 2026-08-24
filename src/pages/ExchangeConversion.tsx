@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { FaExchangeAlt } from "react-icons/fa";
 import { useNavigate, useLocation } from "react-router-dom";
 
@@ -80,10 +80,20 @@ const ExchangeConversion: React.FC = React.memo(() => {
   const [fromCurr, setFromCurr] = useState<string>("");
   const [toCurr, setToCurr] = useState<string>("");
   const [fromValue, setFromValue] = useState<number>(1);
-  const [toValue, setToValue] = useState<number>();
+  const [toValue, setToValue] = useState<number>(1);
 
   const navigate = useNavigate();
   const location = useLocation();
+
+  const switchCurrencies = useCallback(() => {
+    const currFrom = toCurr;
+    const currTo = fromCurr;
+    const valueFrom = toValue;
+
+    setFromCurr(currFrom);
+    setToCurr(currTo);
+    setFromValue(valueFrom);
+  }, [fromCurr, toCurr, toValue]);
 
   useEffect(() => {
     const timer = setTimeout(
@@ -153,7 +163,7 @@ const ExchangeConversion: React.FC = React.memo(() => {
               onChange={(event) => setFromValue(Number(event.target.value))}
             />
           </fieldset>
-          <Button variant="primary" type="button">
+          <Button variant="primary" type="button" onClick={switchCurrencies}>
             <FaExchangeAlt />
           </Button>
           <fieldset className="w-full flex flex-col justify-between gap-2">
