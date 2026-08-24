@@ -1,8 +1,12 @@
 import React from "react";
+import { FaExchangeAlt } from "react-icons/fa";
 
 import Container from "../components/layout/Container";
 
 import List from "../components/common/List";
+import Select from "../components/common/Select";
+import Button from "../components/common/Button";
+import Input from "../components/common/Input";
 
 const NOTES = [
   'Srednji tečajevi za euro u odnosu na druge valute koji su objavljeni u tečajnoj listi HNB-a imaju za cilj pružiti informaciju o tečaju eura u odnosu na druge valute u specifičnom vremenskom razdoblju na datum objave tečajne liste i kao takvi se mogu koristiti isključivo u svrhe predviđene odredbom članka 17. stavka 2. Zakona o uvođenju eura kao službene valute u Republici Hrvatskoj <strong>("Narodne novine" broj 57/2022 i 88/2022).</strong>',
@@ -11,6 +15,65 @@ const NOTES = [
   `Izračun konverzije temelji se na srednjim tečajevima HNB-a i <strong>informativnog</strong> je karaktera.`,
   "Odabirom početne i ciljne valute i unosom iznosa možete provjeriti iznos u ciljanoj valuti",
 ] as string[];
+
+const CURRENCIES = [
+  {
+    value: "EUR",
+    label: "Euro",
+  },
+  {
+    value: "AUD",
+    label: "Australski dolar",
+  },
+  {
+    value: "CAD",
+    label: "Kanadski dolar",
+  },
+  {
+    value: "CZK",
+    label: "Češka kruna",
+  },
+  {
+    value: "DKK",
+    label: "Danska kruna",
+  },
+  {
+    value: "HUF",
+    label: "Mađarska forinta",
+  },
+  {
+    value: "JPY",
+    label: "Japanski yen",
+  },
+  {
+    value: "NOK",
+    label: "Norveška kruna",
+  },
+  {
+    value: "SEK",
+    label: "Švedska kruna",
+  },
+  {
+    value: "CHF",
+    label: "Švicarski franak",
+  },
+  {
+    value: "GBP",
+    label: "Britanska funta",
+  },
+  {
+    value: "USD",
+    label: "Američki dolar",
+  },
+  {
+    value: "BAM",
+    label: "Bosanska marka",
+  },
+  {
+    value: "PLN",
+    label: "Poljski zlot",
+  },
+];
 
 const ExchangeConversion: React.FC = React.memo(() => {
   return (
@@ -32,6 +95,52 @@ const ExchangeConversion: React.FC = React.memo(() => {
         <strong className="text-xl text-red-600 max-w-5xl">Napomena</strong>
 
         <List content={NOTES} listType="decimal" />
+
+        <form className="w-full md:max-w-6/12 flex flex-col gap-4 mt-10">
+          <fieldset className="flex justify-between gap-2 items-baseline-last">
+            <div className="flex-grow flex flex-col gap-2">
+              <label
+                htmlFor="currencyFrom"
+                className="text-lg text-red-600 font-bold"
+              >
+                Iz valute
+              </label>
+              <Select id="currencyFrom" options={CURRENCIES} value="" />
+            </div>
+            <Button variant="primary" type="button">
+              <FaExchangeAlt />
+            </Button>
+            <div className="flex-grow flex flex-col gap-2">
+              <label
+                htmlFor="currencyTo"
+                className="text-lg text-red-600 font-bold"
+              >
+                U valutu
+              </label>
+              <Select id="currencyTo" options={CURRENCIES} value="" />
+            </div>
+          </fieldset>
+          <fieldset className="flex justify-between gap-20 items-baseline-last">
+            <div className="flex-grow flex flex-col gap-2">
+              <label
+                htmlFor="valueFrom"
+                className="text-lg text-red-600 font-bold"
+              >
+                Iznos iz
+              </label>
+              <Input id="valueFrom" type="number" min="1" defaultValue="1" />
+            </div>
+            <div className="flex-grow flex flex-col gap-2">
+              <label
+                htmlFor="valueTo"
+                className="text-lg text-red-600 font-bold"
+              >
+                Iznos iz
+              </label>
+              <Input id="valueTo" readOnly value="2" />
+            </div>
+          </fieldset>
+        </form>
       </Container>
     </>
   );
