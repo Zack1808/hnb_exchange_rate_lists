@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { FaExchangeAlt } from "react-icons/fa";
+import { useNavigate, useLocation } from "react-router-dom";
 
 import Container from "../components/layout/Container";
 
@@ -76,6 +77,28 @@ const CURRENCIES = [
 ];
 
 const ExchangeConversion: React.FC = React.memo(() => {
+  const [fromCurr, setFromCurr] = useState<string>("");
+  const [toCurr, setToCurr] = useState<string>("");
+  const [fromValue, setFromValue] = useState<number>(1);
+  const [toValue, setToValue] = useState<number>();
+
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    const search = new URLSearchParams(location.search);
+
+    const currFrom = search.get("valuta_iz");
+    const currTo = search.get("valuta_u");
+    const val = search.get("iznos");
+
+    if (!currFrom || !currTo || !val) return;
+
+    setFromCurr(currFrom);
+    setToCurr(currTo);
+    setFromValue(Number(val));
+  }, []);
+
   return (
     <>
       <Container spacing="medium">
@@ -96,49 +119,45 @@ const ExchangeConversion: React.FC = React.memo(() => {
 
         <List content={NOTES} listType="decimal" />
 
-        <form className="w-full md:max-w-6/12 flex flex-col gap-4 mt-10">
-          <fieldset className="flex justify-between gap-2 items-baseline-last">
-            <div className="flex-grow flex flex-col gap-2">
-              <label
-                htmlFor="currencyFrom"
-                className="text-lg text-red-600 font-bold"
-              >
-                Iz valute
-              </label>
-              <Select id="currencyFrom" options={CURRENCIES} value="" />
-            </div>
-            <Button variant="primary" type="button">
-              <FaExchangeAlt />
-            </Button>
-            <div className="flex-grow flex flex-col gap-2">
-              <label
-                htmlFor="currencyTo"
-                className="text-lg text-red-600 font-bold"
-              >
-                U valutu
-              </label>
-              <Select id="currencyTo" options={CURRENCIES} value="" />
-            </div>
+        <form className="w-full md:max-w-6/12 flex items-center justify-center gap-4 mt-10 md:flex-row flex-col">
+          <fieldset className="w-full flex flex-col justify-between gap-2">
+            <label
+              htmlFor="currencyFrom"
+              className="text-lg text-red-600 font-bold"
+            >
+              Iz valute
+            </label>
+            <Select
+              id="currencyFrom"
+              options={CURRENCIES}
+              value={fromCurr}
+              onChange={setFromCurr}
+            />
+            <Input
+              id="valueFrom"
+              type="number"
+              min={1}
+              value={fromValue}
+              onChange={(event) => setFromValue(Number(event.target.value))}
+            />
           </fieldset>
-          <fieldset className="flex justify-between gap-20 items-baseline-last">
-            <div className="flex-grow flex flex-col gap-2">
-              <label
-                htmlFor="valueFrom"
-                className="text-lg text-red-600 font-bold"
-              >
-                Iznos iz
-              </label>
-              <Input id="valueFrom" type="number" min="1" defaultValue="1" />
-            </div>
-            <div className="flex-grow flex flex-col gap-2">
-              <label
-                htmlFor="valueTo"
-                className="text-lg text-red-600 font-bold"
-              >
-                Iznos iz
-              </label>
-              <Input id="valueTo" readOnly value="2" />
-            </div>
+          <Button variant="primary" type="button">
+            <FaExchangeAlt />
+          </Button>
+          <fieldset className="w-full flex flex-col justify-between gap-2">
+            <label
+              htmlFor="currencyTo"
+              className="text-lg text-red-600 font-bold"
+            >
+              U valutu
+            </label>
+            <Select
+              id="currencyTo"
+              options={CURRENCIES}
+              value={toCurr}
+              onChange={setToCurr}
+            />
+            <Input id="valueTo" readOnly value={toValue} />
           </fieldset>
         </form>
       </Container>

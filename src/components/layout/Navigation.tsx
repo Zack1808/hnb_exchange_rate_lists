@@ -110,7 +110,7 @@ const Navigation: React.FC = React.memo(() => {
               Povjest tečajeva
             </Button>
             <Button
-              to="/konverzija_tecaja?valuta_iz=AUD&vrijednost=1&valuta_u=EUR"
+              to="/konverzija_tecaja?valuta_iz=AUD&iznos=1&valuta_u=EUR"
               className={getLinkClasses()}
               onClick={closeMenu}
             >
