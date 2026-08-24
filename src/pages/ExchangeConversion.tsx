@@ -14,7 +14,7 @@ const NOTES = [
   "Srednji tečajevi HNB-a nisu namijenjeni za korištenje u pravnim poslovima koji su nastali nakon uvođenja eura kao službene valute u Republici Hrvatskoj, niti bi se oni trebali koristiti, direktno ili indirektno (kao referentna vrijednost) za sklapanje bilo kojih novih pravnih poslova, već je njihovo korištenje ograničeno na pravne poslove u kojima je pozivanje na srednji tečaj HNB-a određeno prije datuma uvođenja eura, osim ako nekim propisom nije drugačije uređeno.",
   "HNB ne može biti odgovoran za korištenje podataka o srednjim tečajevima HNB-a u svrhe za koje to nije namijenjeno.",
   `Izračun konverzije temelji se na srednjim tečajevima HNB-a i <strong>informativnog</strong> je karaktera.`,
-  "Odabirom početne i ciljne valute i unosom iznosa možete provjeriti iznos u ciljanoj valuti",
+  "Odabirom početne i ciljne valute i unosom iznosa možete provjeriti iznos u ciljanoj valuti.",
 ] as string[];
 
 const CURRENCIES = [
@@ -84,6 +84,18 @@ const ExchangeConversion: React.FC = React.memo(() => {
 
   const navigate = useNavigate();
   const location = useLocation();
+
+  useEffect(() => {
+    const timer = setTimeout(
+      () =>
+        navigate(
+          `/konverzija_tecaja?valuta_iz=${fromCurr}&iznos=${fromValue}&valuta_u=${toCurr}`,
+        ),
+      500,
+    );
+
+    return () => clearTimeout(timer);
+  }, [fromCurr, toCurr, fromValue]);
 
   useEffect(() => {
     const search = new URLSearchParams(location.search);
