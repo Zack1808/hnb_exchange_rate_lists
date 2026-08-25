@@ -236,52 +236,56 @@ const ExchangeConversion: React.FC = React.memo(() => {
 
         <List content={NOTES} listType="decimal" />
 
-        <form className="w-full md:max-w-6/12 flex items-center justify-center gap-4 mt-10 md:flex-row flex-col">
-          <fieldset className="w-full flex flex-col justify-between gap-2">
-            <label
-              htmlFor="currencyFrom"
-              className="text-lg text-red-600 font-bold"
+        {loading ? (
+          <Loader />
+        ) : (
+          <form className="w-full md:max-w-6/12 flex items-center justify-center gap-4 mt-10 md:flex-row flex-col">
+            <fieldset className="w-full flex flex-col justify-between gap-2">
+              <label
+                htmlFor="currencyFrom"
+                className="text-lg text-red-600 font-bold"
+              >
+                Iz valute
+              </label>
+              <Select
+                id="currencyFrom"
+                options={CURRENCIES}
+                value={fromCurr}
+                onChange={setFromCurr}
+              />
+              <Input
+                id="valueFrom"
+                type="number"
+                min={1}
+                value={fromValue}
+                onChange={onValueChange}
+              />
+            </fieldset>
+            <Button
+              variant="primary"
+              type="button"
+              onClick={switchCurrencies}
+              className="mb-3.5"
             >
-              Iz valute
-            </label>
-            <Select
-              id="currencyFrom"
-              options={CURRENCIES}
-              value={fromCurr}
-              onChange={setFromCurr}
-            />
-            <Input
-              id="valueFrom"
-              type="number"
-              min={1}
-              value={fromValue}
-              onChange={onValueChange}
-            />
-          </fieldset>
-          <Button
-            variant="primary"
-            type="button"
-            onClick={switchCurrencies}
-            className="mb-3.5"
-          >
-            <FaExchangeAlt />
-          </Button>
-          <fieldset className="w-full flex flex-col justify-between gap-2">
-            <label
-              htmlFor="currencyTo"
-              className="text-lg text-red-600 font-bold"
-            >
-              U valutu
-            </label>
-            <Select
-              id="currencyTo"
-              options={CURRENCIES}
-              value={toCurr}
-              onChange={setToCurr}
-            />
-            <Input id="valueTo" readOnly value={toValue} />
-          </fieldset>
-        </form>
+              <FaExchangeAlt />
+            </Button>
+            <fieldset className="w-full flex flex-col justify-between gap-2">
+              <label
+                htmlFor="currencyTo"
+                className="text-lg text-red-600 font-bold"
+              >
+                U valutu
+              </label>
+              <Select
+                id="currencyTo"
+                options={CURRENCIES}
+                value={toCurr}
+                onChange={setToCurr}
+              />
+              <Input id="valueTo" readOnly value={toValue} />
+            </fieldset>
+          </form>
+        )}
       </Container>
       <Container spacing="medium">
         <h2 className="text-3xl md:text-3xl text-gray-800 mb-6">

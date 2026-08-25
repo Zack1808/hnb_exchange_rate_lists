@@ -94,7 +94,7 @@ const Navigation: React.FC = React.memo(() => {
               className={getLinkClasses()}
               onClick={closeMenu}
             >
-              Današnji tečajevi
+              Provjera tečajeva
             </Button>
             <Button
               to={`/povijest?valuta=${encodeURIComponent(JSON.stringify(["AUD"]))}&datum_primjene_od=${convertToDateString(
@@ -110,11 +110,11 @@ const Navigation: React.FC = React.memo(() => {
               Povjest tečajeva
             </Button>
             <Button
-              to="/konverzija_tecaja?valuta_iz=AUD&iznos=1&valuta_u=EUR"
+              to="/konverzija_tecaja?valuta_iz=EUR&iznos=1&valuta_u=AUD"
               className={getLinkClasses()}
               onClick={closeMenu}
             >
-              Tečaj i konverzija
+              Konverzija valuta
             </Button>
           </div>
         </nav>
