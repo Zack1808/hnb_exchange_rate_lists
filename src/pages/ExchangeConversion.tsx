@@ -129,11 +129,9 @@ const ExchangeConversion: React.FC = React.memo(() => {
   const switchCurrencies = useCallback(() => {
     const currFrom = toCurr;
     const currTo = fromCurr;
-    const valueFrom = toValue;
 
     setFromCurr(currFrom);
     setToCurr(currTo);
-    setFromValue(valueFrom);
   }, [fromCurr, toCurr, toValue]);
 
   const fetchData = useCallback(async (date: string): Promise<void> => {
@@ -141,6 +139,44 @@ const ExchangeConversion: React.FC = React.memo(() => {
 
     newData && setData(newData);
   }, []);
+
+  const currencyConversion = useCallback(
+    (
+      amount: number,
+      fromCurr: string,
+      toCurr: string,
+      currencies: Record<string, string>[],
+    ) => {
+      if (fromCurr === toCurr) return amount;
+
+      const fromRate =
+        fromCurr === "EUR"
+          ? 1
+          : Number(
+              currencies
+                .find((curr) => curr.valuta === fromCurr)
+                ?.srednji_tecaj.replace(",", "."),
+            );
+
+      const toRate =
+        toCurr === "EUR"
+          ? 1
+          : Number(
+              currencies
+                .find((curr) => curr.valuta === toCurr)
+                ?.srednji_tecaj.replace(",", "."),
+            );
+
+      if (!fromRate || !toRate) return 0;
+
+      return (amount / fromRate) * toRate;
+    },
+    [],
+  );
+
+  const onValueChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setFromValue(Number(event.target.value));
+  };
 
   useEffect(() => {
     const timer = setTimeout(
@@ -151,8 +187,16 @@ const ExchangeConversion: React.FC = React.memo(() => {
       100,
     );
 
-    return () => clearTimeout(timer);
+    setToValue(currencyConversion(fromValue, fromCurr, toCurr, data));
+
+    return () => {
+      clearTimeout(timer);
+    };
   }, [fromCurr, toCurr, fromValue]);
+
+  useEffect(() => {
+    setToValue(currencyConversion(fromValue, fromCurr, toCurr, data));
+  }, [data]);
 
   useEffect(() => {
     window.scroll(0, 0);
@@ -211,7 +255,7 @@ const ExchangeConversion: React.FC = React.memo(() => {
               type="number"
               min={1}
               value={fromValue}
-              onChange={(event) => setFromValue(Number(event.target.value))}
+              onChange={onValueChange}
             />
           </fieldset>
           <Button
