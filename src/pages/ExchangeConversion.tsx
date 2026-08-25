@@ -8,6 +8,14 @@ import List from "../components/common/List";
 import Select from "../components/common/Select";
 import Button from "../components/common/Button";
 import Input from "../components/common/Input";
+import Table from "../components/common/Table";
+import Loader from "../components/common/Loader";
+
+import { useGetListings } from "../hooks/useGetListing";
+
+import { convertToDateString } from "../utils/dateUtils";
+
+import { MOCK_CONFIG } from "../services/mock/mockData";
 
 const NOTES = [
   'Srednji tečajevi za euro u odnosu na druge valute koji su objavljeni u tečajnoj listi HNB-a imaju za cilj pružiti informaciju o tečaju eura u odnosu na druge valute u specifičnom vremenskom razdoblju na datum objave tečajne liste i kao takvi se mogu koristiti isključivo u svrhe predviđene odredbom članka 17. stavka 2. Zakona o uvođenju eura kao službene valute u Republici Hrvatskoj <strong>("Narodne novine" broj 57/2022 i 88/2022).</strong>',
@@ -16,6 +24,34 @@ const NOTES = [
   `Izračun konverzije temelji se na srednjim tečajevima HNB-a i <strong>informativnog</strong> je karaktera.`,
   "Odabirom početne i ciljne valute i unosom iznosa možete provjeriti iznos u ciljanoj valuti.",
 ] as string[];
+
+const headers = [
+  {
+    title: "Valuta",
+    value: "valuta",
+    isNumber: false,
+  },
+  {
+    title: "Država",
+    value: "drzava",
+    isNumber: false,
+  },
+  {
+    title: "Kupovni tečaj",
+    value: "kupovni_tecaj",
+    isNumber: true,
+  },
+  {
+    title: "Srednji tečaj",
+    value: "srednji_tecaj",
+    isNumber: true,
+  },
+  {
+    title: "Prodajni tečaj",
+    value: "prodajni_tecaj",
+    isNumber: true,
+  },
+];
 
 const CURRENCIES = [
   {
@@ -76,14 +112,19 @@ const CURRENCIES = [
   },
 ];
 
+const KEYS = ["valuta", "drzava"];
+
 const ExchangeConversion: React.FC = React.memo(() => {
   const [fromCurr, setFromCurr] = useState<string>("");
   const [toCurr, setToCurr] = useState<string>("");
   const [fromValue, setFromValue] = useState<number>(1);
   const [toValue, setToValue] = useState<number>(1);
+  const [data, setData] = useState<Record<string, string>[]>([]);
 
   const navigate = useNavigate();
   const location = useLocation();
+
+  const { getListing, loading, error } = useGetListings();
 
   const switchCurrencies = useCallback(() => {
     const currFrom = toCurr;
@@ -95,19 +136,29 @@ const ExchangeConversion: React.FC = React.memo(() => {
     setFromValue(valueFrom);
   }, [fromCurr, toCurr, toValue]);
 
+  const fetchData = useCallback(async (date: string): Promise<void> => {
+    const newData = await getListing(date);
+
+    newData && setData(newData);
+  }, []);
+
   useEffect(() => {
     const timer = setTimeout(
       () =>
         navigate(
           `/konverzija_tecaja?valuta_iz=${fromCurr}&iznos=${fromValue}&valuta_u=${toCurr}`,
         ),
-      500,
+      100,
     );
 
     return () => clearTimeout(timer);
   }, [fromCurr, toCurr, fromValue]);
 
   useEffect(() => {
+    window.scroll(0, 0);
+
+    fetchData(convertToDateString(new Date(), "YYYY-MM-DD"));
+
     const search = new URLSearchParams(location.search);
 
     const currFrom = search.get("valuta_iz");
@@ -163,7 +214,12 @@ const ExchangeConversion: React.FC = React.memo(() => {
               onChange={(event) => setFromValue(Number(event.target.value))}
             />
           </fieldset>
-          <Button variant="primary" type="button" onClick={switchCurrencies}>
+          <Button
+            variant="primary"
+            type="button"
+            onClick={switchCurrencies}
+            className="mb-3.5"
+          >
             <FaExchangeAlt />
           </Button>
           <fieldset className="w-full flex flex-col justify-between gap-2">
@@ -182,6 +238,46 @@ const ExchangeConversion: React.FC = React.memo(() => {
             <Input id="valueTo" readOnly value={toValue} />
           </fieldset>
         </form>
+      </Container>
+      <Container spacing="medium">
+        <h2 className="text-3xl md:text-3xl text-gray-800 mb-6">
+          Prikaz današnjeg tečaja
+        </h2>
+
+        {loading && <Loader />}
+        {!loading && error && <p className="text-red-600 text-lg">{error}</p>}
+        {!loading && data.length > 0 && (
+          <>
+            <div className="flex flex-col gap-3">
+              <strong className="text-xl text-gray-800">
+                Broj tečajnice:{" "}
+                <span className="font-normal">{data[0].broj_tecajnice}</span>
+              </strong>
+              <strong className="text-xl text-gray-800">
+                Datum primjene:{" "}
+                <span className="font-normal">
+                  {convertToDateString(
+                    new Date(data[0].datum_primjene),
+                    "DD.MM.YYYY",
+                  )}
+                </span>
+              </strong>
+
+              {MOCK_CONFIG.enableMockData && (
+                <small>
+                  Ova tablica koristi testne podatke te će biti ažurirana za
+                  prikaz stvarnih podataka
+                </small>
+              )}
+            </div>
+            <Table
+              headers={headers}
+              data={data}
+              filterable
+              filterableKeys={KEYS}
+            />
+          </>
+        )}
       </Container>
     </>
   );
