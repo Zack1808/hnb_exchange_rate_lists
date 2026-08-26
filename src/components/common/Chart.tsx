@@ -11,6 +11,8 @@ import {
   Tooltip,
 } from "recharts";
 
+import { convertToDateString } from "../../utils/dateUtils";
+
 interface ChartProps {
   chartData: Record<string, string | number>[];
   currency: string | string[];
@@ -210,7 +212,7 @@ const CustomTooltip = ({ active, payload, multiple, currencies }: any) => {
         className="bg-white p-3 border border-gray-300 rounded shadow-md flex flex-col gap-3 md:max-w-lg max-w-[calc(100vw-50px)]
     max-h-[70vh]"
       >
-        <p className="font-semibold">{`Datum: ${specificDate.getDate()}.${specificDate.getMonth()}.${specificDate.getFullYear()}`}</p>
+        <p className="font-semibold">{`Datum: ${convertToDateString(specificDate, "DD.MM.YYYY")}`}</p>
         <div className="max-w flex flex-wrap gap-5">
           {currencies.map((curr: string) => (
             <div key={curr} className="text-sm flex flex-col gap-1 mb-3">
@@ -263,7 +265,7 @@ const CustomTooltip = ({ active, payload, multiple, currencies }: any) => {
       </div>
     ) : (
       <div className="bg-white p-3 border border-gray-300 rounded shadow-md flex flex-col gap-3 min-w-max">
-        <p className="font-semibold">{`Datum: ${specificDate.getDate()}.${specificDate.getMonth()}.${specificDate.getFullYear()}`}</p>
+        <p className="font-semibold">{`Datum: ${convertToDateString(specificDate, "DD.MM.YYYY")}`}</p>
         <div className="text-sm flex flex-col gap-1">
           <p>Broj tečajnice: {data.broj_tecajnice}</p>
           <p>Valuta: {data.valuta}</p>
