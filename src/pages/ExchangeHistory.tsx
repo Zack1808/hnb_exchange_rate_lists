@@ -158,7 +158,7 @@ const ExchangeHistory: React.FC = React.memo(() => {
   const navigate = useNavigate();
   const { convertToChartData } = useChartData();
 
-  const { getCurrencyHistory, loading } = useGetListings();
+  const { getCurrencyHistory, loading, error } = useGetListings();
 
   const fetchData = useCallback(
     async (
@@ -434,6 +434,8 @@ const ExchangeHistory: React.FC = React.memo(() => {
 
         {loading ? (
           <Loader />
+        ) : error ? (
+          <p className="text-red-600 text-lg">{error}</p>
         ) : (
           <Tabs
             value={display}

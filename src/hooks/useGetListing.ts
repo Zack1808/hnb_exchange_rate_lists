@@ -1,5 +1,7 @@
 import { useState, useCallback } from "react";
 
+import { hnbApi } from "../services/api/hnbApi";
+
 import {
   mockExchangeRateList,
   mockExchangeRateHistoryList,
@@ -8,11 +10,11 @@ import {
 
 type GetCurrencyHistoryProps = (
   fromDate: string,
-  toDate: string
+  toDate: string,
 ) => Promise<Record<string, string>[] | undefined>;
 
 type GetListingProps = (
-  date: string
+  date: string,
 ) => Promise<Record<string, string>[] | undefined>;
 
 interface UseGetListingReturnProps {
@@ -35,12 +37,24 @@ export const useGetListings: UseGetListingProps = () => {
     try {
       if (MOCK_CONFIG.enableMockData) {
         await new Promise((resolve) =>
-          setTimeout(resolve, MOCK_CONFIG.apiDelay)
+          setTimeout(resolve, MOCK_CONFIG.apiDelay),
         );
 
         return mockExchangeRateList;
       }
-    } catch (err) {
+
+      const data = await hnbApi.getListData(date);
+
+      return data;
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error
+          ? err.message
+          : "Nešto je pošlo po zlu tokom dobavljanja podataka. Molimo pokušajte osvježiti stranicu ili pokušajte kasnije ";
+
+      setError(message);
+
+      return [];
     } finally {
       setLoading(false);
     }
@@ -54,17 +68,29 @@ export const useGetListings: UseGetListingProps = () => {
       try {
         if (MOCK_CONFIG.enableMockData) {
           await new Promise((resolve) =>
-            setTimeout(resolve, MOCK_CONFIG.apiDelay)
+            setTimeout(resolve, MOCK_CONFIG.apiDelay),
           );
 
           return mockExchangeRateHistoryList;
         }
-      } catch (err: any) {
+
+        const data = await hnbApi.getPeriodData(fromDate, toDate);
+
+        return data;
+      } catch (err: unknown) {
+        const message =
+          err instanceof Error
+            ? err.message
+            : "Nešto je pošlo po zlu tokom dobavljanja podataka. Molimo pokušajte osvježiti stranicu ili pokušajte kasnije ";
+
+        setError(message);
+
+        return [];
       } finally {
         setLoading(false);
       }
     },
-    []
+    [],
   );
 
   return { loading, error, getCurrencyHistory, getListing };

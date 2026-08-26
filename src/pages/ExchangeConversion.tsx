@@ -238,6 +238,8 @@ const ExchangeConversion: React.FC = React.memo(() => {
 
         {loading ? (
           <Loader />
+        ) : error ? (
+          <p className="text-red-600 text-lg">{error}</p>
         ) : (
           <form className="w-full md:max-w-6/12 flex items-center justify-center gap-4 mt-10 md:flex-row flex-col">
             <fieldset className="w-full flex flex-col justify-between gap-2">
