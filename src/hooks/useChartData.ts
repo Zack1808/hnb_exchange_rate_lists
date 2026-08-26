@@ -1,6 +1,10 @@
 import { useCallback } from "react";
 
-import { addPercentageChange, addPercentageFixed } from "../utils/dataUtils";
+import {
+  addPercentageChange,
+  addPercentageFixed,
+  sortData,
+} from "../utils/dataUtils";
 
 import { BASE_DATA as baseData } from "../utils/baseData";
 
@@ -50,8 +54,8 @@ export const useChartData = (): UseChartDataReturnProps => {
   );
 
   const convertToMultiChartData = useCallback(
-    (data: Record<string, string | number>[]) => {
-      let newData: Record<string, string | number>[] = [];
+    (data: Record<string, string>[]) => {
+      let newData: Record<string, string>[] = [];
 
       for (const item of data) {
         const date = item.datum_primjene;
@@ -72,6 +76,7 @@ export const useChartData = (): UseChartDataReturnProps => {
           newData = [...newData, dataChunk];
         }
       }
+
       return newData;
     },
     [],
@@ -92,6 +97,8 @@ export const useChartData = (): UseChartDataReturnProps => {
       newData = addPercentageCalculation(newData);
 
       newData = addPercentageCalculation(newData, "fixed");
+
+      newData = sortData(newData, "datum_primjene", "desc", false);
 
       return multi ? convertToMultiChartData(newData) : newData;
     },

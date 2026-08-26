@@ -16,6 +16,16 @@ export const hnbApi = {
     fromDate: string,
     toDate: string,
   ): Promise<Record<string, string>[]> => {
-    return [];
+    const response = await fetch(
+      `${HNB_API_URL}?datum-primjene-od=${fromDate}&datum-primjene-do=${toDate}`,
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `HNB API request failed: ${response.status} ${response.statusText}`,
+      );
+    }
+
+    return response.json();
   },
 };

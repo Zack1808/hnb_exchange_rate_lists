@@ -22,11 +22,19 @@ const Home: React.FC = React.memo(() => {
 
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const { getCurrencyHistory, loading } = useGetListings();
+  const { getCurrencyHistory, loading, error } = useGetListings();
   const { getCurrency, convertToChartData } = useChartData();
 
   const fetchData = useCallback(async () => {
-    const historyList = await getCurrencyHistory("2025-01-01", "2025-01-01");
+    const toDate = new Date();
+
+    const fromDate = new Date(toDate);
+    fromDate.setDate(fromDate.getDate() - 60);
+
+    const historyList = await getCurrencyHistory(
+      convertToDateString(fromDate, "YYYY-MM-DD"),
+      convertToDateString(toDate, "YYYY-MM-DD"),
+    );
 
     if (!historyList?.length) return;
 
@@ -92,6 +100,8 @@ const Home: React.FC = React.memo(() => {
         <div className="hidden relative xl:flex xl:flex-col w-[50%] h-[400px]">
           {loading || !currency ? (
             <Loader />
+          ) : error ? (
+            <p className="text-red-600 text-lg">{error}</p>
           ) : (
             <>
               <Chart chartData={chartData} currency={currency} />

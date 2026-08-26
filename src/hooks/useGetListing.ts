@@ -73,7 +73,19 @@ export const useGetListings: UseGetListingProps = () => {
 
           return mockExchangeRateHistoryList;
         }
-      } catch (err: any) {
+
+        const data = await hnbApi.getPeriodData(fromDate, toDate);
+
+        return data;
+      } catch (err: unknown) {
+        const message =
+          err instanceof Error
+            ? err.message
+            : "Nešto je pošlo po zlu tokom dobavljanja podataka. Molimo pokušajte osvježiti stranicu ili pokušajte kasnije ";
+
+        setError(message);
+
+        return [];
       } finally {
         setLoading(false);
       }
