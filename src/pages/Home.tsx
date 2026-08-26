@@ -112,7 +112,26 @@ const Home: React.FC = React.memo(() => {
         ref={containerRef}
       >
         <h2 className="text-3xl text-gray-800 font-semibold">
-          Provjera trenutnog tečaja
+          Konverzija valuta
+        </h2>
+
+        <p className="text-lg text-gray-800 max-w-5xl">
+          Brzo i jednostavno pretvorite iznos iz jedne valute u drugu uz pomoć
+          aktualnih podataka o srednjim tečajevima HNB-a. Odaberite valute,
+          unesite iznos i odmah saznajte njegovu vrijednost u odabranoj valuti.
+        </p>
+
+        <Button
+          to={`/konverzija_tecaja?valuta_iz=EUR&iznos=1&valuta_u=AUD`}
+          variant="primary"
+          className="mt-5"
+        >
+          Konvertiraj valutu
+        </Button>
+      </Container>
+      <Container spacing="big" className="scroll-mt-96">
+        <h2 className="text-3xl text-gray-800 font-semibold">
+          Provjera tečaja
         </h2>
 
         <p className="text-lg text-gray-800 max-w-5xl">
@@ -132,7 +151,7 @@ const Home: React.FC = React.memo(() => {
           Provjerite današnji tečaj
         </Button>
       </Container>
-      <Container spacing="big" className="scroll-mt-96">
+      <Container spacing="big" hasBackground className="scroll-mt-96">
         <h2 className="text-3xl text-gray-800 font-semibold">
           Pogledajte kretanje tečaja kroz vrijeme
         </h2>

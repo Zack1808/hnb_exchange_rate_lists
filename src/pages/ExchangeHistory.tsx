@@ -291,7 +291,7 @@ const ExchangeHistory: React.FC = React.memo(() => {
     const worksheet = XLSX.utils.aoa_to_sheet(excelData);
 
     worksheet["!autofilter"] = {
-      ref: `A1:C${data.length}`,
+      ref: `A1:I${data.length}`,
     };
 
     worksheet["!cols"] = columnWidths;

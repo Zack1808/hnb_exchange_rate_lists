@@ -214,7 +214,7 @@ const Table: React.FC<TableProps> = ({
           value={inputValue}
           onChange={handleInputChange}
           className="w-full p-2 bg-gray-50 border border-gray-300 rounded-sm outline-none text-lg text-gray-800 placeholder:text-gray-400 focus:ring focus:ring-red-300"
-          placeholder="Filtriraj po državi, valuti, ISO broju ili šifri valute..."
+          placeholder="Filtriraj po državi, valuti..."
         />
       )}
       <div className="overflow-x-auto w-full rounded-sm">
