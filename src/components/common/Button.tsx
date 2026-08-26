@@ -1,4 +1,4 @@
-import { ButtonHTMLAttributes, AnchorHTMLAttributes, FC } from "react";
+import { ButtonHTMLAttributes, AnchorHTMLAttributes, type FC } from "react";
 import { Link, type LinkProps } from "react-router-dom";
 
 interface BaseButtonProps {
