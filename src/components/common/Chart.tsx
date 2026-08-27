@@ -85,6 +85,8 @@ export const CURRENCY_COLORS = {
 
 const BASE_Y_AXIS_LABEL = "Rast/pad tečaja";
 
+const MIN_LABEL_DISTANCE = 6;
+
 type Currency = keyof typeof CURRENCY_COLORS;
 
 interface ChartData {
@@ -182,8 +184,21 @@ const Chart: FC<ChartProps> = ({ chartData, currency, multiple = false }) => {
     if (Number.isNaN(date.getTime())) return "";
 
     const key = `${date.getFullYear()}-${date.getMonth()}`;
+    const labelIndex = monthLabelIndexes.get(key);
 
-    return monthLabelIndexes.get(key) === index ? getMonthLabel(value) : "";
+    if (labelIndex !== index) return "";
+
+    const labelIndexes = [...monthLabelIndexes.values()];
+    const currentLabelPosition = labelIndexes.indexOf(index);
+    const nextLabelIndex = labelIndexes[currentLabelPosition + 1];
+
+    if (
+      nextLabelIndex !== undefined &&
+      nextLabelIndex - index <= MIN_LABEL_DISTANCE
+    )
+      return "";
+
+    return `${getMonthLabel(value)}`;
   };
 
   return (
