@@ -1,27 +1,25 @@
 import React, {
-  useState,
   useCallback,
   useEffect,
-  useRef,
   useMemo,
+  useRef,
+  useState,
 } from "react";
 import {
+  FaCaretDown,
+  FaCaretUp,
   FaChevronLeft,
   FaChevronRight,
-  FaCaretUp,
-  FaCaretDown,
 } from "react-icons/fa6";
 
 import Button from "./Button";
-
 import { useOutsideClick } from "../../hooks/useOutsideClick";
-
 import {
-  convertToDateString,
   compareDate,
+  convertToDateString,
   generateCalendarDays,
-  type DateFormat,
   type CalendarDaysArrayFormat,
+  type DateFormat,
 } from "../../utils/dateUtils";
 
 interface DatePickerProps {
@@ -34,9 +32,13 @@ interface DatePickerProps {
   format?: DateFormat;
 }
 
+type DateSegment = "day" | "month" | "year";
+type ViewMode = null | "month" | "year";
+
 const DAYS = ["PON", "UTO", "SRI", "ČET", "PET", "SUB", "NED"] as const;
+
 const MONTHS = [
-  "Sječanj",
+  "Siječanj",
   "Veljača",
   "Ožujak",
   "Travanj",
@@ -50,503 +52,511 @@ const MONTHS = [
   "Prosinac",
 ] as const;
 
-const DatePicker: React.FC<DatePickerProps> = React.memo(
-  ({ value, onChange, min, max, disabled, id, format = "DD.MM.YYYY" }) => {
-    const [isOpen, setIsOpen] = useState<boolean>(false);
-    const [selectYearOrMonth, setSelectYearOrMonth] = useState<
-      null | "month" | "year"
-    >(null);
+const clampDateToBounds = (date: Date, min?: Date, max?: Date): Date | null => {
+  if (min && compareDate("day", date, min, "less")) {
+    return min;
+  }
 
-    const dateRef = useRef<HTMLDivElement>(null);
+  if (max && compareDate("day", date, max, "greater")) {
+    return max;
+  }
+
+  return date;
+};
+
+const isDateDisabled = (date: Date, min?: Date, max?: Date): boolean =>
+  Boolean(
+    (min && compareDate("day", date, min, "less")) ||
+    (max && compareDate("day", date, max, "greater")),
+  );
+
+const isSameDay = (first: Date, second: Date): boolean =>
+  first.toDateString() === second.toDateString();
+
+const DatePicker: React.FC<DatePickerProps> = React.memo(
+  ({
+    value,
+    onChange,
+    min,
+    max,
+    disabled = false,
+    id,
+    format = "DD.MM.YYYY",
+  }) => {
+    const [isOpen, setIsOpen] = useState(false);
+    const [viewMode, setViewMode] = useState<ViewMode>(null);
+
+    const datePickerRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
-    const scrollToSelectedYearRef = useRef<HTMLDivElement>(null);
+    const calendarRef = useRef<HTMLDivElement>(null);
+
     const selectedDayRef = useRef<HTMLButtonElement>(null);
     const selectedMonthRef = useRef<HTMLButtonElement>(null);
     const selectedYearRef = useRef<HTMLButtonElement>(null);
-    const datePickerRef = useRef<HTMLDivElement>(null);
 
-    const incrementDisabled = useMemo(() => {
-      const maxDisabled =
-        max && compareDate("day", value, max, "greaterOrEqual");
-      return disabled || maxDisabled;
-    }, [max, value]);
+    const isPreviousDayDisabled =
+      disabled ||
+      Boolean(max && compareDate("day", value, max, "greaterOrEqual"));
 
-    const decrementDisabled = useMemo(() => {
-      const minDisabled = min && compareDate("day", value, min, "lessOrEqual");
-      return disabled || minDisabled;
-    }, [min, value]);
+    const isNextDayDisabled =
+      disabled || Boolean(min && compareDate("day", value, min, "lessOrEqual"));
 
-    const resetDatePickerState = useCallback((): void => {
-      setSelectYearOrMonth(null);
+    const resetDatePickerState = useCallback(() => {
+      setViewMode(null);
       setIsOpen(false);
     }, []);
 
     const updateDate = useCallback(
-      (dateSegment: "day" | "month" | "year", ammount: number): void => {
-        onChange?.((prevState) => {
-          const newDate = new Date(prevState);
+      (segment: DateSegment, amount: number) => {
+        onChange?.((currentDate) => {
+          const newDate = new Date(currentDate);
 
-          switch (dateSegment) {
+          switch (segment) {
             case "day":
-              newDate.setDate(newDate.getDate() + ammount);
-              return (min && compareDate("day", newDate, min, "less")) ||
-                (max && compareDate("day", newDate, max, "greater"))
-                ? prevState
-                : newDate;
+              newDate.setDate(newDate.getDate() + amount);
+              break;
+
             case "month":
-              newDate.setMonth(newDate.getMonth() + ammount);
-              return min && compareDate("month", newDate, min, "less")
-                ? prevState
-                : min && compareDate("day", newDate, min, "less")
-                  ? min
-                  : max && compareDate("month", newDate, max, "greater")
-                    ? prevState
-                    : max && compareDate("day", newDate, max, "greater")
-                      ? max
-                      : newDate;
+              newDate.setMonth(newDate.getMonth() + amount);
+              break;
+
             case "year":
-              newDate.setFullYear(newDate.getFullYear() + ammount);
-              return min && compareDate("day", newDate, min, "less")
-                ? min
-                : max && compareDate("day", newDate, max, "greater")
-                  ? max
-                  : newDate;
+              newDate.setFullYear(newDate.getFullYear() + amount);
+              break;
           }
+
+          return clampDateToBounds(newDate, min, max) ?? currentDate;
         });
       },
       [onChange, min, max],
     );
 
-    const handleKeyPress = useCallback(
-      (
-        element: string,
-        segment: "day" | "month" | "year",
-        event: React.KeyboardEvent,
-      ): void => {
+    const handleKeyDown = useCallback(
+      (segment: DateSegment, event: React.KeyboardEvent<HTMLElement>): void => {
         switch (event.key) {
           case "Enter":
           case " ":
-            if (element === "button") break;
-            if (element === "input") {
+            if (event.currentTarget instanceof HTMLInputElement) {
               event.preventDefault();
-              setIsOpen((prevState) => {
-                !prevState && setSelectYearOrMonth(null);
-                return !prevState;
+
+              setIsOpen((previousOpen) => {
+                if (!previousOpen) {
+                  setViewMode(null);
+                }
+
+                return !previousOpen;
               });
-              break;
             }
+
             break;
+
           case "ArrowUp":
             event.preventDefault();
-            if (element === "button") {
-              updateDate(segment, segment === "day" ? -7 : -3);
-              break;
-            }
-            if (element === "input") {
-              updateDate("day", 1);
-              break;
-            }
+            updateDate(segment, segment === "day" ? -7 : -3);
             break;
+
           case "ArrowDown":
             event.preventDefault();
-            if (element === "button") {
-              updateDate(segment, segment === "day" ? 7 : 3);
-              break;
-            }
-            if (element === "input") {
-              updateDate("day", -1);
-              break;
-            }
+            updateDate(segment, segment === "day" ? 7 : 3);
             break;
+
           case "ArrowLeft":
             event.preventDefault();
-            if (element === "button") {
-              updateDate(segment, -1);
-              break;
-            }
-            if (element === "input") break;
+            updateDate(segment, -1);
             break;
+
           case "ArrowRight":
             event.preventDefault();
-            if (element === "button") {
-              updateDate(segment, 1);
-              break;
-            }
-            if (element === "input") break;
+            updateDate(segment, 1);
             break;
+
           case "Escape":
             event.preventDefault();
-            if (element === "button") {
+
+            if (!(event.currentTarget instanceof HTMLInputElement)) {
               inputRef.current?.focus();
               resetDatePickerState();
-              break;
             }
-            if (element === "input") break;
+
             break;
         }
       },
       [updateDate, resetDatePickerState],
     );
 
-    const handleToggleDatePicker = useCallback(
-      (event: React.MouseEvent): void => {
-        event.preventDefault();
+    const toggleDatePicker = useCallback(() => {
+      setIsOpen((previousOpen) => {
+        if (!previousOpen) {
+          setViewMode(null);
+        }
 
-        setIsOpen((prevState) => {
-          !prevState && setSelectYearOrMonth(null);
-          return !prevState;
-        });
-      },
-      [],
-    );
+        return !previousOpen;
+      });
+    }, []);
 
-    const handleInputKeypressToggleDatePicker = useCallback(
-      (event: React.KeyboardEvent): void => {
-        const element = (event.target as HTMLElement).tagName.toLowerCase();
+    const toggleViewMode = useCallback((mode: "month" | "year") => {
+      setViewMode((previousMode) => (previousMode === mode ? null : mode));
+    }, []);
 
-        handleKeyPress(element, "day", event);
-      },
-      [],
-    );
-
-    const handleYearOrMonthButtonClick = useCallback(
-      (selection: "month" | "year"): void => {
-        setSelectYearOrMonth((prevState) => {
-          return prevState === selection ? null : selection;
-        });
-      },
-      [],
-    );
-
-    const incrementDate = useCallback((): void => {
-      resetDatePickerState();
-      updateDate("day", 1);
-    }, [resetDatePickerState, updateDate]);
-
-    const decrementDate = useCallback((): void => {
-      resetDatePickerState();
-      updateDate("day", -1);
-    }, [resetDatePickerState, updateDate]);
-
-    const generateDayButtons = useCallback((): React.ReactNode => {
-      const month = value.getMonth();
-      const year = value.getFullYear();
-
-      const days = generateCalendarDays(month, year);
-
-      const handleClick = (date: Date): void => {
+    const selectDate = useCallback(
+      (date: Date) => {
         onChange?.(date);
         resetDatePickerState();
         inputRef.current?.focus();
-      };
+      },
+      [onChange, resetDatePickerState],
+    );
 
-      const handlePress = (event: React.KeyboardEvent): void => {
-        const element = (event.target as HTMLElement).tagName.toLowerCase();
-        handleKeyPress(element, "day", event);
-      };
+    const selectMonth = useCallback(
+      (month: number) => {
+        onChange?.((currentDate) => {
+          const newDate = new Date(currentDate);
+          newDate.setMonth(month);
 
-      return days.map((item: CalendarDaysArrayFormat, index: number) => {
-        const isSelected =
-          item.dateValue.toDateString() === value.toDateString();
-        const isToday =
-          item.dateValue.toDateString() === new Date().toDateString();
-        const isDisabled =
-          (min && compareDate("day", item.dateValue, min, "less")) ||
-          (max && compareDate("day", item.dateValue, max, "greater"));
-
-        return (
-          <button
-            type="button"
-            key={index}
-            ref={isSelected ? selectedDayRef : null}
-            tabIndex={isSelected && !selectYearOrMonth ? 0 : -1}
-            aria-label={(item.dateValue as Date).toDateString()}
-            aria-selected={isSelected}
-            onClick={() => handleClick(item.dateValue as Date)}
-            onKeyDown={handlePress}
-            disabled={isDisabled}
-            aria-disabled={isDisabled}
-            className={`aspect-square cursor-pointer transition rounded-sm outline-none border-none inset-ring-2 focus:inset-ring-red-800 disabled:bg-gray-200 disabled:text-gray-400 disabled:rounded-none ${
-              isToday
-                ? " inset-ring-red-500 text-red-500"
-                : "inset-ring-transparent"
-            } ${
-              item.isActiveMonth
-                ? "hover:bg-red-400 hover:text-white"
-                : "bg-gray-50 text-gray-500 hover:bg-red-200 rounded-none"
-            } ${isSelected ? "bg-red-600 text-white" : ""}`}
-          >
-            {item.value as number}
-          </button>
-        );
-      });
-    }, [value, onChange, resetDatePickerState, selectYearOrMonth, min, max]);
-
-    const generateMonthButtons = useCallback((): React.ReactNode => {
-      const handleClick = (index: number, event: React.MouseEvent): void => {
-        event.stopPropagation();
-
-        onChange?.((prevState: Date) => {
-          const newDate = new Date(prevState);
-          newDate.setMonth(index);
-
-          return min && compareDate("month", newDate, min, "less")
-            ? prevState
-            : min && compareDate("day", newDate, min, "less")
-              ? min
-              : max && compareDate("month", newDate, max, "greater")
-                ? prevState
-                : max && compareDate("day", newDate, max, "greater")
-                  ? max
-                  : newDate;
+          return clampDateToBounds(newDate, min, max) ?? currentDate;
         });
 
-        setSelectYearOrMonth(null);
-      };
+        setViewMode(null);
+      },
+      [onChange, min, max],
+    );
 
-      const handlePress = (event: React.KeyboardEvent) => {
-        const element = (event.target as HTMLElement).tagName.toLowerCase();
-        handleKeyPress(element, "month", event);
-      };
+    const selectYear = useCallback(
+      (year: number) => {
+        onChange?.((currentDate) => {
+          const newDate = new Date(currentDate);
+          newDate.setFullYear(year);
 
-      return MONTHS.map((month: string, index: number) => {
-        const isSelected = value.getMonth() === index;
-        const isDisabled =
-          (min &&
-            compareDate(
-              "month",
-              new Date(value.getFullYear(), index, 1),
-              min,
-              "less",
-            )) ||
-          (max &&
-            compareDate(
-              "month",
-              new Date(value.getFullYear(), index, 1),
-              max,
-              "greater",
-            ));
+          return clampDateToBounds(newDate, min, max) ?? currentDate;
+        });
 
-        return (
-          <button
-            type="button"
-            key={month}
-            ref={isSelected ? selectedMonthRef : null}
-            tabIndex={isSelected ? 0 : -1}
-            aria-label={month}
-            aria-selected={isSelected}
-            className={`hover:bg-red-400 rounded-sm hover:text-white p-3 cursor-pointer outline-none transition inset-ring-2 inset-ring-transparent focus:inset-ring-red-900 disabled:bg-gray-200 disabled:text-gray-400 disabled:rounded-none ${
-              isSelected ? "bg-red-600 text-white" : ""
-            }`}
-            onClick={(event) => handleClick(index, event)}
-            onKeyDown={handlePress}
-            disabled={isDisabled}
-            aria-disabled={isDisabled}
-          >
-            {month}
-          </button>
-        );
-      });
-    }, [value, onChange, min, max]);
+        setViewMode(null);
+      },
+      [onChange, min, max],
+    );
 
-    const generateYearButtons = useCallback((): React.ReactNode => {
+    const calendarDays = useMemo(
+      () => generateCalendarDays(value.getMonth(), value.getFullYear()),
+      [value],
+    );
+
+    const years = useMemo(() => {
       const currentYear = new Date().getFullYear();
       const startYear = min ? min.getFullYear() - 5 : currentYear - 100;
       const endYear = max ? max.getFullYear() + 4 : currentYear + 20;
 
-      let years: number[] = [];
-
-      for (let i = startYear; i <= endYear; i++) years.push(i);
-
-      const handleClick = (value: number, event: React.MouseEvent): void => {
-        event.stopPropagation();
-
-        onChange?.((prevState: Date) => {
-          const newDate = new Date(prevState);
-          newDate.setFullYear(value);
-
-          return min && compareDate("day", newDate, min, "less")
-            ? min
-            : max && compareDate("day", newDate, max, "greater")
-              ? max
-              : newDate;
-        });
-
-        setSelectYearOrMonth(null);
-      };
-
-      const handlePress = (event: React.KeyboardEvent): void => {
-        const element = (
-          event.target as HTMLElement
-        ).tagName.toLocaleLowerCase();
-        handleKeyPress(element, "year", event);
-      };
-
-      return years.map((year: number) => {
-        const isSelected = value.getFullYear() === year;
-        const isDisabled =
-          (min && compareDate("year", new Date(year, 0, 1), min, "less")) ||
-          (max && compareDate("year", new Date(year, 0, 1), max, "greater"));
-
-        return (
-          <button
-            type="button"
-            key={year}
-            ref={isSelected ? selectedYearRef : null}
-            tabIndex={isSelected ? 0 : -1}
-            aria-label={String(year)}
-            aria-selected={isSelected}
-            onClick={(event) => handleClick(year, event)}
-            onKeyDown={handlePress}
-            disabled={isDisabled}
-            aria-disabled={isDisabled}
-            className={`hover:bg-red-400 rounded-sm hover:text-white p-3 cursor-pointer outline-none transition inset-ring-2 inset-ring-transparent focus:inset-ring-red-900 disabled:bg-gray-200 disabled:text-gray-400 disabled:rounded-none ${
-              isSelected ? "bg-red-600 text-white" : ""
-            }`}
-          >
-            {year}
-          </button>
-        );
-      });
-    }, [selectYearOrMonth, value, onChange, min, max]);
+      return Array.from(
+        { length: endYear - startYear + 1 },
+        (_, index) => startYear + index,
+      );
+    }, [min, max]);
 
     useOutsideClick(datePickerRef, resetDatePickerState);
 
     useEffect(() => {
-      if (selectYearOrMonth !== "year" || !scrollToSelectedYearRef.current)
+      if (!isOpen) {
         return;
+      }
 
-      setTimeout(() => {
-        const selectedYearElement =
-          scrollToSelectedYearRef.current?.querySelector(".bg-red-600");
-        if (selectedYearElement) {
-          selectedYearElement.scrollIntoView({
-            behavior: "instant",
-            block: "center",
-            inline: "center",
-          });
-        }
-      }, 10);
-    }, [selectYearOrMonth]);
+      const selectedElement =
+        viewMode === "year"
+          ? selectedYearRef.current
+          : viewMode === "month"
+            ? selectedMonthRef.current
+            : selectedDayRef.current;
+
+      selectedElement?.focus();
+    }, [isOpen, viewMode, value]);
 
     useEffect(() => {
-      if (!isOpen) return;
-      if (!selectYearOrMonth) selectedDayRef.current?.focus();
-      if (selectYearOrMonth === "month") selectedMonthRef.current?.focus();
-      if (selectYearOrMonth === "year") selectedYearRef.current?.focus();
-    }, [isOpen, selectYearOrMonth, value]);
+      if (viewMode !== "year" || !selectedYearRef.current) {
+        return;
+      }
+
+      const frame = requestAnimationFrame(() => {
+        selectedYearRef.current?.scrollIntoView({
+          behavior: "auto",
+          block: "center",
+          inline: "center",
+        });
+      });
+
+      return () => cancelAnimationFrame(frame);
+    }, [viewMode]);
+
+    const today = useMemo(() => new Date(), []);
+
+    const dayButtons = calendarDays.map(
+      (item: CalendarDaysArrayFormat, index: number) => {
+        const date = item.dateValue as Date;
+        const isSelected = isSameDay(date, value);
+        const isToday = isSameDay(date, today);
+        const isDisabled = isDateDisabled(date, min, max);
+
+        return (
+          <button
+            key={`${date.getTime()}-${index}`}
+            ref={isSelected ? selectedDayRef : undefined}
+            type="button"
+            role="gridcell"
+            tabIndex={isSelected && !viewMode ? 0 : -1}
+            aria-label={date.toLocaleDateString("hr-HR", {
+              day: "numeric",
+              month: "long",
+              year: "numeric",
+            })}
+            aria-selected={isSelected}
+            aria-current={isToday ? "date" : undefined}
+            disabled={isDisabled}
+            onClick={() => selectDate(date)}
+            onKeyDown={(event) => handleKeyDown("day", event)}
+            className={`aspect-square cursor-pointer rounded-sm border-none
+              outline-none transition inset-ring-2
+              focus:inset-ring-red-800
+              disabled:cursor-not-allowed disabled:bg-gray-200
+              disabled:text-gray-400 disabled:rounded-none
+              ${
+                isToday
+                  ? "inset-ring-red-500 text-red-500"
+                  : "inset-ring-transparent"
+              }
+              ${
+                item.isActiveMonth
+                  ? "hover:bg-red-400 hover:text-white"
+                  : "bg-gray-50 text-gray-500 hover:bg-red-200 rounded-none"
+              }
+              ${isSelected ? "bg-red-600 text-white" : ""}`}
+          >
+            {item.value as number}
+          </button>
+        );
+      },
+    );
+
+    const monthButtons = MONTHS.map((month, index) => {
+      const isSelected = value.getMonth() === index;
+
+      const monthDate = new Date(value.getFullYear(), index, 1);
+
+      const isDisabled = Boolean(
+        (min && compareDate("month", monthDate, min, "less")) ||
+        (max && compareDate("month", monthDate, max, "greater")),
+      );
+
+      return (
+        <button
+          key={month}
+          ref={isSelected ? selectedMonthRef : undefined}
+          type="button"
+          tabIndex={isSelected ? 0 : -1}
+          aria-label={`Odaberi mjesec ${month}`}
+          aria-pressed={isSelected}
+          disabled={isDisabled}
+          onClick={(event) => {
+            event.stopPropagation();
+            selectMonth(index);
+          }}
+          onKeyDown={(event) => handleKeyDown("month", event)}
+          className={`rounded-sm p-3 cursor-pointer outline-none
+            transition inset-ring-2 inset-ring-transparent
+            focus:inset-ring-red-900
+            hover:bg-red-400 hover:text-white
+            disabled:cursor-not-allowed disabled:bg-gray-200
+            disabled:text-gray-400 disabled:rounded-none
+            ${isSelected ? "bg-red-600 text-white" : ""}`}
+        >
+          {month}
+        </button>
+      );
+    });
+
+    const yearButtons = years.map((year) => {
+      const isSelected = value.getFullYear() === year;
+
+      const yearDate = new Date(year, 0, 1);
+
+      const isDisabled = Boolean(
+        (min && compareDate("year", yearDate, min, "less")) ||
+        (max && compareDate("year", yearDate, max, "greater")),
+      );
+
+      return (
+        <button
+          key={year}
+          ref={isSelected ? selectedYearRef : undefined}
+          type="button"
+          tabIndex={isSelected ? 0 : -1}
+          aria-label={`Odaberi godinu ${year}`}
+          aria-pressed={isSelected}
+          disabled={isDisabled}
+          onClick={(event) => {
+            event.stopPropagation();
+            selectYear(year);
+          }}
+          onKeyDown={(event) => handleKeyDown("year", event)}
+          className={`rounded-sm p-3 cursor-pointer outline-none
+            transition inset-ring-2 inset-ring-transparent
+            focus:inset-ring-red-900
+            hover:bg-red-400 hover:text-white
+            disabled:cursor-not-allowed disabled:bg-gray-200
+            disabled:text-gray-400 disabled:rounded-none
+            ${isSelected ? "bg-red-600 text-white" : ""}`}
+        >
+          {year}
+        </button>
+      );
+    });
 
     return (
-      <div className="relative flex-1 w-full" ref={datePickerRef}>
-        <div className="flex border border-gray-300 bg-white rounded-sm focus-within:ring-1 ring-red-300">
+      <div ref={datePickerRef} className="relative flex-1 w-full">
+        <div className="flex rounded-sm border border-gray-300 bg-white focus-within:ring-1 ring-red-300">
           <Button
-            className="text-red-600 py-3 hover:bg-gray-100"
-            onClick={decrementDate}
-            aria-label="Odaberi prijašnji dan"
-            disabled={decrementDisabled}
-            aria-disabled={decrementDisabled}
             type="button"
+            className="text-red-600 py-3 hover:bg-gray-100"
+            onClick={() => {
+              resetDatePickerState();
+              updateDate("day", -1);
+            }}
+            aria-label="Odaberi prethodni dan"
+            disabled={isNextDayDisabled}
           >
-            <FaChevronLeft />
+            <FaChevronLeft aria-hidden="true" />
           </Button>
+
           <input
+            ref={inputRef}
+            id={id}
             type="text"
             readOnly
-            ref={inputRef}
             value={convertToDateString(value, format)}
-            className="outline-none cursor-pointer text-center w-full"
-            onClick={handleToggleDatePicker}
-            onKeyDown={handleInputKeypressToggleDatePicker}
+            className="w-full cursor-pointer text-center outline-none"
+            onClick={toggleDatePicker}
+            onKeyDown={(event) => handleKeyDown("day", event)}
             aria-label="Odabrani datum"
             aria-haspopup="dialog"
             aria-expanded={isOpen}
             aria-controls="calendar-dialog"
             aria-describedby="date-format-instruction"
-            id={id}
           />
+
           <Button
-            className="text-red-600 py-3 hover:bg-gray-100"
-            onClick={incrementDate}
-            aria-label="Odaberi slijedeći dan"
-            disabled={incrementDisabled}
-            aria-disabled={incrementDisabled}
             type="button"
+            className="text-red-600 py-3 hover:bg-gray-100"
+            onClick={() => {
+              resetDatePickerState();
+              updateDate("day", 1);
+            }}
+            aria-label="Odaberi sljedeći dan"
+            disabled={isPreviousDayDisabled}
           >
-            <FaChevronRight />
+            <FaChevronRight aria-hidden="true" />
           </Button>
         </div>
 
         <div id="date-format-instruction" className="sr-only">
-          Format Datuma: DD. MM. YYYY
+          Format datuma: DD. MM. YYYY
         </div>
 
         <div
-          className={`sm:absolute sm:mx-auto fixed sm:top-full sm:bottom-auto top-0 bottom-0 sm:max-w-sm right-0 left-0 sm:mt-0.5 bg-black/40 sm:bg-transparent z-50 flex justify-center items-center ${
-            isOpen ? "opacity-100 visible" : "opacity-0 invisible"
-          }`}
+          className={`sm:absolute sm:top-full sm:bottom-auto left-0 right-0 sm:mt-0.5 sm:max-w-sm sm:mx-auto
+            fixed top-0 bottom-0 z-50 flex items-center justify-center
+            bg-black/40 sm:bg-black
+            ${
+              isOpen
+                ? "visible opacity-100"
+                : "invisible opacity-0 pointer-events-none"
+            }`}
           onClick={(event) => {
-            !dateRef.current?.contains(event.target as Node) &&
+            !calendarRef.current?.contains(event.target as Node) &&
               resetDatePickerState();
           }}
         >
           <div
-            ref={dateRef}
-            className="flex flex-col bg-white border border-gray-300 rounded-sm w-full max-w-sm transition shadow-lg p-2"
+            id="calendar-dialog"
+            ref={calendarRef}
             role="dialog"
             aria-modal="true"
-            aria-label="Kalendar"
+            aria-labelledby="calendar-title"
             hidden={!isOpen}
+            className="flex w-full max-w-sm flex-col rounded-sm
+              border border-gray-300 bg-white p-2 shadow-lg"
           >
+            <h2 id="calendar-title" className="sr-only">
+              Odabir datuma
+            </h2>
+
             <div className="flex items-center justify-between p-0.5">
               <Button
                 type="button"
-                className="text-red-600 max-w-none flex-1 flex items-center justify-between hover:bg-gray-100"
-                onClick={() => handleYearOrMonthButtonClick("month")}
+                className="flex flex-1 items-center justify-between
+                  text-red-600 hover:bg-gray-100 max-w-none"
+                onClick={() => toggleViewMode("month")}
+                aria-expanded={viewMode === "month"}
+                aria-controls="calendar-months"
               >
-                {MONTHS[value.getMonth()]}{" "}
-                {selectYearOrMonth === "month" ? (
-                  <FaCaretUp />
+                {MONTHS[value.getMonth()]}
+                {viewMode === "month" ? (
+                  <FaCaretUp aria-hidden="true" />
                 ) : (
-                  <FaCaretDown />
+                  <FaCaretDown aria-hidden="true" />
                 )}
               </Button>
+
               <Button
                 type="button"
-                className="text-red-600 max-w-none flex-1 flex items-center justify-between hover:bg-gray-100"
-                onClick={() => handleYearOrMonthButtonClick("year")}
+                className="flex flex-1 items-center justify-between
+                  text-red-600 hover:bg-gray-100 max-w-none"
+                onClick={() => toggleViewMode("year")}
+                aria-expanded={viewMode === "year"}
+                aria-controls="calendar-years"
               >
-                {value.getFullYear()}{" "}
-                {selectYearOrMonth === "year" ? <FaCaretUp /> : <FaCaretDown />}
+                {value.getFullYear()}
+                {viewMode === "year" ? (
+                  <FaCaretUp aria-hidden="true" />
+                ) : (
+                  <FaCaretDown aria-hidden="true" />
+                )}
               </Button>
             </div>
 
             <div className="relative">
-              <div className="flex-1">
-                <div className="grid grid-cols-7 border-b border-gray-300 p-0.5">
-                  {DAYS.map((day: string) => (
-                    <small
-                      className="text-red-600 font-bold text-center pointer-events-none mt-3 mb-2"
+              <div
+                role="grid"
+                aria-label={`${MONTHS[value.getMonth()]} ${value.getFullYear()}`}
+              >
+                <div
+                  role="row"
+                  className="grid grid-cols-7 border-b border-gray-300 p-0.5"
+                >
+                  {DAYS.map((day) => (
+                    <div
                       key={day}
+                      role="columnheader"
+                      aria-label={day}
+                      className="pointer-events-none mt-3 mb-2 text-center
+                        text-red-600 font-bold"
                     >
-                      {day}
-                    </small>
+                      <span aria-hidden="true">{day}</span>
+                    </div>
                   ))}
                 </div>
-                <div className="grid grid-cols-7 rounded-sm overflow-hidden p-0.5">
-                  {generateDayButtons()}
+
+                <div className="grid grid-cols-7 overflow-hidden rounded-sm p-0.5">
+                  {dayButtons}
                 </div>
               </div>
 
-              {selectYearOrMonth ? (
+              {viewMode && (
                 <div
-                  className="absolute inset-0 bg-white grid grid-cols-3 items-center overflow-auto"
-                  ref={scrollToSelectedYearRef}
+                  id={
+                    viewMode === "month" ? "calendar-months" : "calendar-years"
+                  }
+                  className="absolute inset-0 grid grid-cols-3
+                    items-center overflow-auto bg-white"
                 >
-                  {selectYearOrMonth === "month"
-                    ? generateMonthButtons()
-                    : generateYearButtons()}
+                  {viewMode === "month" ? monthButtons : yearButtons}
                 </div>
-              ) : null}
+              )}
             </div>
           </div>
         </div>
