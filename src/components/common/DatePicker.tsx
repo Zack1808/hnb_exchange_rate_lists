@@ -152,12 +152,16 @@ const DatePicker: React.FC<DatePickerProps> = React.memo(
 
           case "ArrowUp":
             event.preventDefault();
-            updateDate(segment, segment === "day" ? -7 : -3);
+            event.currentTarget instanceof HTMLInputElement
+              ? updateDate(segment, 1)
+              : updateDate(segment, segment === "day" ? -7 : -3);
             break;
 
           case "ArrowDown":
             event.preventDefault();
-            updateDate(segment, segment === "day" ? 7 : 3);
+            event.currentTarget instanceof HTMLInputElement
+              ? updateDate(segment, -1)
+              : updateDate(segment, segment === "day" ? 7 : 3);
             break;
 
           case "ArrowLeft":
