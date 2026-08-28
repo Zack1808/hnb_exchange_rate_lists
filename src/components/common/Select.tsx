@@ -4,14 +4,13 @@ import React, {
   useCallback,
   useEffect,
   useMemo,
+  useId,
 } from "react";
 import { FaCaretUp, FaCaretDown, FaX } from "react-icons/fa6";
 
 import { useOutsideClick } from "../../hooks/useOutsideClick";
 
-import Button from "./Button";
-
-type Options = { value: string; label: string };
+type Option = { value: string; label: string };
 
 interface SingleSelectProps {
   value: string | null;
@@ -22,197 +21,291 @@ interface MultiSelectProps {
   multiple: true;
 }
 
-type SelectProps = {
-  options: Options[];
+type BaseSelectProps = {
+  options: Option[];
   onChange?: (value: string) => void;
   placeholder?: string;
   disabled?: boolean;
   id?: string;
   multiple?: boolean;
-} & (SingleSelectProps | MultiSelectProps);
+};
+
+type SelectProps = BaseSelectProps & (SingleSelectProps | MultiSelectProps);
 
 const Select: React.FC<SelectProps> = ({
   options,
   value,
   onChange,
-  placeholder,
-  disabled,
-  multiple,
+  placeholder = "Odaberi...",
+  disabled = false,
+  multiple = false,
   id,
 }) => {
-  const [selectOpen, setSelectOpen] = useState<boolean>(false);
+  const generatedId = useId();
+  const selectId = id ?? `select-${generatedId}`;
+  const listboxId = `${selectId}-listbox`;
+
+  const [isOpen, setIsOpen] = useState<boolean>(false);
   const [hasSpaceBelow, setHasSpaceBelow] = useState<boolean>(true);
   const [highlightedIndex, setHighlightedIndex] = useState<number | null>(null);
 
   const selectRef = useRef<HTMLDivElement>(null);
-  const divRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLDivElement>(null);
+  const optionsContainerRef = useRef<HTMLDivElement>(null);
   const optionsRef = useRef<(HTMLButtonElement | null)[]>([]);
-  const optionRef = useRef<HTMLDivElement>(null);
 
   const optionsMap = useMemo(() => {
-    return new Map(options.map((o) => [o.value, o]));
+    return new Map(options.map((option) => [option.value, option]));
   }, [options]);
 
-  const displaySelectValue = useMemo(() => {
-    if (multiple && value?.length) {
-      return (value as string[]).map((item) => (
-        <Button
-          variant="primary"
-          className="border-none !px-2 !py-0.5 text-sm"
-          type="button"
-          key={item}
-          onClick={(e: React.MouseEvent) => {
-            e.stopPropagation();
-            onChange?.(item);
-          }}
-        >
-          {optionsMap.get(item)?.label}
-          <FaX />
-        </Button>
-      ));
-    } else if (!multiple && value) {
-      return optionsMap.get(value)?.label;
-    } else return placeholder ?? "Select...";
-  }, [multiple, value, placeholder, onChange, optionsMap]);
+  const selectedValues = useMemo(
+    () => (multiple ? (value ?? []) : value ? [value] : []),
+    [multiple, value],
+  );
+
+  const selectedOptions = useMemo(() => {
+    if (!Array.isArray(selectedValues)) return [];
+
+    return selectedValues
+      .map((selectedValue) => {
+        if (Array.isArray(selectedValue)) return [];
+        return optionsMap.get(selectedValue);
+      })
+      .filter((option): option is Option => Boolean(option));
+  }, [selectedValues, optionsMap]);
+
+  const closeSelect = useCallback(() => {
+    setIsOpen(false);
+    setHighlightedIndex(null);
+  }, []);
+
+  const openSelect = useCallback(() => {
+    if (disabled || !options.length) return;
+
+    setIsOpen(true);
+  }, [disabled, options.length]);
 
   const checkSpace = useCallback(() => {
-    if (!divRef.current || !optionRef.current) return;
+    if (!triggerRef.current || !optionsContainerRef.current) return;
 
-    const select = divRef.current.getBoundingClientRect();
-    const options = optionRef.current.offsetHeight;
+    const triggerRect = triggerRef.current.getBoundingClientRect();
+    const optionsHeight = optionsContainerRef.current.offsetHeight;
 
-    const availableSpace = window.innerHeight - select.bottom;
+    const availableSpace = window.innerHeight - triggerRect.bottom;
 
-    setHasSpaceBelow(options < availableSpace);
+    setHasSpaceBelow(optionsHeight < availableSpace);
   }, []);
 
   const toggleSelect = useCallback(() => {
-    setSelectOpen((prev) => {
-      if (prev) {
-        setHighlightedIndex(null);
-      }
-
-      return !prev;
-    });
-  }, []);
-
-  const handleKeyPress = useCallback(
-    (event: React.KeyboardEvent): void => {
-      switch (event.key) {
-        case "Enter":
-        case " ":
-          event.preventDefault();
-          if (!selectOpen) {
-            setSelectOpen(true);
-            checkSpace();
-            setHighlightedIndex(0);
-          } else {
-            if (highlightedIndex === null) return;
-            onChange?.(options[highlightedIndex].value);
-            !multiple && toggleSelect();
-          }
-          break;
-        case "ArrowUp":
-        case "ArrowDown":
-          event.preventDefault();
-          if (!options.length) break;
-          if (!selectOpen) {
-            setSelectOpen(true);
-            setHighlightedIndex(0);
-            break;
-          }
-          if (highlightedIndex === null) return;
-          const highlight =
-            event.key === "ArrowDown"
-              ? highlightedIndex + 1
-              : highlightedIndex - 1;
-          if (highlight >= 0 && highlight < options.length) {
-            setHighlightedIndex(highlight);
-            optionsRef.current[highlight]?.scrollIntoView({
-              behavior: "smooth",
-              block: "nearest",
-            });
-          }
-          break;
-        case "Escape":
-          event.preventDefault();
-          setSelectOpen(false);
-          setHighlightedIndex(null);
-      }
-    },
-    [onChange, selectOpen, multiple, options, toggleSelect, highlightedIndex],
-  );
+    isOpen ? closeSelect() : openSelect();
+  }, [isOpen, closeSelect, openSelect]);
 
   const selectItem = useCallback(
     (item: string) => {
       onChange?.(item);
-      !multiple && setSelectOpen(false);
+      if (!multiple) {
+        closeSelect();
+        triggerRef.current?.focus();
+      }
     },
-    [onChange, multiple],
+    [onChange, multiple, closeSelect],
   );
 
-  useOutsideClick(selectRef, () => {
-    setSelectOpen(false);
-    setHighlightedIndex(null);
-  });
+  const handleKeyPress = useCallback(
+    (event: React.KeyboardEvent<HTMLDivElement>): void => {
+      if (disabled || !options.length) return;
+
+      switch (event.key) {
+        case "Enter":
+        case " ":
+          event.preventDefault();
+
+          if (!isOpen) {
+            openSelect();
+            setHighlightedIndex(0);
+            return;
+          }
+          if (highlightedIndex !== null) {
+            selectItem(options[highlightedIndex].value);
+          }
+
+          break;
+        case "ArrowUp":
+        case "ArrowDown":
+          event.preventDefault();
+          if (!isOpen) {
+            setIsOpen(true);
+            setHighlightedIndex(0);
+            break;
+          }
+          if (highlightedIndex !== null) {
+            const highlight =
+              event.key === "ArrowDown"
+                ? highlightedIndex + 1
+                : highlightedIndex - 1;
+            if (highlight >= 0 && highlight < options.length) {
+              setHighlightedIndex(highlight);
+            }
+          }
+
+          break;
+        case "Home":
+          if (isOpen) {
+            event.preventDefault();
+            setHighlightedIndex(0);
+          }
+          break;
+        case "End":
+          if (isOpen) {
+            event.preventDefault();
+            setHighlightedIndex(options.length - 1);
+          }
+          break;
+        case "Tab":
+          closeSelect();
+          break;
+        case "Escape":
+          event.preventDefault();
+          closeSelect();
+          break;
+      }
+    },
+    [
+      disabled,
+      isOpen,
+      openSelect,
+      closeSelect,
+      highlightedIndex,
+      options,
+      selectItem,
+    ],
+  );
+
+  useOutsideClick(selectRef, closeSelect);
+
+  const displaySelectValue = useMemo(() => {
+    return selectedOptions.length > 0 ? (
+      selectedOptions.map((option) =>
+        multiple ? (
+          <span
+            key={option.value}
+            className="flex items-center gap-1 rounded-sm bg-red-600 px-2 py-0.5 text-sm text-white"
+          >
+            {option.label}
+
+            <button
+              type="button"
+              tabIndex={-1}
+              aria-label={`Ukloni ${option.label}`}
+              disabled={disabled}
+              onClick={(event) => {
+                event.stopPropagation();
+                onChange?.(option.value);
+              }}
+              className="rounded-sm outline-none focus:ring-1 focus:ring-white"
+            >
+              <FaX aria-hidden="true" />
+            </button>
+          </span>
+        ) : (
+          <span key={option.value}>{option.label}</span>
+        ),
+      )
+    ) : (
+      <span className="text-gray-500">{placeholder}</span>
+    );
+  }, [multiple, value, placeholder, onChange, optionsMap]);
 
   useEffect(() => {
-    if (!selectOpen) return;
+    if (!isOpen) return;
 
     checkSpace();
 
     window.addEventListener("scroll", checkSpace, true);
+    window.addEventListener("resize", checkSpace);
 
     return () => {
       window.removeEventListener("scroll", checkSpace, true);
+      window.removeEventListener("resize", checkSpace);
     };
-  }, [selectOpen, checkSpace]);
+  }, [isOpen, checkSpace]);
+
+  useEffect(() => {
+    if (highlightedIndex === null) return;
+
+    optionsRef.current[highlightedIndex]?.scrollIntoView({
+      behavior: "smooth",
+      block: "nearest",
+    });
+  }, [highlightedIndex]);
 
   return (
     <div ref={selectRef} className="w-full relative">
       <div
-        ref={divRef}
-        onClick={() => !disabled && toggleSelect()}
-        onKeyDown={(e) => !disabled && handleKeyPress(e)}
-        id={id ?? ""}
+        ref={triggerRef}
+        id={selectId}
         tabIndex={disabled ? -1 : 0}
-        className={`flex gap-4 items-center justify-between w-full p-2 border outline-none border-gray-300 bg-white rounded-sm ${!disabled ? "focus-within:ring-1 ring-red-300" : ""} `}
+        aria-expanded={isOpen}
+        aria-controls={listboxId}
+        aria-haspopup="listbox"
+        aria-disabled={disabled || undefined}
+        aria-activedescendant={
+          isOpen && highlightedIndex !== null
+            ? `${listboxId}-option-${highlightedIndex}`
+            : undefined
+        }
+        onClick={toggleSelect}
+        onKeyDown={handleKeyPress}
+        className={`flex gap-4 items-center justify-between w-full p-2 border outline-none border-gray-300 bg-white rounded-sm ${!disabled ? "focus-within:ring-1 ring-red-300 cursor-pointer" : "cursor-default bg-gray-100 text-gray-400"} `}
       >
-        <span className="w-full border-r-1 border-gray-400 flex gap-1 flex-wrap ">
+        <span className="w-full flex border-r items-center border-gray-400 gap-1 flex-wrap pr-2">
           {displaySelectValue}
         </span>
-        {!selectOpen ? <FaCaretDown /> : <FaCaretUp />}
+        {!isOpen ? (
+          <FaCaretDown aria-hidden="true" />
+        ) : (
+          <FaCaretUp aria-hidden="true" />
+        )}
       </div>
-      <div
-        className={`${selectOpen ? "flex flex-col" : "hidden"} fixed md:absolute z-50 w-full ${hasSpaceBelow ? "md:top-full md:mt-1 md:bottom-auto" : "md:bottom-full md:mb-1 md:top-auto"} top-0 bottom-0 md:left-auto left-0 md:right-auto right-0 bg-black/40 shadow-md md:max-h-64 flex items-center justify-center`}
-        onClick={() => setSelectOpen(false)}
-      >
+
+      {isOpen && (
         <div
-          className="bg-white md:w-full w-sm rounded-md overflow-auto md:max-h-64 max-h-7/12"
-          ref={optionRef}
-          onClick={(event: React.MouseEvent) => {
-            event.stopPropagation();
-            if (event.target !== optionRef.current && !multiple) {
-              setSelectOpen(false);
-              setHighlightedIndex(null);
-            }
-          }}
+          className={`fixed inset-x-0 top-0 bottom-0 z-50 flex items-center justify-center bg-black/40 
+            md:absolute md:inset-x-auto md:left-0 md:right-0 md:bg-transparent ${hasSpaceBelow ? "md:top-full md:bottom-auto md:mt-1" : "md:top-auto md:bottom-full md:mb-1"}`}
+          onClick={closeSelect}
         >
-          {options.map((item, index: number) => (
-            <button
-              key={item.value}
-              ref={(el) => {
-                optionsRef.current[index] = el;
-              }}
-              type="button"
-              className={`w-full text-left p-3 hover:bg-red-400 hover:text-white  ${item.value === value ? "bg-red-600 text-white" : multiple && value?.includes(item.value) ? "bg-red-600 text-white" : ""} ${highlightedIndex === index ? "!bg-red-400 text-white" : ""}`}
-              onClick={() => selectItem(item.value)}
-            >
-              {item.label}
-            </button>
-          ))}
+          <div
+            ref={optionsContainerRef}
+            id={listboxId}
+            role="listbox"
+            aria-multiselectable={multiple || undefined}
+            className="max-h-7/12 w-sm overflow-y-auto rounded-md bg-white shadow-md md:max-h-64 md:w-full"
+            onClick={(event) => event.stopPropagation()}
+          >
+            {options.map((option, index) => {
+              const isSelected = selectedValues.includes(option.value);
+              const isHighlighted = highlightedIndex === index;
+
+              return (
+                <button
+                  key={option.value}
+                  id={`${listboxId}-option-${index}`}
+                  ref={(element) => {
+                    optionsRef.current[index] = element;
+                  }}
+                  type="button"
+                  role="option"
+                  aria-selected={isSelected}
+                  onClick={() => selectItem(option.value)}
+                  className={`w-full p-3 text-left outline-none ${isHighlighted ? "bg-red-400 text-white" : isSelected ? "bg-red-600 text-white" : "hover:bg-red-400 hover:text-white"}`}
+                >
+                  {option.label}
+                </button>
+              );
+            })}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
