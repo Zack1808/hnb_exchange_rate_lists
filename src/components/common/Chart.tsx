@@ -11,6 +11,8 @@ import {
   Tooltip,
 } from "recharts";
 
+import { type ChartData, type Currency } from "../../types/chart";
+
 import { convertToDateString } from "../../utils/dateUtils";
 
 const MONTHS = [
@@ -86,18 +88,6 @@ export const CURRENCY_COLORS = {
 const BASE_Y_AXIS_LABEL = "Rast/pad tečaja";
 
 const MIN_LABEL_DISTANCE = 6;
-
-type Currency = keyof typeof CURRENCY_COLORS;
-
-interface ChartData {
-  datum_primjene: string;
-  broj_tecajnice: string | number;
-  valuta?: string;
-  srednji_tecaj?: string | number;
-  postotak_od_prosle_liste?: string | number;
-  postotak_od_pocetka?: string | number;
-  [key: string]: string | number | undefined;
-}
 
 interface ChartProps {
   chartData: ChartData[];

@@ -6,10 +6,11 @@ import {
   sortData,
 } from "../utils/dataUtils";
 
+import { type ChartData } from "../types/chart";
+
 import { BASE_DATA as baseData } from "../utils/baseData";
 
 type DataRow = Record<string, string>;
-type ChartDataRow = Record<string, string | number>;
 
 interface UseChartDataReturnProps {
   getCurrency: (data: DataRow[]) => string;
@@ -17,7 +18,7 @@ interface UseChartDataReturnProps {
     data: DataRow[],
     curr: string | string[],
     multi?: boolean,
-  ) => ChartDataRow[];
+  ) => ChartData[] | DataRow[];
 }
 
 export const useChartData = (): UseChartDataReturnProps => {
@@ -44,14 +45,14 @@ export const useChartData = (): UseChartDataReturnProps => {
   );
 
   const convertToMultiChartData = useCallback((data: DataRow[]) => {
-    const groupedData = new Map<string, ChartDataRow>();
+    const groupedData = new Map<string, ChartData>();
 
     for (const item of data) {
       const date = item.datum_primjene;
 
       const existing = groupedData.get(date);
 
-      const dataChunk: ChartDataRow = {
+      const dataChunk: ChartData = {
         datum_primjene: item.datum_primjene,
         [`${item.valuta}_srednji_tecaj`]: item.srednji_tecaj,
         [`${item.valuta}_postotak_od_pocetka`]: item.postotak_od_pocetka,
@@ -83,7 +84,9 @@ export const useChartData = (): UseChartDataReturnProps => {
 
       chartData = sortData(chartData, "datum_primjene", "desc", false);
 
-      return multi ? convertToMultiChartData(chartData) : chartData;
+      if (multi) return convertToMultiChartData(chartData);
+
+      return chartData;
     },
     [addPercentageCalculation, convertToMultiChartData],
   );
