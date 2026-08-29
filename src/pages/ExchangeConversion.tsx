@@ -116,32 +116,33 @@ const KEYS = ["valuta", "drzava"] as const;
 
 type ExchangeRate = Record<string, string>;
 
-const getRate = (currency: string, currencies: ExchangeRate[]) => {
-  if (currency === "EUR") return 1;
-
-  const rate = currencies.find((item) => (item.valuta = currency));
-
-  if (!rate?.srednji_tecaj) return null;
-
-  const parsedRate = Number(rate.srednji_tecaj.replace(",", "."));
-
-  return Number.isFinite(parsedRate) && parsedRate > 0 ? parsedRate : null;
-};
-
 const convertCurrency = (
   amount: number,
   fromCurrency: string,
   toCurrency: string,
   currencies: ExchangeRate[],
 ) => {
-  if (!Number.isFinite(amount) || amount === 0) return 0;
-
   if (fromCurrency === toCurrency) return amount;
 
-  const fromRate = getRate(fromCurrency, currencies);
-  const toRate = getRate(toCurrency, currencies);
+  const fromRate =
+    fromCurrency === "EUR"
+      ? 1
+      : Number(
+          currencies
+            .find((curr) => curr.valuta === fromCurrency)
+            ?.srednji_tecaj.replace(",", "."),
+        );
 
-  if (fromRate === null || toRate === null) return 0;
+  const toRate =
+    toCurrency === "EUR"
+      ? 1
+      : Number(
+          currencies
+            .find((curr) => curr.valuta === toCurrency)
+            ?.srednji_tecaj.replace(",", "."),
+        );
+
+  if (!fromRate || !toRate) return 0;
 
   return (amount / fromRate) * toRate;
 };
