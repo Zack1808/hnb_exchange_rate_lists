@@ -1,20 +1,21 @@
 import React from "react";
-import { Link } from "react-router-dom";
 
-import { Button } from "../components";
+import Button from "../components/common/Button";
 
-const PageNotFound: React.FC = () => {
+const PageNotFound: React.FC = React.memo(() => {
   return (
-    <div className="w-full h-dvh flex justify-center items-center gap-1 flex-col">
-      <h1 className="text-7xl font-semibold text-red-600">404</h1>
-      <h2 className="text-3xl text-red-600">Stranica ne postoji</h2>
-      <Link to="/">
-        <Button primary className="mt-10">
-          Vrati se na početnu
-        </Button>
-      </Link>
+    <div className="h-[100dvh] w-full flex items-center justify-center flex-col gap-3">
+      <strong className="text-9xl text-red-600">404</strong>
+      <strong className="text-3xl text-red-600">Stranica nije pronađena</strong>
+      <p className="text-lg text-gray-800 mt-10 mb-5">
+        Provjerite jeste li ispravno unijeli adresu ili se vratite na početnu
+        stranicu HNB-a.
+      </p>
+      <Button to="/" variant="primary">
+        Povratak na početnu
+      </Button>
     </div>
   );
-};
+});
 
 export default PageNotFound;

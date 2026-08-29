@@ -1,22 +1,28 @@
 import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
-import { PageNotFound, ExchangeRatePage, HistoryRatePage, Home } from "./pages";
+import Home from "./pages/Home";
+import ExchangeRate from "./pages/ExchangeRate";
+import ExchangeHistory from "./pages/ExchangeHistory";
+import ExchangeConversion from "./pages/ExchangeConversion";
+import PageNotFound from "./pages/PageNotFound";
 
-import { Navbar, Footer } from "./components";
+import Navigation from "./components/layout/Navigation";
+import Footer from "./components/layout/Footer";
 
 const App: React.FC = () => {
   return (
     <BrowserRouter>
-      <Navbar />
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/tecaj" element={<ExchangeRatePage />} />
-        <Route path="/povijest/:currency" element={<HistoryRatePage />} />
-        <Route path="/povijest/:currency/:date" element={<HistoryRatePage />} />
-
-        <Route path="*" element={<PageNotFound />} />
-      </Routes>
+      <Navigation />
+      <main>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/tecaj" element={<ExchangeRate />} />
+          <Route path="/povijest" element={<ExchangeHistory />} />
+          <Route path="/konverzija_tecaja" element={<ExchangeConversion />} />
+          <Route path="*" element={<PageNotFound />} />
+        </Routes>
+      </main>
       <Footer />
     </BrowserRouter>
   );

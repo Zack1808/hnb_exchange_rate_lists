@@ -1,0 +1,357 @@
+import React, { useState, useEffect, useCallback, useMemo } from "react";
+import { FaExchangeAlt } from "react-icons/fa";
+import { useNavigate, useLocation } from "react-router-dom";
+
+import Container from "../components/layout/Container";
+
+import List from "../components/common/List";
+import Select from "../components/common/Select";
+import Button from "../components/common/Button";
+import Input from "../components/common/Input";
+import Table from "../components/common/Table";
+import Loader from "../components/common/Loader";
+
+import { useGetListings } from "../hooks/useGetListing";
+
+import { convertToDateString } from "../utils/dateUtils";
+
+import { MOCK_CONFIG } from "../services/mock/mockData";
+
+const NOTES = [
+  'Srednji tečajevi za euro u odnosu na druge valute koji su objavljeni u tečajnoj listi HNB-a imaju za cilj pružiti informaciju o tečaju eura u odnosu na druge valute u specifičnom vremenskom razdoblju na datum objave tečajne liste i kao takvi se mogu koristiti isključivo u svrhe predviđene odredbom članka 17. stavka 2. Zakona o uvođenju eura kao službene valute u Republici Hrvatskoj <strong>("Narodne novine" broj 57/2022 i 88/2022).</strong>',
+  "Srednji tečajevi HNB-a nisu namijenjeni za korištenje u pravnim poslovima koji su nastali nakon uvođenja eura kao službene valute u Republici Hrvatskoj, niti bi se oni trebali koristiti, direktno ili indirektno (kao referentna vrijednost) za sklapanje bilo kojih novih pravnih poslova, već je njihovo korištenje ograničeno na pravne poslove u kojima je pozivanje na srednji tečaj HNB-a određeno prije datuma uvođenja eura, osim ako nekim propisom nije drugačije uređeno.",
+  "HNB ne može biti odgovoran za korištenje podataka o srednjim tečajevima HNB-a u svrhe za koje to nije namijenjeno.",
+  `Izračun konverzije temelji se na srednjim tečajevima HNB-a i <strong>informativnog</strong> je karaktera.`,
+  "Odabirom početne i ciljne valute i unosom iznosa možete provjeriti iznos u ciljanoj valuti.",
+] as const;
+
+const HEADERS = [
+  {
+    title: "Valuta",
+    value: "valuta",
+    isNumber: false,
+  },
+  {
+    title: "Država",
+    value: "drzava",
+    isNumber: false,
+  },
+  {
+    title: "Kupovni tečaj",
+    value: "kupovni_tecaj",
+    isNumber: true,
+  },
+  {
+    title: "Srednji tečaj",
+    value: "srednji_tecaj",
+    isNumber: true,
+  },
+  {
+    title: "Prodajni tečaj",
+    value: "prodajni_tecaj",
+    isNumber: true,
+  },
+] as const;
+
+const CURRENCIES = [
+  {
+    value: "EUR",
+    label: "Euro",
+  },
+  {
+    value: "AUD",
+    label: "Australski dolar",
+  },
+  {
+    value: "CAD",
+    label: "Kanadski dolar",
+  },
+  {
+    value: "CZK",
+    label: "Češka kruna",
+  },
+  {
+    value: "DKK",
+    label: "Danska kruna",
+  },
+  {
+    value: "HUF",
+    label: "Mađarska forinta",
+  },
+  {
+    value: "JPY",
+    label: "Japanski yen",
+  },
+  {
+    value: "NOK",
+    label: "Norveška kruna",
+  },
+  {
+    value: "SEK",
+    label: "Švedska kruna",
+  },
+  {
+    value: "CHF",
+    label: "Švicarski franak",
+  },
+  {
+    value: "GBP",
+    label: "Britanska funta",
+  },
+  {
+    value: "USD",
+    label: "Američki dolar",
+  },
+  {
+    value: "BAM",
+    label: "Bosanska marka",
+  },
+  {
+    value: "PLN",
+    label: "Poljski zlot",
+  },
+] as const;
+
+const KEYS = ["valuta", "drzava"] as const;
+
+type ExchangeRate = Record<string, string>;
+
+const getRate = (currency: string, currencies: ExchangeRate[]) => {
+  if (currency === "EUR") return 1;
+
+  const rate = currencies.find((item) => (item.valuta = currency));
+
+  if (!rate?.srednji_tecaj) return null;
+
+  const parsedRate = Number(rate.srednji_tecaj.replace(",", "."));
+
+  return Number.isFinite(parsedRate) && parsedRate > 0 ? parsedRate : null;
+};
+
+const convertCurrency = (
+  amount: number,
+  fromCurrency: string,
+  toCurrency: string,
+  currencies: ExchangeRate[],
+) => {
+  if (!Number.isFinite(amount) || amount === 0) return 0;
+
+  if (!fromCurrency || !toCurrency) return 0;
+
+  if (fromCurrency === toCurrency) return amount;
+
+  const fromRate = getRate(fromCurrency, currencies);
+  const toRate = getRate(toCurrency, currencies);
+
+  if (fromRate === null || toRate === null) return 0;
+
+  return (amount / fromRate) * toRate;
+};
+
+const ExchangeConversion: React.FC = React.memo(() => {
+  const [fromCurr, setFromCurr] = useState<string>("");
+  const [toCurr, setToCurr] = useState<string>("");
+  const [fromValue, setFromValue] = useState<number>(1);
+  const [data, setData] = useState<ExchangeRate[]>([]);
+
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const { getListing, loading, error } = useGetListings();
+
+  const toValue = useMemo(
+    () => convertCurrency(fromValue, fromCurr, toCurr, data),
+    [],
+  );
+
+  const switchCurrencies = useCallback(() => {
+    setFromCurr(toCurr);
+    setToCurr(fromCurr);
+  }, [fromCurr, toCurr]);
+
+  const handleValueChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const value = Number(event.target.value);
+
+      setFromValue(Number.isFinite(value) ? value : 0);
+    },
+    [],
+  );
+
+  const updateUrl = useCallback(() => {
+    if (!fromCurr || !toCurr) return;
+
+    const params = new URLSearchParams({
+      valuta_iz: fromCurr,
+      iznos: String(fromValue),
+      valuta_u: toCurr,
+    });
+
+    navigate(`/konverzija_tecaja?${params.toString()}`, {
+      replace: true,
+    });
+  }, [fromCurr, toCurr, fromValue, navigate]);
+
+  useEffect(() => {
+    const search = new URLSearchParams(location.search);
+
+    const currencyFrom = search.get("valuta_iz");
+    const currencyTo = search.get("valuta_u");
+    const amount = search.get("iznos");
+
+    if (currencyFrom) setFromCurr(currencyFrom);
+    if (currencyTo) setToCurr(currencyTo);
+    if (amount) {
+      const parsedAmount = Number(amount);
+
+      if (Number.isFinite(parsedAmount)) setFromValue(parsedAmount);
+    }
+  }, [location.search]);
+
+  useEffect(() => {
+    const loadData = async () => {
+      const result = await getListing(
+        convertToDateString(new Date(), "YYYY-MM-DD"),
+      );
+
+      setData(result ?? []);
+    };
+
+    void loadData();
+  }, [getListing]);
+
+  useEffect(() => {
+    if (!fromCurr || !toCurr) return;
+
+    const timer = window.setTimeout(updateUrl, 100);
+
+    return () => window.clearTimeout(timer);
+  }, [fromCurr, toCurr, fromValue, updateUrl]);
+
+  useEffect(() => {
+    window.scroll(0, 0);
+  }, []);
+
+  return (
+    <>
+      <Container spacing="medium">
+        <h2 className="text-3xl text-gray-800">Konverzija valuta</h2>
+
+        <p className="text-lg text-gray-800 max-w-5xl">
+          Konverzija valuta temelji se na službenim podacima Hrvatske narodne
+          banke (HNB). Tečajevi se koriste kao referentne vrijednosti za izračun
+          konverzije i informativnog su karaktera. Za točan izračun uvijek
+          provjerite aktualne podatke i primjenjive uvjete svoje banke ili
+          pružatelja usluge.
+        </p>
+      </Container>
+      <Container hasBackground spacing="medium">
+        <strong className="text-xl text-red-600 max-w-5xl">Napomena</strong>
+
+        <List content={[...NOTES]} listType="decimal" />
+
+        {loading ? (
+          <Loader />
+        ) : error ? (
+          <p className="text-red-600 text-lg">{error}</p>
+        ) : (
+          <form
+            className="w-full md:max-w-6/12 flex items-center justify-center gap-4 mt-10 md:flex-row flex-col"
+            onSubmit={(event) => event.preventDefault()}
+          >
+            <fieldset className="w-full flex flex-col justify-between gap-2">
+              <label
+                htmlFor="currencyFrom"
+                className="text-lg text-red-600 font-bold"
+              >
+                Iz valute
+              </label>
+              <Select
+                id="currencyFrom"
+                options={[...CURRENCIES]}
+                value={fromCurr}
+                onChange={setFromCurr}
+              />
+              <Input
+                id="valueFrom"
+                type="number"
+                min={1}
+                value={fromValue}
+                onChange={handleValueChange}
+              />
+            </fieldset>
+            <Button
+              variant="primary"
+              type="button"
+              onClick={switchCurrencies}
+              className="mb-3.5"
+              aria-label="Zamjeni valute"
+            >
+              <FaExchangeAlt aria-hidden="true" />
+            </Button>
+            <fieldset className="w-full flex flex-col justify-between gap-2">
+              <label
+                htmlFor="currencyTo"
+                className="text-lg text-red-600 font-bold"
+              >
+                U valutu
+              </label>
+              <Select
+                id="currencyTo"
+                options={[...CURRENCIES]}
+                value={toCurr}
+                onChange={setToCurr}
+              />
+              <Input
+                id="valueTo"
+                readOnly
+                value={toValue}
+                aria-label="Konvertirani iznos"
+              />
+            </fieldset>
+          </form>
+        )}
+      </Container>
+      <Container spacing="medium">
+        <h2 className="text-3xl text-gray-800 mb-6">Prikaz današnjeg tečaja</h2>
+
+        {loading && <Loader />}
+        {!loading && error && <p className="text-red-600 text-lg">{error}</p>}
+        {!loading && data.length > 0 && (
+          <>
+            <div className="flex flex-col gap-3">
+              <strong className="text-xl text-gray-800">
+                Broj tečajnice:{" "}
+                <span className="font-normal">{data[0].broj_tecajnice}</span>
+              </strong>
+              <strong className="text-xl text-gray-800">
+                Datum primjene:{" "}
+                <span className="font-normal">
+                  {convertToDateString(
+                    new Date(data[0].datum_primjene),
+                    "DD.MM.YYYY",
+                  )}
+                </span>
+              </strong>
+
+              {MOCK_CONFIG.enableMockData && (
+                <small>
+                  Ova tablica koristi testne podatke te će biti ažurirana za
+                  prikaz stvarnih podataka
+                </small>
+              )}
+            </div>
+            <Table
+              headers={[...HEADERS]}
+              data={data}
+              filterable
+              filterableKeys={[...KEYS]}
+            />
+          </>
+        )}
+      </Container>
+    </>
+  );
+});
+
+export default ExchangeConversion;

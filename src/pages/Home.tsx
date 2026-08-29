@@ -1,71 +1,198 @@
-import React, { useRef } from "react";
-import { Link } from "react-router-dom";
+import React, { useCallback, useEffect, useState, useRef } from "react";
 
-import { Container, HeroContainer, Button } from "../components";
+import Hero from "../components/layout/Hero";
+import Container from "../components/layout/Container";
 
-import { scrollIntoView } from "../helpers";
+import Button from "../components/common/Button";
+import Chart from "../components/common/Chart";
+import Loader from "../components/common/Loader";
 
-const Home: React.FC = () => {
-  const exchangeRef = useRef<HTMLDivElement>(null);
+import { type ChartData, type Currency } from "../types/chart";
 
-  const handleClick = () => {
-    if (!!!exchangeRef.current) return;
-    scrollIntoView({ target: exchangeRef });
-  };
+import { useGetListings } from "../hooks/useGetListing";
+import { useChartData } from "../hooks/useChartData";
 
-  window.scrollTo(0, 0);
+import { convertToDateString } from "../utils/dateUtils";
+
+import { MOCK_CONFIG } from "../services/mock/mockData";
+
+const Home: React.FC = React.memo(() => {
+  const [chartData, setChartData] = useState<ChartData[]>([]);
+  const [currency, setCurrency] = useState<Currency>();
+
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const { getCurrencyHistory, loading, error } = useGetListings();
+  const { getCurrency, convertToChartData } = useChartData();
+
+  const fetchData = useCallback(async () => {
+    const toDate = new Date();
+
+    const fromDate = new Date(toDate);
+    fromDate.setDate(fromDate.getDate() - 60);
+
+    const historyList = await getCurrencyHistory(
+      convertToDateString(fromDate, "YYYY-MM-DD"),
+      convertToDateString(toDate, "YYYY-MM-DD"),
+    );
+
+    if (!historyList?.length) return;
+
+    const curr = getCurrency(historyList);
+
+    if (!curr) return;
+
+    setCurrency(curr as Currency);
+
+    const data = convertToChartData(historyList, curr);
+
+    setChartData(data as ChartData[]);
+  }, []);
+
+  const handleHeroButtonClick = useCallback(() => {
+    if (!containerRef.current) return;
+
+    containerRef.current.scrollIntoView({
+      behavior: "smooth",
+    });
+  }, []);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(min-width: 1280px)");
+
+    const handleMediaChange = (event: MediaQueryListEvent) => {
+      if (event.matches) {
+        fetchData();
+      }
+    };
+
+    if (mediaQuery.matches) {
+      fetchData();
+    }
+
+    mediaQuery.addEventListener("change", handleMediaChange);
+
+    return () => {
+      mediaQuery.removeEventListener("change", handleMediaChange);
+    };
+  }, [fetchData]);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   return (
     <>
-      <HeroContainer>
-        <h1 className="text-5xl md:text-7xl font-semibold text-gray-800 font-sans">
-          Provjerite tečajne liste
-        </h1>
-
-        <h2 className="text-2xl md:text-3xl text-gray-800">
-          Brzo i jednosavno
-        </h2>
-
-        <Button primary className="mt-5" onClick={handleClick}>
-          Saznajte više
-        </Button>
-      </HeroContainer>
-      <Container spacing="big" ref={exchangeRef} background>
-        <h2 className="text-3xl text-gray-800 font-semibold">Trenutni tečaj</h2>
-
-        <div className="flex flex-col md:flex-row justify-between md:items-center gap-5 w-full">
-          <p className="text-lg text-gray-800 max-w-5xl">
-            Želite li biti u korak s najnovijim promjenama tečajeva? Provjerite
-            našu trenutnu tečajnu listu i osigurajte si najbolji mogući tečaj za
-            svoje financijske transakcije. Budite informirani i donosite pametne
-            odluke o svojim valutnim operacijama. Neka vaš novac radi za vas uz
-            našu ažuriranu tečajnu listu!
+      <Hero className="relative overflow-hidden before:absolute before:inset-[-500px] before:bg-[url(/bg.png)] before:bg-[length:600px_500px] before:bg-[position:10px_20px] before:z-[-10] before:-rotate-45 bg-gradient-to-br from-transparent to-white to-65%">
+        <div className="grid gap-4">
+          <h1 className="text-5xl md:text-6xl font-semibold text-gray-800">
+            Provjera tečaja u stvarnom vremenu
+          </h1>
+          <p className="text-xl text-gray-800">
+            Svi službeni tečajevi Hrvatske narodne banke na jednom mjestu
           </p>
 
-          <Link to="/tecaj">
-            <Button primary>Projverite tečajeve</Button>
-          </Link>
+          <Button
+            variant="primary"
+            className="mt-6"
+            onClick={handleHeroButtonClick}
+          >
+            Saznajte više
+          </Button>
         </div>
-      </Container>
-      <Container spacing="big">
+        <div className="hidden relative xl:flex xl:flex-col w-[50%] h-[400px]">
+          {loading ? (
+            <Loader />
+          ) : error ? (
+            <p className="text-red-600 text-lg">{error}</p>
+          ) : (
+            currency && (
+              <>
+                <Chart chartData={chartData} currency={currency} />
+                {MOCK_CONFIG.enableMockData && (
+                  <small>
+                    Ovaj graf koristi testne podatke te će biti ažurirana za
+                    prikaz stvarnih podataka
+                  </small>
+                )}
+              </>
+            )
+          )}
+        </div>
+      </Hero>
+      <Container
+        spacing="big"
+        hasBackground
+        className="scroll-mt-10"
+        ref={containerRef}
+      >
         <h2 className="text-3xl text-gray-800 font-semibold">
-          Tečaj američkog dolara
+          Konverzija valuta
         </h2>
 
-        <div className="flex flex-col md:flex-row justify-between md:items-center gap-5 w-full">
-          <p className="text-lg text-gray-800 max-w-5xl">
-            Interesira vas američki dolar? Zavirite u naše tečajne liste i
-            istražite fascinantne fluktuacije vrijednosti dolara tijekom
-            vremena. Budite u koraku s promjenama i donosite informirane odluke.
-          </p>
+        <p className="text-lg text-gray-800 max-w-5xl">
+          Brzo i jednostavno pretvorite iznos iz jedne valute u drugu uz pomoć
+          aktualnih podataka o srednjim tečajevima HNB-a. Odaberite valute,
+          unesite iznos i odmah saznajte njegovu vrijednost u odabranoj valuti.
+        </p>
 
-          <Link to="/povijest/USD">
-            <Button primary>Provjerite tečaj</Button>
-          </Link>
-        </div>
+        <Button
+          to={`/konverzija_tecaja?valuta_iz=EUR&iznos=1&valuta_u=AUD`}
+          variant="primary"
+          className="mt-5"
+        >
+          Konvertiraj valutu
+        </Button>
+      </Container>
+      <Container spacing="big" className="scroll-mt-96">
+        <h2 className="text-3xl text-gray-800 font-semibold">
+          Provjera tečaja
+        </h2>
+
+        <p className="text-lg text-gray-800 max-w-5xl">
+          Pratite najnovije tečajeve iz prve ruke. Naša tečajna lista ažurira se
+          redovito, pa uvijek znate po kojem tečaju mijenjate valutu. Donosite
+          financijske odluke s pouzdanjem.
+        </p>
+
+        <Button
+          to={`/tecaj?datum_primjene=${convertToDateString(
+            new Date(),
+            "YYYY-MM-DD",
+          )}`}
+          variant="primary"
+          className="mt-5"
+        >
+          Provjerite današnji tečaj
+        </Button>
+      </Container>
+      <Container spacing="big" hasBackground className="scroll-mt-96">
+        <h2 className="text-3xl text-gray-800 font-semibold">
+          Pogledajte kretanje tečaja kroz vrijeme
+        </h2>
+
+        <p className="text-lg text-gray-800 max-w-5xl">
+          Istražite kako su se tečajevi mijenjali kroz vrijeme. Pratite
+          trendove, uspoređujte razdoblja i donosite informirane odluke za
+          buduće transakcije.
+        </p>
+
+        <Button
+          to={`/povijest?valuta=${encodeURIComponent(JSON.stringify(["AUD"]))}&datum_primjene_od=${convertToDateString(
+            new Date(new Date().setDate(new Date().getDate() - 2)),
+            "YYYY-MM-DD",
+          )}&datum_primjene_do=${convertToDateString(
+            new Date(),
+            "YYYY-MM-DD",
+          )}&prikaz=table`}
+          variant="primary"
+          className="mt-5"
+        >
+          Pogledajte povijest tečajeva
+        </Button>
       </Container>
     </>
   );
-};
+});
 
 export default Home;
