@@ -353,6 +353,20 @@ const ExchangeHistory: React.FC = React.memo(() => {
     [navigate, selectedCurrency, fromDate, toDate],
   );
 
+  const tableUrl = createHistoryUrl(
+    selectedCurrency,
+    fromDate,
+    toDate,
+    "table",
+  );
+
+  const chartUrl = createHistoryUrl(
+    selectedCurrency,
+    fromDate,
+    toDate,
+    "chart",
+  );
+
   useEffect(() => {
     const minimumToDate = getDateWithOffset(fromDate, 2);
 
@@ -369,8 +383,6 @@ const ExchangeHistory: React.FC = React.memo(() => {
   }, [fromDate, toDate]);
 
   useEffect(() => {
-    window.scrollTo(0, 0);
-
     const search = new URLSearchParams(location.search);
 
     const dateFrom = search.get("datum_primjene_od");
@@ -391,19 +403,9 @@ const ExchangeHistory: React.FC = React.memo(() => {
     void fetchData(dateFrom, dateTo, currencies);
   }, [location.search, fetchData]);
 
-  const tableUrl = createHistoryUrl(
-    selectedCurrency,
-    fromDate,
-    toDate,
-    "table",
-  );
-
-  const chartUrl = createHistoryUrl(
-    selectedCurrency,
-    fromDate,
-    toDate,
-    "chart",
-  );
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   return (
     <>

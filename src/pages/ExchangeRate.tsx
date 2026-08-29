@@ -21,9 +21,9 @@ const NOTES = [
   "Srednji tečajevi HNB-a nisu namijenjeni za korištenje u pravnim poslovima koji su nastali nakon uvođenja eura kao službene valute u Republici Hrvatskoj, niti bi se oni trebali koristiti, direktno ili indirektno (kao referentna vrijednost) za sklapanje bilo kojih novih pravnih poslova, već je njihovo korištenje ograničeno na pravne poslove u kojima je pozivanje na srednji tečaj HNB-a određeno prije datuma uvođenja eura, osim ako nekim propisom nije drugačije uređeno.",
   "HNB ne može biti odgovoran za korištenje podataka o srednjim tečajevima HNB-a u svrhe za koje to nije namijenjeno.",
   "Pritiskom na valutu u tablici možete provjeriti povjest tečaja odabrane valute.",
-] as string[];
+] as const;
 
-const headers = [
+const HEADERS = [
   {
     title: "Valuta",
     value: "valuta",
@@ -59,9 +59,16 @@ const headers = [
     value: "sifra_valute",
     isNumber: true,
   },
-];
+] as const;
 
-const keys = ["drzava", "drzava_iso", "sifra_valute", "valuta"];
+const FILTERABLE_KEYS = [
+  "drzava",
+  "drzava_iso",
+  "sifra_valute",
+  "valuta",
+] as const;
+
+const MIN_DATE = new Date(2023, 0, 1);
 
 const ExchangeRate: React.FC = React.memo(() => {
   const [date, setDate] = useState<Date>(new Date());
@@ -83,14 +90,17 @@ const ExchangeRate: React.FC = React.memo(() => {
     [date],
   );
 
-  const fetchData = useCallback(async (date: string): Promise<void> => {
-    const newData = await getListing(date);
+  const fetchData = useCallback(
+    async (date: string): Promise<void> => {
+      const newData = await getListing(date);
 
-    newData && setData(newData);
-  }, []);
+      newData && setData(newData);
+    },
+    [getListing],
+  );
 
   const handleSubmit = useCallback(
-    (event: React.FormEvent): void => {
+    (event: React.FormEvent<HTMLFormElement>) => {
       event.preventDefault();
 
       const selectedDate = convertToDateString(date, "YYYY-MM-DD");
@@ -99,18 +109,27 @@ const ExchangeRate: React.FC = React.memo(() => {
 
       fetchData(selectedDate);
     },
-    [date],
+    [date, fetchData, navigate],
   );
 
   useEffect(() => {
-    window.scrollTo(0, 0);
     const searchParams = new URLSearchParams(location.search);
 
     const datumPrimjene = searchParams.get("datum_primjene");
 
-    datumPrimjene && fetchData(datumPrimjene);
+    if (!datumPrimjene) return;
 
-    setDate(new Date(datumPrimjene as string));
+    const parseDate = new Date(datumPrimjene);
+
+    if (Number.isNaN(parseDate.getTime())) return;
+
+    fetchData(datumPrimjene);
+
+    setDate(parseDate);
+  }, [location.search, fetchData]);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
   }, []);
 
   return (
@@ -130,7 +149,7 @@ const ExchangeRate: React.FC = React.memo(() => {
       <Container hasBackground spacing="medium">
         <strong className="text-xl text-red-600 max-w-5xl">Napomena</strong>
 
-        <List content={NOTES} listType="decimal" />
+        <List content={[...NOTES]} listType="decimal" />
 
         <form
           className="w-full sm:w-xl flex flex-col gap-3 mt-6"
@@ -146,7 +165,7 @@ const ExchangeRate: React.FC = React.memo(() => {
             <DatePicker
               value={date}
               onChange={setDate}
-              min={new Date(2023, 0, 1)}
+              min={MIN_DATE}
               max={new Date()}
               id="datepicker"
             />
@@ -188,11 +207,11 @@ const ExchangeRate: React.FC = React.memo(() => {
               )}
             </div>
             <Table
-              headers={headers}
+              headers={[...HEADERS]}
               data={data}
               sortable
               filterable
-              filterableKeys={keys}
+              filterableKeys={[...FILTERABLE_KEYS]}
               linkCols={linkCols}
             />
           </>
