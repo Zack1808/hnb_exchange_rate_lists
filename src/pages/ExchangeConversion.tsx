@@ -136,7 +136,7 @@ const convertCurrency = (
 ) => {
   if (!Number.isFinite(amount) || amount === 0) return 0;
 
-  if (!fromCurrency || !toCurrency) return 0;
+  console.log(!Number.isFinite(amount) || amount === 0);
 
   if (fromCurrency === toCurrency) return amount;
 
@@ -161,7 +161,7 @@ const ExchangeConversion: React.FC = React.memo(() => {
 
   const toValue = useMemo(
     () => convertCurrency(fromValue, fromCurr, toCurr, data),
-    [],
+    [fromValue, fromCurr, toCurr, data],
   );
 
   const switchCurrencies = useCallback(() => {
