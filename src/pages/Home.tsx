@@ -7,6 +7,8 @@ import Button from "../components/common/Button";
 import Chart from "../components/common/Chart";
 import Loader from "../components/common/Loader";
 
+import { type ChartData, type Currency } from "../types/chart";
+
 import { useGetListings } from "../hooks/useGetListing";
 import { useChartData } from "../hooks/useChartData";
 
@@ -15,10 +17,8 @@ import { convertToDateString } from "../utils/dateUtils";
 import { MOCK_CONFIG } from "../services/mock/mockData";
 
 const Home: React.FC = React.memo(() => {
-  const [chartData, setChartData] = useState<Record<string, string | number>[]>(
-    [],
-  );
-  const [currency, setCurrency] = useState<string>("");
+  const [chartData, setChartData] = useState<ChartData[]>([]);
+  const [currency, setCurrency] = useState<Currency>();
 
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -40,37 +40,38 @@ const Home: React.FC = React.memo(() => {
 
     const curr = getCurrency(historyList);
 
-    setCurrency(curr);
+    if (!curr) return;
+
+    setCurrency(curr as Currency);
 
     const data = convertToChartData(historyList, curr);
 
-    setChartData(data);
+    setChartData(data as ChartData[]);
   }, []);
 
   const handleHeroButtonClick = useCallback(() => {
-    if (!containerRef.current) return;
-
-    containerRef.current.scrollIntoView({
+    containerRef.current?.scrollIntoView({
       behavior: "smooth",
     });
   }, []);
 
   useEffect(() => {
-    const fetch = () => {
-      const isLargeScreen = () =>
-        window.matchMedia("(min-width: 1280px)").matches;
+    const mediaQuery = window.matchMedia("(min-width: 1280px)");
 
-      if (isLargeScreen()) {
+    const handleMediaChange = (event: MediaQueryListEvent) => {
+      if (event.matches) {
         fetchData();
       }
     };
 
-    fetch();
+    if (mediaQuery.matches) {
+      fetchData();
+    }
 
-    window.addEventListener("resize", fetch);
+    mediaQuery.addEventListener("change", handleMediaChange);
 
     return () => {
-      window.removeEventListener("resize", fetch);
+      mediaQuery.removeEventListener("change", handleMediaChange);
     };
   }, [fetchData]);
 
@@ -98,20 +99,22 @@ const Home: React.FC = React.memo(() => {
           </Button>
         </div>
         <div className="hidden relative xl:flex xl:flex-col w-[50%] h-[400px]">
-          {loading || !currency ? (
+          {loading ? (
             <Loader />
           ) : error ? (
             <p className="text-red-600 text-lg">{error}</p>
           ) : (
-            <>
-              <Chart chartData={chartData} currency={currency} />
-              {MOCK_CONFIG.enableMockData && (
-                <small>
-                  Ovaj graf koristi testne podatke te će biti ažurirana za
-                  prikaz stvarnih podataka
-                </small>
-              )}
-            </>
+            currency && (
+              <>
+                <Chart chartData={chartData} currency={currency} />
+                {MOCK_CONFIG.enableMockData && (
+                  <small>
+                    Ovaj graf koristi testne podatke te će biti ažurirana za
+                    prikaz stvarnih podataka
+                  </small>
+                )}
+              </>
+            )
           )}
         </div>
       </Hero>
