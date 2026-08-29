@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { FaExchangeAlt } from "react-icons/fa";
 import { useNavigate, useLocation } from "react-router-dom";
 
@@ -23,9 +23,9 @@ const NOTES = [
   "HNB ne može biti odgovoran za korištenje podataka o srednjim tečajevima HNB-a u svrhe za koje to nije namijenjeno.",
   `Izračun konverzije temelji se na srednjim tečajevima HNB-a i <strong>informativnog</strong> je karaktera.`,
   "Odabirom početne i ciljne valute i unosom iznosa možete provjeriti iznos u ciljanoj valuti.",
-] as string[];
+] as const;
 
-const headers = [
+const HEADERS = [
   {
     title: "Valuta",
     value: "valuta",
@@ -51,7 +51,7 @@ const headers = [
     value: "prodajni_tecaj",
     isNumber: true,
   },
-];
+] as const;
 
 const CURRENCIES = [
   {
@@ -110,118 +110,132 @@ const CURRENCIES = [
     value: "PLN",
     label: "Poljski zlot",
   },
-];
+] as const;
 
-const KEYS = ["valuta", "drzava"];
+const KEYS = ["valuta", "drzava"] as const;
+
+type ExchangeRate = Record<string, string>;
+
+const getRate = (currency: string, currencies: ExchangeRate[]) => {
+  if (currency === "EUR") return 1;
+
+  const rate = currencies.find((item) => (item.valuta = currency));
+
+  if (!rate?.srednji_tecaj) return null;
+
+  const parsedRate = Number(rate.srednji_tecaj.replace(",", "."));
+
+  return Number.isFinite(parsedRate) && parsedRate > 0 ? parsedRate : null;
+};
+
+const convertCurrency = (
+  amount: number,
+  fromCurrency: string,
+  toCurrency: string,
+  currencies: ExchangeRate[],
+) => {
+  if (!Number.isFinite(amount) || amount === 0) return 0;
+
+  if (!fromCurrency || !toCurrency) return 0;
+
+  if (fromCurrency === toCurrency) return amount;
+
+  const fromRate = getRate(fromCurrency, currencies);
+  const toRate = getRate(toCurrency, currencies);
+
+  if (fromRate === null || toRate === null) return 0;
+
+  return (amount / fromRate) * toRate;
+};
 
 const ExchangeConversion: React.FC = React.memo(() => {
   const [fromCurr, setFromCurr] = useState<string>("");
   const [toCurr, setToCurr] = useState<string>("");
   const [fromValue, setFromValue] = useState<number>(1);
-  const [toValue, setToValue] = useState<number>(1);
-  const [data, setData] = useState<Record<string, string>[]>([]);
+  const [data, setData] = useState<ExchangeRate[]>([]);
 
   const navigate = useNavigate();
   const location = useLocation();
 
   const { getListing, loading, error } = useGetListings();
 
+  const toValue = useMemo(
+    () => convertCurrency(fromValue, fromCurr, toCurr, data),
+    [],
+  );
+
   const switchCurrencies = useCallback(() => {
-    const currFrom = toCurr;
-    const currTo = fromCurr;
+    setFromCurr(toCurr);
+    setToCurr(fromCurr);
+  }, [fromCurr, toCurr]);
 
-    setFromCurr(currFrom);
-    setToCurr(currTo);
-  }, [fromCurr, toCurr, toValue]);
+  const handleValueChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const value = Number(event.target.value);
 
-  const fetchData = useCallback(async (date: string): Promise<void> => {
-    const newData = await getListing(date);
-
-    newData && setData(newData);
-  }, []);
-
-  const currencyConversion = useCallback(
-    (
-      amount: number,
-      fromCurr: string,
-      toCurr: string,
-      currencies: Record<string, string>[],
-    ) => {
-      if (fromCurr === toCurr) return amount;
-
-      const fromRate =
-        fromCurr === "EUR"
-          ? 1
-          : Number(
-              currencies
-                .find((curr) => curr.valuta === fromCurr)
-                ?.srednji_tecaj.replace(",", "."),
-            );
-
-      const toRate =
-        toCurr === "EUR"
-          ? 1
-          : Number(
-              currencies
-                .find((curr) => curr.valuta === toCurr)
-                ?.srednji_tecaj.replace(",", "."),
-            );
-
-      if (!fromRate || !toRate) return 0;
-
-      return (amount / fromRate) * toRate;
+      setFromValue(Number.isFinite(value) ? value : 0);
     },
     [],
   );
 
-  const onValueChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setFromValue(Number(event.target.value));
-  };
+  const updateUrl = useCallback(() => {
+    if (!fromCurr || !toCurr) return;
+
+    const params = new URLSearchParams({
+      valuta_iz: fromCurr,
+      iznos: String(fromValue),
+      valuta_u: toCurr,
+    });
+
+    navigate(`/konverzija_tecaja?${params.toString()}`, {
+      replace: true,
+    });
+  }, [fromCurr, toCurr, fromValue, navigate]);
 
   useEffect(() => {
-    const timer = setTimeout(
-      () =>
-        navigate(
-          `/konverzija_tecaja?valuta_iz=${fromCurr}&iznos=${fromValue}&valuta_u=${toCurr}`,
-        ),
-      100,
-    );
+    const search = new URLSearchParams(location.search);
 
-    setToValue(currencyConversion(fromValue, fromCurr, toCurr, data));
+    const currencyFrom = search.get("valuta_iz");
+    const currencyTo = search.get("valuta_u");
+    const amount = search.get("iznos");
 
-    return () => {
-      clearTimeout(timer);
+    if (currencyFrom) setFromCurr(currencyFrom);
+    if (currencyTo) setToCurr(currencyTo);
+    if (amount) {
+      const parsedAmount = Number(amount);
+
+      if (Number.isFinite(parsedAmount)) setFromValue(parsedAmount);
+    }
+  }, [location.search]);
+
+  useEffect(() => {
+    const loadData = async () => {
+      const result = await getListing(
+        convertToDateString(new Date(), "YYYY-MM-DD"),
+      );
+
+      setData(result ?? []);
     };
-  }, [fromCurr, toCurr, fromValue]);
+
+    void loadData();
+  }, [getListing]);
 
   useEffect(() => {
-    setToValue(currencyConversion(fromValue, fromCurr, toCurr, data));
-  }, [data]);
+    if (!fromCurr || !toCurr) return;
+
+    const timer = window.setTimeout(updateUrl, 100);
+
+    return () => window.clearTimeout(timer);
+  }, [fromCurr, toCurr, fromValue, updateUrl]);
 
   useEffect(() => {
     window.scroll(0, 0);
-
-    fetchData(convertToDateString(new Date(), "YYYY-MM-DD"));
-
-    const search = new URLSearchParams(location.search);
-
-    const currFrom = search.get("valuta_iz");
-    const currTo = search.get("valuta_u");
-    const val = search.get("iznos");
-
-    if (!currFrom || !currTo || !val) return;
-
-    setFromCurr(currFrom);
-    setToCurr(currTo);
-    setFromValue(Number(val));
   }, []);
 
   return (
     <>
       <Container spacing="medium">
-        <h2 className="text-3xl md:text-3xl text-gray-800">
-          Konverzija valuta
-        </h2>
+        <h2 className="text-3xl text-gray-800">Konverzija valuta</h2>
 
         <p className="text-lg text-gray-800 max-w-5xl">
           Konverzija valuta temelji se na službenim podacima Hrvatske narodne
@@ -234,14 +248,17 @@ const ExchangeConversion: React.FC = React.memo(() => {
       <Container hasBackground spacing="medium">
         <strong className="text-xl text-red-600 max-w-5xl">Napomena</strong>
 
-        <List content={NOTES} listType="decimal" />
+        <List content={[...NOTES]} listType="decimal" />
 
         {loading ? (
           <Loader />
         ) : error ? (
           <p className="text-red-600 text-lg">{error}</p>
         ) : (
-          <form className="w-full md:max-w-6/12 flex items-center justify-center gap-4 mt-10 md:flex-row flex-col">
+          <form
+            className="w-full md:max-w-6/12 flex items-center justify-center gap-4 mt-10 md:flex-row flex-col"
+            onSubmit={(event) => event.preventDefault()}
+          >
             <fieldset className="w-full flex flex-col justify-between gap-2">
               <label
                 htmlFor="currencyFrom"
@@ -251,7 +268,7 @@ const ExchangeConversion: React.FC = React.memo(() => {
               </label>
               <Select
                 id="currencyFrom"
-                options={CURRENCIES}
+                options={[...CURRENCIES]}
                 value={fromCurr}
                 onChange={setFromCurr}
               />
@@ -260,7 +277,7 @@ const ExchangeConversion: React.FC = React.memo(() => {
                 type="number"
                 min={1}
                 value={fromValue}
-                onChange={onValueChange}
+                onChange={handleValueChange}
               />
             </fieldset>
             <Button
@@ -268,8 +285,9 @@ const ExchangeConversion: React.FC = React.memo(() => {
               type="button"
               onClick={switchCurrencies}
               className="mb-3.5"
+              aria-label="Zamjeni valute"
             >
-              <FaExchangeAlt />
+              <FaExchangeAlt aria-hidden="true" />
             </Button>
             <fieldset className="w-full flex flex-col justify-between gap-2">
               <label
@@ -280,19 +298,22 @@ const ExchangeConversion: React.FC = React.memo(() => {
               </label>
               <Select
                 id="currencyTo"
-                options={CURRENCIES}
+                options={[...CURRENCIES]}
                 value={toCurr}
                 onChange={setToCurr}
               />
-              <Input id="valueTo" readOnly value={toValue} />
+              <Input
+                id="valueTo"
+                readOnly
+                value={toValue}
+                aria-label="Konvertirani iznos"
+              />
             </fieldset>
           </form>
         )}
       </Container>
       <Container spacing="medium">
-        <h2 className="text-3xl md:text-3xl text-gray-800 mb-6">
-          Prikaz današnjeg tečaja
-        </h2>
+        <h2 className="text-3xl text-gray-800 mb-6">Prikaz današnjeg tečaja</h2>
 
         {loading && <Loader />}
         {!loading && error && <p className="text-red-600 text-lg">{error}</p>}
@@ -321,10 +342,10 @@ const ExchangeConversion: React.FC = React.memo(() => {
               )}
             </div>
             <Table
-              headers={headers}
+              headers={[...HEADERS]}
               data={data}
               filterable
-              filterableKeys={KEYS}
+              filterableKeys={[...KEYS]}
             />
           </>
         )}
