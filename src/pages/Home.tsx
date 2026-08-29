@@ -50,7 +50,9 @@ const Home: React.FC = React.memo(() => {
   }, []);
 
   const handleHeroButtonClick = useCallback(() => {
-    containerRef.current?.scrollIntoView({
+    if (!containerRef.current) return;
+
+    containerRef.current.scrollIntoView({
       behavior: "smooth",
     });
   }, []);
@@ -121,7 +123,7 @@ const Home: React.FC = React.memo(() => {
       <Container
         spacing="big"
         hasBackground
-        className="scroll-mt-96"
+        className="scroll-mt-10"
         ref={containerRef}
       >
         <h2 className="text-3xl text-gray-800 font-semibold">
