@@ -17,28 +17,34 @@
 ## Features <a name="features" />
 
 - Home page:
-  - Displaying routes to the Exchange rate page and the USD Exchange rate history
+  - Provides navigation to the Exchange Rates, Exchange Rate History, and Currency Conversion pages.
+  - Displays a chart visualizing the value change of a randomly selected currency.
 - Exchange Rate page:
-  - Date picking: users can pick a date for which they want to se the exchange rate list
-  - Form submition: user can submit the form with the selected date. Submition only happens if the date has changed. After submition the exchange rate list for the selected date is fetched
-  - Selected date persistence: the selected date is located in the url. After refreshing the page the date gets inserted as the starting value for the date picker
-  - Data display: displays the fetched data in a table if available or displays the error if it exists.
-  - Routing to currency exchange rate history: route to the Exchange rate history page with the selected date and currency.
-  - Data sorting: sorts the data according to the selected column.
-  - Data filtering: filters the data according to the provided parameters
+  - Date Selection — Allows users to select a specific date for which exchange rates should be retrieved.
+  - Form Submission — Fetches exchange rate data only when the selected date differs from the currently applied date, preventing unnecessary requests.
+  - URL State Persistence — Persists the selected date in the URL, allowing the state to be restored automatically after a page refresh or when sharing the URL.
+  - Data Display — Presents the retrieved exchange rates in a sortable table, or displays an appropriate error state when the request fails.
+  - Sorting — Supports sorting exchange rate data by individual table columns.
+  - Filtering — Allows users to filter exchange rates based on the available filtering parameters.
+  - Historical Data Navigation — Provides direct navigation from a currency to its historical exchange rate data while preserving the selected date and currency.
 - Exchange rate history of selected currency:
-  - Date picking: users can pick a date for which they want to se the exchange rate list if the page was opened with the current date
-  - Form submition: user can submit the form with the selected date and the number of days for which he wants to check the exchange rate list. Submition only happens if the date has changed (if the page was opened with the current date) or if the number of days has changed (2-60 days selection). After submition the exchange rate list for the selected date and amount of days is fetched.
-  - Selected date and days persistence: the selected date and amount of days are located in the url. After refreshing the page the date and amount of days get inserted as the starting value.
-  - Data display: displays the fetched data in a table if available or displays the error if it exists.
-  - Rate drop/increase percentage displayed: at the end of the table the percentage amount of the rates increase or decrease is displayed.
+  - Currency Selection — Supports selecting one or multiple currencies for historical comparison.
+  - Date Range Selection — Allows users to define a start and end date for the historical data.
+  - Form Submission — Fetches historical exchange rate data when the selected currencies or date range changes. When the page is initially opened with the current date, submission is performed only after the user changes the selected criteria.
+  - URL State Persistence — Stores the selected currencies and date range in the URL, allowing the configuration to be restored after refreshing the page or sharing the URL.
+  - Multiple Data Views — Displays historical exchange rate data either as a table or a chart, depending on the selected view.
+  - Rate Change Analysis — Calculates and displays the percentage increase or decrease in exchange rates over the selected period.
+  - Error Handling — Displays an appropriate error state when historical data cannot be retrieved.
+- Currency conversion for selected currencies:
+  - Currency Selection — Allows users to select the source and target currencies for conversion.
+  - Real-Time Conversion — Automatically recalculates the converted amount when the selected currencies or input amount changes.
+  - Latest Rate Information — Displays the exchange rate data used for the conversion, based on the most recent available date.
 - PageNotFound: display a 404 page in case an unexisting url is entered
 
 ## Implemented libraries and frameworks <a name="implemented" />
 
 - [React + Vite](https://vitejs.dev/guide/)
 - [TypeScript](https://www.typescriptlang.org)
-- [Axios](https://axios-http.com/docs/intro)
 - [React Icons](https://react-icons.github.io/react-icons/)
 - [Tailwind](https://tailwindcss.com)
 
