@@ -136,8 +136,6 @@ const convertCurrency = (
 ) => {
   if (!Number.isFinite(amount) || amount === 0) return 0;
 
-  console.log(!Number.isFinite(amount) || amount === 0);
-
   if (fromCurrency === toCurrency) return amount;
 
   const fromRate = getRate(fromCurrency, currencies);
