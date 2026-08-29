@@ -4,9 +4,7 @@ export const sortData = (
   direction: "asc" | "desc",
   isNumber: boolean,
 ): Record<string, string>[] => {
-  const sortedList = [...data];
-
-  return sortedList.sort((a, b) => {
+  return [...data].sort((a, b) => {
     if (a.hasOwnProperty(key) && b.hasOwnProperty(key)) {
       if (isNumber) {
         if (Number(a[key].replace(",", ".")) > Number(b[key].replace(",", ".")))

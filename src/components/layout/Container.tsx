@@ -7,7 +7,10 @@ export interface ContainerProps extends React.HTMLAttributes<HTMLElement> {
 
 const Container = React.memo(
   React.forwardRef<HTMLDivElement, ContainerProps>(
-    ({ children, hasBackground, spacing = "none" }, ref) => {
+    (
+      { children, hasBackground, spacing = "none", className = "", ...rest },
+      ref,
+    ) => {
       const sectionClassNames = useMemo(() => {
         const spacingClass =
           {
@@ -19,18 +22,18 @@ const Container = React.memo(
 
         const backgroundClass = hasBackground ? "bg-gray-100" : "";
 
-        return `w-full px-5 flex justify-center ${spacingClass} ${backgroundClass}`.trim();
-      }, [spacing, hasBackground]);
+        return `w-full px-5 flex justify-center ${spacingClass} ${backgroundClass} ${className}`.trim();
+      }, [spacing, hasBackground, className]);
 
       return (
-        <section ref={ref} className={sectionClassNames}>
+        <section ref={ref} className={sectionClassNames} {...rest}>
           <article className="w-full md:max-w-screen-2xl flex flex-col gap-5 items-start">
             {children}
           </article>
         </section>
       );
-    }
-  )
+    },
+  ),
 );
 
 export default Container;

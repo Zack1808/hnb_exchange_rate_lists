@@ -1,11 +1,9 @@
-import React, { useMemo } from "react";
+import React from "react";
 
 const Hero: React.FC<React.HTMLAttributes<HTMLElement>> = React.memo(
   ({ children, className = "", ...rest }) => {
-    const sectionClasses = useMemo(
-      () => `w-full h-dvh flex justify-center items-center ${className}`.trim(),
-      [className]
-    );
+    const sectionClasses =
+      `w-full h-dvh flex justify-center items-center ${className}`.trim();
 
     return (
       <section className={sectionClasses} {...rest}>
@@ -17,7 +15,7 @@ const Hero: React.FC<React.HTMLAttributes<HTMLElement>> = React.memo(
         </article>
       </section>
     );
-  }
+  },
 );
 
 export default Hero;

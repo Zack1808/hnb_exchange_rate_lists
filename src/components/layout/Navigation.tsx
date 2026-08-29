@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef, useMemo } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { IoMenuSharp } from "react-icons/io5";
 import { FaXmark } from "react-icons/fa6";
@@ -10,58 +10,67 @@ import { convertToDateString } from "../../utils/dateUtils";
 const Navigation: React.FC = React.memo(() => {
   const [menuOpen, setMenuOpen] = useState<boolean>(false);
 
-  const navRef = useRef<HTMLDivElement>(null);
-
   const location = useLocation();
+
+  const today = new Date();
+
+  const twoDaysAgo = new Date(today);
+  twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
 
   const toggleOpen = useCallback(() => {
     setMenuOpen((prevState) => !prevState);
   }, []);
 
-  const handleClick = useCallback((event: React.MouseEvent) => {
-    if (event.target === navRef.current) {
-      setMenuOpen(false);
-    }
-  }, []);
-
-  const headerClasses = useMemo(
-    () =>
-      `md:py-3 py-5 px-3 shadow-lg flex justify-center items-center ${
-        location.pathname === "/" ? "fixed" : "sticky"
-      } top-0 w-full z-40 bg-white`.trim(),
-    [location.pathname],
-  );
-
-  const navClasses = useMemo(
-    () =>
-      `flex justify-end left-0 fixed md:static bg-black/40 md:bg-transparent w-full bottom-0 top-0 transition ${
-        menuOpen ? "opacity-100 visible" : "opacity-0 invisible"
-      } md:opacity-100 md:visible`,
-    [menuOpen],
-  );
-
-  const getLinkClasses = useCallback(
-    (delay: boolean = true) =>
-      `py-5 px-10 md:py-2 md:px-6 opacity-0 md:opacity-100 max-w-none ${
-        menuOpen && delay ? "opacity-100" : ""
-      }`,
-    [menuOpen],
-  );
-
-  const closeButtonClasses = useMemo(
-    () => `opacity-0 ml-auto mb-5 md:hidden px-2 ${menuOpen && "opacity-100"}`,
-    [menuOpen],
-  );
-
   const closeMenu = useCallback(() => {
     setMenuOpen(false);
   }, []);
 
+  const handleBackdropClick = useCallback(
+    (event: React.MouseEvent<HTMLDivElement>) => {
+      if (event.target === event.currentTarget) closeMenu();
+    },
+    [],
+  );
+
+  const historyParams = new URLSearchParams({
+    valuta: JSON.stringify(["AUD"]),
+    datum_primjene_od: convertToDateString(twoDaysAgo, "YYYY-MM-DD"),
+    datum_primjene_do: convertToDateString(today, "YYYY-MM-DD"),
+    prikaz: "table",
+  });
+
+  const conversionParams = new URLSearchParams({
+    valuta_iz: "EUR",
+    iznos: "1",
+    valuta_u: "AUD",
+  });
+
+  const navLinkClasses = `py-5 px-10 md:py-2 md:px-6 max-w-none w-full md:w-auto justify-start md:justify-center opacity-100 transition-colors`;
+
+  const headerClasses = `md:py-3 py-5 px-3 shadow-lg flex justify-center items-center top-0 w-full z-40 bg-white ${location.pathname === "/" ? "fixed" : "sticky"}`;
+
+  const navClasses = `flex justify-end left-0 fixed md:static bg-black/40 md:bg-transparent w-full bottom-0 top-0 transition ${
+    menuOpen ? "opacity-100 visible" : "opacity-0 invisible"
+  } md:opacity-100 md:visible`;
+
+  useEffect(() => {
+    closeMenu();
+  }, [location.pathname, location.search]);
+
   return (
     <header className={headerClasses}>
       <div className="w-full md:max-w-screen-2xl flex justify-between items-center">
-        <Link to="/" className="flex items-center gap-2">
-          <img src="/favicon.svg" className="w-10 md:w-16" />
+        <Link
+          to="/"
+          className="flex items-center gap-2"
+          onClick={closeMenu}
+          aria-label="Hrvatska Narodna Banka"
+        >
+          <img
+            src="/favicon.svg"
+            alt="Hrvatska Narodna Banka"
+            className="w-10 md:w-16"
+          />
           <div className="flex flex-col items-center">
             <p className="font-bold text-red-600 text-3xl md:text-5xl flex p-0">
               HNB
@@ -72,47 +81,44 @@ const Navigation: React.FC = React.memo(() => {
           </div>
         </Link>
 
-        <nav ref={navRef} className={navClasses} onClick={handleClick}>
+        <nav
+          className={navClasses}
+          onClick={handleBackdropClick}
+          aria-label="Glavna navigacija"
+        >
           <div
             className={`flex flex-col md:flex-row bg-white h-dvh md:h-auto w-fit p-3 md:p-0 origin-right`}
           >
-            <Button onClick={toggleOpen} className={closeButtonClasses}>
-              <FaXmark
-                className={`text-4xl text-red-600`}
-                aria-label="Close menu"
-              />
+            <Button
+              type="button"
+              onClick={toggleOpen}
+              className="md:hidden ml-auto mb-5 px-2 text-3xl text-red-600"
+              aria-label="Zatvori izbornik"
+            >
+              <FaXmark className={`text-4xl text-red-600`} aria-hidden="true" />
             </Button>
 
-            <Button to="/" className={getLinkClasses()} onClick={closeMenu}>
+            <Button to="/" className={navLinkClasses}>
               Početna
             </Button>
             <Button
               to={`/tecaj?datum_primjene=${convertToDateString(
-                new Date(),
+                today,
                 "YYYY-MM-DD",
               )}`}
-              className={getLinkClasses()}
-              onClick={closeMenu}
+              className={navLinkClasses}
             >
               Provjera tečajeva
             </Button>
             <Button
-              to={`/povijest?valuta=${encodeURIComponent(JSON.stringify(["AUD"]))}&datum_primjene_od=${convertToDateString(
-                new Date(new Date().setDate(new Date().getDate() - 2)),
-                "YYYY-MM-DD",
-              )}&datum_primjene_do=${convertToDateString(
-                new Date(),
-                "YYYY-MM-DD",
-              )}&prikaz=table`}
-              className={getLinkClasses()}
-              onClick={closeMenu}
+              to={`/povijest?${historyParams.toString()}`}
+              className={navLinkClasses}
             >
               Povjest tečajeva
             </Button>
             <Button
-              to="/konverzija_tecaja?valuta_iz=EUR&iznos=1&valuta_u=AUD"
-              className={getLinkClasses()}
-              onClick={closeMenu}
+              to={`/konverzija_tecaja?${conversionParams.toString()}`}
+              className={navLinkClasses}
             >
               Konverzija valuta
             </Button>
@@ -122,8 +128,11 @@ const Navigation: React.FC = React.memo(() => {
         <Button
           className="md:hidden flex !text-3xl text-red-600 py-0"
           onClick={toggleOpen}
+          aria-label={menuOpen ? "Zatvori izbornik" : "Otvori izbornik"}
+          aria-expanded={menuOpen}
+          aria-controls="main-navigation"
         >
-          <IoMenuSharp aria-label="Open menu" />
+          <IoMenuSharp aria-hidden="true" />
         </Button>
       </div>
     </header>

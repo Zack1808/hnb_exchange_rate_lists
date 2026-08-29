@@ -6,103 +6,89 @@ import {
   sortData,
 } from "../utils/dataUtils";
 
+import { type ChartData } from "../types/chart";
+
 import { BASE_DATA as baseData } from "../utils/baseData";
 
+type DataRow = Record<string, string>;
+
 interface UseChartDataReturnProps {
-  getCurrency: (data: Record<string, string>[]) => string;
+  getCurrency: (data: DataRow[]) => string;
   convertToChartData: (
-    data: Record<string, string>[],
+    data: DataRow[],
     curr: string | string[],
     multi?: boolean,
-  ) => Record<string, string | number>[];
+  ) => ChartData[] | DataRow[];
 }
 
 export const useChartData = (): UseChartDataReturnProps => {
-  const getRandomNumber = useCallback((min: number, max: number): number => {
-    min = Math.ceil(min);
-    max = Math.floor(max);
+  const getCurrency = useCallback((data: DataRow[]) => {
+    const currencies = [...new Set(data.map((item) => item.valuta))];
 
-    return Math.floor(Math.random() * (max - min + 1) + min);
+    if (!currencies.length) return "";
+
+    const randomIndex = Math.floor(Math.random() * currencies.length);
+
+    return currencies[randomIndex];
   }, []);
-
-  const getCurrency = useCallback(
-    (data: Record<string, string>[]): string => {
-      const newData = data
-        .map((item: Record<string, string>) => item.valuta)
-        .filter(
-          (value: string, index: number, self: string[]) =>
-            self.indexOf(value) === index,
-        );
-
-      const randomNumber = getRandomNumber(0, newData.length - 1);
-
-      return newData[randomNumber];
-    },
-    [getRandomNumber],
-  );
 
   const addPercentageCalculation = useCallback(
     (
-      data: Record<string, string>[],
-      percentageOfValue: "fixed" | "not fixed" = "not fixed",
+      data: DataRow[],
+      type: "fixed" | "not fixed" = "not fixed",
     ): Record<string, string>[] => {
-      return percentageOfValue === "not fixed"
-        ? addPercentageChange(data, "number")
-        : addPercentageFixed(data, baseData, "number");
+      return type === "fixed"
+        ? addPercentageFixed(data, baseData, "number")
+        : addPercentageChange(data, "number");
     },
     [],
   );
 
-  const convertToMultiChartData = useCallback(
-    (data: Record<string, string>[]) => {
-      let newData: Record<string, string>[] = [];
+  const convertToMultiChartData = useCallback((data: DataRow[]) => {
+    const groupedData = new Map<string, ChartData>();
 
-      for (const item of data) {
-        const date = item.datum_primjene;
+    for (const item of data) {
+      const date = item.datum_primjene;
 
-        const dataChunk = {
-          datum_primjene: item.datum_primjene,
-          [`${item.valuta}_srednji_tecaj`]: item.srednji_tecaj,
-          [`${item.valuta}_postotak_od_pocetka`]: item.postotak_od_pocetka,
-          [`${item.valuta}_postotak_od_prosle_liste`]:
-            item.postotak_od_prosle_liste,
-        };
+      const existing = groupedData.get(date);
 
-        const existing = newData.find((it) => it.datum_primjene === date);
+      const dataChunk: ChartData = {
+        datum_primjene: item.datum_primjene,
+        [`${item.valuta}_srednji_tecaj`]: item.srednji_tecaj,
+        [`${item.valuta}_postotak_od_pocetka`]: item.postotak_od_pocetka,
+        [`${item.valuta}_postotak_od_prosle_liste`]:
+          item.postotak_od_prosle_liste,
+      };
 
-        if (existing) {
-          Object.assign(existing, dataChunk);
-        } else {
-          newData = [...newData, dataChunk];
-        }
+      if (existing) {
+        Object.assign(existing, dataChunk);
+      } else {
+        groupedData.set(date, dataChunk);
       }
+    }
 
-      return newData;
-    },
-    [],
-  );
+    return Array.from(groupedData.values());
+  }, []);
 
   const convertToChartData = useCallback(
-    (
-      data: Record<string, string>[],
-      curr: string | string[],
-      multi?: boolean,
-    ): Record<string, string | number>[] => {
+    (data: DataRow[], curr: string | string[], multi?: boolean) => {
       const currs = Array.isArray(curr) ? curr : [curr];
 
-      let newData = data.filter((value: Record<string, string>) =>
+      let chartData = data.filter((value: Record<string, string>) =>
         currs.includes(value.valuta),
       );
 
-      newData = addPercentageCalculation(newData);
+      chartData = addPercentageCalculation(chartData);
 
-      newData = addPercentageCalculation(newData, "fixed");
+      chartData = addPercentageCalculation(chartData, "fixed");
 
-      newData = sortData(newData, "datum_primjene", "desc", false);
+      chartData = sortData(chartData, "datum_primjene", "desc", false);
 
-      return multi ? convertToMultiChartData(newData) : newData;
+      if (multi) return convertToMultiChartData(chartData);
+
+      return chartData;
     },
-    [addPercentageCalculation],
+    [addPercentageCalculation, convertToMultiChartData],
   );
 
   return { getCurrency, convertToChartData };

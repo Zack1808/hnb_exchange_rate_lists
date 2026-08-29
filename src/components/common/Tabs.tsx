@@ -26,6 +26,7 @@ const Tabs: React.FC<TabsProps> = ({ value, onChange, actionButton, tabs }) => {
           {tabs.map((tab) =>
             tab.link ? (
               <Button
+                key={tab.value}
                 to={tab.link}
                 variant="none"
                 className={`${tab.value === value ? "bg-white text-red-600" : "text-gray-600"} px-10! py-4! cursor-pointer md:max-w-fit max-w-none justify-center w-full`}

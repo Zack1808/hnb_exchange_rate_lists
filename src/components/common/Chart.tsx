@@ -1,4 +1,4 @@
-import React from "react";
+import { type FC, Fragment, ReactNode } from "react";
 import { ImArrowDown, ImArrowUp } from "react-icons/im";
 import {
   LineChart,
@@ -11,13 +11,9 @@ import {
   Tooltip,
 } from "recharts";
 
-import { convertToDateString } from "../../utils/dateUtils";
+import { type ChartData, type Currency } from "../../types/chart";
 
-interface ChartProps {
-  chartData: Record<string, string | number>[];
-  currency: string | string[];
-  multiple?: boolean;
-}
+import { convertToDateString } from "../../utils/dateUtils";
 
 const MONTHS = [
   "Sij",
@@ -89,235 +85,284 @@ export const CURRENCY_COLORS = {
   },
 };
 
-const Chart: React.FC<ChartProps> = ({
-  chartData = [],
-  currency,
-  multiple,
-}) => {
-  const currs = Array.isArray(currency) ? currency : [currency];
+const BASE_Y_AXIS_LABEL = "Rast/pad tečaja";
+
+const MIN_LABEL_DISTANCE = 6;
+
+interface ChartProps {
+  chartData: ChartData[];
+  currency: Currency | Currency[];
+  multiple?: boolean;
+}
+
+interface ChangeIndicatorProps {
+  value: string | number | undefined;
+  children?: ReactNode;
+}
+
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: Array<{
+    payload: ChartData;
+  }>;
+  multiple: boolean;
+  currencies: Currency[];
+}
+
+interface TooltipDataProps {
+  data: ChartData;
+}
+
+const getChangeClassName = (value: string | number | undefined) => {
+  const numericValue = Number(value);
+
+  if (numericValue === 0 || Number.isNaN(numericValue)) {
+    return "flex items-center justify-center gap-2";
+  }
+
+  return `flex items-center justify-center gap-2 ${numericValue < 0 ? "text-red-600" : "text-green-700"}`;
+};
+
+const ChangeIndicator = ({ value }: ChangeIndicatorProps) => {
+  const numericValue = Number(value);
 
   return (
-    <ResponsiveContainer width="100%" height="100%">
-      <LineChart
-        data={chartData}
-        margin={{
-          top: 20,
-          right: 30,
-          left: 10,
-          bottom: 10,
-        }}
-      >
-        <CartesianGrid stroke="#ddd" strokeDasharray="5 5" vertical={false} />
-
-        <XAxis
-          dataKey="datum_primjene"
-          type="category"
-          tickFormatter={(value, index) => {
-            const data = chartData || [];
-
-            const date = new Date(value);
-            const month = date.getMonth();
-            const year = date.getFullYear();
-
-            const indiciesWithSameMonth = data
-              .map((item: Record<string, string | number>, indx: number) =>
-                new Date(item.datum_primjene).getMonth() === month ? indx : -1,
-              )
-              .filter((indx: number) => indx !== -1);
-
-            const middleIndex = indiciesWithSameMonth[0];
-
-            return index === middleIndex ? `${MONTHS[month]} ${year}` : "";
-          }}
-          label={{
-            value: "Period",
-            position: "insideBottom",
-            offset: 40,
-          }}
-        />
-
-        <YAxis
-          label={{
-            value: `Rast/Pad tečaja ${!multiple ? `${currs[0]}-a` : ""} u %`,
-            angle: -90,
-            position: {
-              x: 10,
-              y: multiple ? 150 : 50,
-            },
-          }}
-        />
-
-        {currs.map((item) => (
-          <React.Fragment key={item}>
-            <Line
-              dot={false}
-              strokeWidth={2}
-              dataKey={
-                multiple ? `${item}_postotak_od_pocetka` : "postotak_od_pocetka"
-              }
-              name={`${item} - od uvođenja EUR`}
-              stroke={
-                CURRENCY_COLORS[item as keyof typeof CURRENCY_COLORS].primary
-              }
-            />
-
-            <Line
-              dot={false}
-              strokeWidth={2}
-              stroke={
-                CURRENCY_COLORS[item as keyof typeof CURRENCY_COLORS].secondary
-              }
-              dataKey={
-                multiple
-                  ? `${item}_postotak_od_prosle_liste`
-                  : "postotak_od_prosle_liste"
-              }
-              name={`${item} - dnevno`}
-            />
-          </React.Fragment>
-        ))}
-
-        <Legend
-          iconType="diamond"
-          iconSize={15}
-          align="left"
-          wrapperStyle={{
-            paddingTop: 10,
-          }}
-        />
-
-        <Tooltip
-          content={
-            <CustomTooltip
-              multiple={multiple}
-              currencies={currs}
-              allowEscapeViewBox={{ x: false, y: false }}
-            />
-          }
-        />
-      </LineChart>
-    </ResponsiveContainer>
+    <span className={getChangeClassName(value)}>
+      {numericValue !== 0 && !Number.isNaN(numericValue) ? (
+        numericValue < 0 ? (
+          <ImArrowDown aria-hidden="true" />
+        ) : (
+          <ImArrowUp aria-hidden="true" />
+        )
+      ) : null}{" "}
+      {value}%
+    </span>
   );
 };
 
-const CustomTooltip = ({ active, payload, multiple, currencies }: any) => {
-  if (active && payload && payload.length) {
-    const data = payload[0].payload;
-    const specificDate = new Date(data.datum_primjene);
-    const percentage = data.postotak_od_prosle_liste;
-    const historyPercentage = data.postotak_od_pocetka;
+const getMonthLabel = (value: string | number) => {
+  const date = new Date(value);
 
-    return multiple ? (
-      <div
-        className="bg-white p-3 border border-gray-300 rounded shadow-md flex flex-col gap-3 md:max-w-lg max-w-[calc(100vw-50px)]
-    max-h-[70vh]"
-      >
-        <p className="font-semibold">{`Datum: ${convertToDateString(specificDate, "DD.MM.YYYY")}`}</p>
-        <div className="max-w flex flex-wrap gap-5">
-          {currencies.map((curr: string) => (
-            <div key={curr} className="text-sm flex flex-col gap-1 mb-3">
+  if (Number.isNaN(date.getTime())) return "";
+
+  return `${MONTHS[date.getMonth()]} ${date.getFullYear()}`;
+};
+
+const createMonthLabelIndexes = (data: ChartData[]) => {
+  const firstIndexByMonth = new Map<string, number>();
+
+  data.forEach((item, index) => {
+    const date = new Date(item.datum_primjene);
+
+    if (Number.isNaN(date.getTime())) return;
+
+    const key = `${date.getFullYear()}-${date.getMonth()}`;
+
+    if (!firstIndexByMonth.has(key)) firstIndexByMonth.set(key, index);
+  });
+
+  return firstIndexByMonth;
+};
+
+const Chart: FC<ChartProps> = ({ chartData, currency, multiple = false }) => {
+  const currs = Array.isArray(currency) ? currency : [currency];
+  const monthLabelIndexes = createMonthLabelIndexes(chartData);
+
+  const getXAxisLabel = (value: string | number, index: number) => {
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) return "";
+
+    const key = `${date.getFullYear()}-${date.getMonth()}`;
+    const labelIndex = monthLabelIndexes.get(key);
+
+    if (labelIndex !== index) return "";
+
+    const labelIndexes = [...monthLabelIndexes.values()];
+    const currentLabelPosition = labelIndexes.indexOf(index);
+    const nextLabelIndex = labelIndexes[currentLabelPosition + 1];
+
+    if (
+      nextLabelIndex !== undefined &&
+      nextLabelIndex - index <= MIN_LABEL_DISTANCE
+    )
+      return "";
+
+    return `${getMonthLabel(value)}`;
+  };
+
+  return (
+    <div
+      role="img"
+      aria-label={`Grafikon promjene tečaja ${currs.join(", ")}`}
+      className="h-full w-full"
+    >
+      <ResponsiveContainer width="100%" height="100%">
+        <LineChart
+          data={chartData}
+          margin={{
+            top: 20,
+            right: 30,
+            left: 10,
+            bottom: 10,
+          }}
+        >
+          <CartesianGrid stroke="#ddd" strokeDasharray="5 5" vertical={false} />
+
+          <XAxis
+            dataKey="datum_primjene"
+            type="category"
+            tickFormatter={getXAxisLabel}
+            label={{
+              value: "Period",
+              position: "insideBottom",
+              offset: 40,
+            }}
+          />
+
+          <YAxis
+            label={{
+              value: `${BASE_Y_AXIS_LABEL} ${!multiple ? `${currs[0]}-a` : ""} u %`,
+              angle: -90,
+              position: {
+                x: 10,
+                y: multiple ? 150 : 50,
+              },
+            }}
+          />
+
+          {currs.map((item) => {
+            const colors = CURRENCY_COLORS[item];
+
+            return (
+              <Fragment key={item}>
+                <Line
+                  dot={false}
+                  strokeWidth={2}
+                  dataKey={
+                    multiple
+                      ? `${item}_postotak_od_pocetka`
+                      : "postotak_od_pocetka"
+                  }
+                  name={`${item} - od uvođenja EUR`}
+                  stroke={colors.primary}
+                />
+
+                <Line
+                  dot={false}
+                  strokeWidth={2}
+                  stroke={colors.secondary}
+                  dataKey={
+                    multiple
+                      ? `${item}_postotak_od_prosle_liste`
+                      : "postotak_od_prosle_liste"
+                  }
+                  name={`${item} - dnevno`}
+                />
+              </Fragment>
+            );
+          })}
+
+          <Legend
+            iconType="diamond"
+            iconSize={15}
+            align="left"
+            wrapperStyle={{
+              paddingTop: 10,
+            }}
+          />
+
+          <Tooltip
+            content={<CustomTooltip multiple={multiple} currencies={currs} />}
+            allowEscapeViewBox={{ x: false, y: false }}
+          />
+        </LineChart>
+      </ResponsiveContainer>
+    </div>
+  );
+};
+
+const CustomTooltip = ({
+  active,
+  payload,
+  multiple,
+  currencies,
+}: CustomTooltipProps) => {
+  if (!active || !payload?.length) return null;
+
+  const data = payload[0].payload;
+  const date = new Date(data.datum_primjene);
+
+  if (Number.isNaN(date.getTime())) return null;
+
+  return multiple ? (
+    <MultipleToolTip data={data} currencies={currencies} />
+  ) : (
+    <SingleToolTip data={data} />
+  );
+};
+
+const MultipleToolTip = ({
+  data,
+  currencies,
+}: TooltipDataProps & { currencies: Currency[] }) => {
+  return (
+    <div className="flex max-h-[70vh] max-w-[calc(100vw-50px)] flex-col gap-3 rounded border border-gray-300 bg-white p-3 shadow-md md:max-w-lg">
+      <p className="font-semibold">
+        {convertToDateString(new Date(data.datum_primjene), "DD.MM.YYYY")}
+      </p>
+
+      <div className="flex flex-wrap gap-5">
+        {currencies.map((curr) => {
+          const dailyChange = data[`${curr}_postotak_od_prosle_liste`];
+
+          const historicalChange = data[`${curr}_postotak_od_pocetka`];
+
+          return (
+            <div key={curr} className="mb-3 flex flex-col gap-1 text-sm">
               <strong>{curr}</strong>
-              <p className="min-w-max flex gap-2 text-xs">
-                Dnevno:{" "}
-                <span
-                  className={`${
-                    Number(data[`${curr}_postotak_od_prosle_liste`]) !== 0
-                      ? Number(data[`${curr}_postotak_od_prosle_liste`]) <= 0
-                        ? "text-red-600"
-                        : "text-green-700"
-                      : ""
-                  } flex items-center justify-center gap-2`}
-                >
-                  {Number(data[`${curr}_postotak_od_prosle_liste`]) !== 0 ? (
-                    Number(data[`${curr}_postotak_od_prosle_liste`]) <= 0 ? (
-                      <ImArrowDown />
-                    ) : (
-                      <ImArrowUp />
-                    )
-                  ) : null}
-                  {data[`${curr}_postotak_od_prosle_liste`]}%
-                </span>
+
+              <p className="flex min-w-max gap-2 text-xs">
+                Dnevno: <ChangeIndicator value={dailyChange} />
               </p>
-              <p className="min-w-max flex gap-2 text-xs">
-                od 01.01.2023:{" "}
-                <span
-                  className={`${
-                    Number(data[`${curr}_postotak_od_pocetka`]) !== 0
-                      ? Number(data[`${curr}_postotak_od_pocetka`]) <= 0
-                        ? "text-red-600"
-                        : "text-green-700"
-                      : ""
-                  } flex items-center justify-center gap-2`}
-                >
-                  {Number(data[`${curr}_postotak_od_pocetka`]) !== 0 ? (
-                    Number(data[`${curr}_postotak_od_pocetka`]) <= 0 ? (
-                      <ImArrowDown />
-                    ) : (
-                      <ImArrowUp />
-                    )
-                  ) : null}
-                  {data[`${curr}_postotak_od_pocetka`]}%
-                </span>
+
+              <p className="flex min-w-max gap-2 text-xs">
+                od 01.01.2023:
+                <ChangeIndicator value={historicalChange} />
               </p>
             </div>
-          ))}
-        </div>
+          );
+        })}
       </div>
-    ) : (
-      <div className="bg-white p-3 border border-gray-300 rounded shadow-md flex flex-col gap-3 min-w-max">
-        <p className="font-semibold">{`Datum: ${convertToDateString(specificDate, "DD.MM.YYYY")}`}</p>
-        <div className="text-sm flex flex-col gap-1">
-          <p>Broj tečajnice: {data.broj_tecajnice}</p>
-          <p>Valuta: {data.valuta}</p>
-          <p> Srednji tečaj: {data.srednji_tecaj}</p>
-          <p className="flex gap-3">
-            Dnevni rast/pad {data.valuta}-a:{" "}
-            <span
-              className={`${
-                Number(percentage) !== 0
-                  ? Number(percentage) <= 0
-                    ? "text-red-600"
-                    : "text-green-700"
-                  : ""
-              } flex items-center justify-center gap-2`}
-            >
-              {Number(percentage) !== 0 ? (
-                Number(percentage) <= 0 ? (
-                  <ImArrowDown />
-                ) : (
-                  <ImArrowUp />
-                )
-              ) : null}
-              {percentage}%
-            </span>
-          </p>
-          <p className="flex gap-3">
-            Rast/pad {data.valuta}-a od uvođenja EUR 01.01.2023:{" "}
-            <span
-              className={`${
-                Number(historyPercentage) !== 0
-                  ? Number(historyPercentage) <= 0
-                    ? "text-red-600"
-                    : "text-green-700"
-                  : ""
-              } flex items-center justify-center gap-2`}
-            >
-              {Number(historyPercentage) !== 0 ? (
-                Number(historyPercentage) <= 0 ? (
-                  <ImArrowDown />
-                ) : (
-                  <ImArrowUp />
-                )
-              ) : null}
-              {historyPercentage}%
-            </span>
-          </p>
-        </div>
-      </div>
-    );
-  }
+    </div>
+  );
+};
 
-  return null;
+const SingleToolTip = ({ data }: TooltipDataProps) => {
+  return (
+    <div className="flex p-3 min-w-max flex-col gap-3 rounded border border-gray-300 bg-white shadow-md">
+      <p className="font-semibold">
+        Datum:{" "}
+        {convertToDateString(new Date(data.datum_primjene), "DD.MM.YYYY")}
+      </p>
+
+      <div className="flex flex-col gap-1 text-sm">
+        <p>Broj tečajnice: {data.broj_tecajnice}</p>
+        <p>Valuta: {data.valuta}</p>
+        <p>Srednji tečaj: {data.srednji_tecaj}</p>
+
+        <p className="flex gap-3">
+          Dnevni rast/pad {data.valuta}-a:
+          <ChangeIndicator value={data.postotak_od_prosle_liste} />
+        </p>
+
+        <p className="flex gap-3">
+          Rast/pad {data.valuta}-a od uvođenja EUR 01.01.2023:
+          <ChangeIndicator value={data.postotak_od_pocetka} />
+        </p>
+      </div>
+    </div>
+  );
 };
 
 export default Chart;

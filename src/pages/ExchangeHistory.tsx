@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import * as XLSX from "xlsx";
 
@@ -12,6 +12,8 @@ import Loader from "../components/common/Loader";
 import Table from "../components/common/Table";
 import Chart from "../components/common/Chart";
 import Tabs from "../components/common/Tabs";
+
+import { type ChartData, type Currency } from "../types/chart";
 
 import { compareDate, convertToDateString } from "../utils/dateUtils";
 import {
@@ -33,7 +35,7 @@ const NOTES = [
   "Srednji tečajevi HNB-a nisu namijenjeni za korištenje u pravnim poslovima koji su nastali nakon uvođenja eura kao službene valute u Republici Hrvatskoj, niti bi se oni trebali koristiti, direktno ili indirektno (kao referentna vrijednost) za sklapanje bilo kojih novih pravnih poslova, već je njihovo korištenje ograničeno na pravne poslove u kojima je pozivanje na srednji tečaj HNB-a određeno prije datuma uvođenja eura, osim ako nekim propisom nije drugačije uređeno.",
   "HNB ne može biti odgovoran za korištenje podataka o srednjim tečajevima HNB-a u svrhe za koje to nije namijenjeno.",
   `Za prikaz povijesti tečaja potrebno je odabrati dva datuma koja moraju biti udaljena najmanje <strong>2 dana</strong>.`,
-] as string[];
+] as const;
 
 const CURRENCIES = [
   {
@@ -88,7 +90,7 @@ const CURRENCIES = [
     value: "PLN",
     label: "Poljski zlot",
   },
-];
+] as const;
 
 const HEADERS = [
   {
@@ -136,23 +138,74 @@ const HEADERS = [
     value: "postotak_od_pocetka",
     isNumber: true,
   },
-];
+] as const;
 
-const SORTABLE_KEYS = ["drzava", "valuta", "broj_tecajnice"];
+const SORTABLE_KEYS = ["drzava", "valuta", "broj_tecajnice"] as const;
+
+type ViewMode = "table" | "chart";
+
+const DEFAULT_FROM_DATE = () => {
+  const date = new Date();
+  date.setDate(date.getDate() - 2);
+
+  return date;
+};
+
+const getDateWithOffset = (date: Date, days: number): Date => {
+  const result = new Date(date);
+  result.setDate(result.getDate() + days);
+  return result;
+};
+
+const areSameDate = (first: Date, second: Date) =>
+  compareDate("day", first, second, "same") &&
+  compareDate("month", first, second, "same") &&
+  compareDate("year", first, second, "same");
+
+const areCurrenciesEqual = (first: string[], second: string[]) =>
+  first.length === second.length &&
+  first.every((currency, index) => currency === second[index]);
+
+const createHistoryUrl = (
+  currencies: string[],
+  fromDate: Date,
+  toDate: Date,
+  view: ViewMode,
+) => {
+  const params = new URLSearchParams({
+    valuta: encodeURIComponent(JSON.stringify(currencies)),
+    datum_primjene_od: convertToDateString(fromDate, "YYYY-MM-DD"),
+    datum_primjene_do: convertToDateString(toDate, "YYYY-MM-DD"),
+    prikaz: view,
+  });
+
+  return `/povijest?${params.toString()}`;
+};
+
+const parseCurrencies = (value: string | null) => {
+  if (!value) return [];
+
+  try {
+    const parsed = JSON.parse(decodeURIComponent(value));
+
+    return Array.isArray(parsed)
+      ? parsed.filter((item) => typeof item === "string")
+      : [];
+  } catch {
+    return [];
+  }
+};
+
+const getViewMode = (value: string | null) =>
+  value === "chart" ? "chart" : "table";
 
 const ExchangeHistory: React.FC = React.memo(() => {
-  const [selectedCurrency, setSelectedCurrency] = useState<string[]>([]);
+  const [selectedCurrency, setSelectedCurrency] = useState<Currency[]>([]);
+  const [fromDate, setFromDate] = useState<Date>(DEFAULT_FROM_DATE());
   const [toDate, setToDate] = useState<Date>(new Date());
-  const [fromDate, setFromDate] = useState<Date>(() => {
-    const d = new Date();
-    d.setDate(d.getDate() - 2);
-    return d;
-  });
   const [data, setData] = useState<Record<string, string>[]>([]);
-  const [chartData, setChartData] = useState<Record<string, string | number>[]>(
-    [],
-  );
-  const [display, setDisplay] = useState<string>("table");
+  const [chartData, setChartData] = useState<ChartData[]>([]);
+  const [display, setDisplay] = useState<ViewMode>("table");
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -161,40 +214,48 @@ const ExchangeHistory: React.FC = React.memo(() => {
   const { getCurrencyHistory, loading, error } = useGetListings();
 
   const fetchData = useCallback(
-    async (
-      dateFrom: string,
-      dateTo: string,
-      currency: string[],
-    ): Promise<void> => {
-      let newData = await getCurrencyHistory(dateFrom, dateTo);
+    async (dateFrom: string, dateTo: string, currencies: string[]) => {
+      if (!currencies.length) {
+        setData([]);
+        setChartData([]);
+        return;
+      }
 
-      if (!newData?.length) return;
+      const response = await getCurrencyHistory(dateFrom, dateTo);
 
-      let base = [...baseData];
-      base = getSpecificItemList(base, "valuta", currency);
+      if (!response?.length) {
+        setData([]);
+        setChartData([]);
+        return;
+      }
 
-      newData = getSpecificItemList(newData, "valuta", currency);
+      const filteredData = getSpecificItemList(response, "valuta", currencies);
 
-      const newChartData = convertToChartData(newData, currency, true);
+      if (!filteredData.length) {
+        setData([]);
+        setChartData([]);
+        return;
+      }
 
-      newData = getUniqueList(newData, ["broj_tecajnice", "valuta"]);
-      newData = addPercentageChange(newData);
-      newData = addPercentageFixed(newData, base);
+      const newChartData = convertToChartData(filteredData, currencies, true);
 
-      setChartData(newChartData);
+      let newTableData = getUniqueList(filteredData, [
+        "broj_tecajnice",
+        "valuta",
+      ]);
 
-      newData = sortData(newData, "broj_tecajnice", "asc", true);
+      newTableData = addPercentageChange(newTableData);
+      newTableData = addPercentageFixed(newTableData, baseData);
 
-      setData(newData);
+      newTableData = sortData(newTableData, "broj_tecajnice", "asc", true);
+
+      setChartData(newChartData as ChartData[]);
+      setData(newTableData);
     },
-    [baseData],
+    [getCurrencyHistory, convertToChartData],
   );
 
-  const toMax = useMemo(() => {
-    const d = new Date();
-    d.setDate(d.getDate() - 2);
-    return d;
-  }, []);
+  const toMax = getDateWithOffset(new Date(), -2);
 
   const handleSubmit = useCallback(
     (event: React.FormEvent) => {
@@ -202,67 +263,47 @@ const ExchangeHistory: React.FC = React.memo(() => {
 
       const search = new URLSearchParams(location.search);
 
-      const dateFrom = search.get("datum_primjene_od");
-      const dateTo = search.get("datum_primjene_do");
-      const currency = JSON.parse(
-        decodeURIComponent(search.get("valuta") as string),
-      );
+      const urlDateFrom = search.get("datum_primjene_od");
+      const urlDateTo = search.get("datum_primjene_do");
+      const urlCurrency = parseCurrencies(search.get("valuta"));
 
-      const compareFrom =
-        compareDate("day", new Date(dateFrom as string), fromDate, "same") &&
-        compareDate("month", new Date(dateFrom as string), fromDate, "same") &&
-        compareDate("year", new Date(dateFrom as string), fromDate, "same");
+      const sameFromDate =
+        urlDateFrom !== null && areSameDate(new Date(urlDateFrom), fromDate);
 
-      const compareTo =
-        compareDate("day", new Date(dateTo as string), toDate, "same") &&
-        compareDate("month", new Date(dateTo as string), toDate, "same") &&
-        compareDate("year", new Date(dateTo as string), toDate, "same");
+      const sameToDate =
+        urlDateTo !== null && areSameDate(new Date(urlDateTo), toDate);
 
-      if (
-        (currency.length === selectedCurrency.length ||
-          !selectedCurrency.length) &&
-        (!selectedCurrency.length ||
-          currency.every(
-            (value: string, index: number) => value === selectedCurrency[index],
-          )) &&
-        compareFrom &&
-        compareTo
-      )
-        return;
+      const sameCurrencies = areCurrenciesEqual(urlCurrency, selectedCurrency);
 
-      navigate(
-        `/povijest?valuta=${encodeURIComponent(JSON.stringify(selectedCurrency))}&datum_primjene_od=${convertToDateString(
-          new Date(fromDate),
-          "YYYY-MM-DD",
-        )}&datum_primjene_do=${convertToDateString(new Date(toDate), "YYYY-MM-DD")}&prikaz=table`,
-      );
+      if (sameFromDate && sameToDate && sameCurrencies) return;
 
-      fetchData(
+      navigate(createHistoryUrl(selectedCurrency, fromDate, toDate, "table"));
+
+      void fetchData(
         convertToDateString(new Date(fromDate), "YYYY-MM-DD"),
         convertToDateString(new Date(toDate), "YYYY-MM-DD"),
         selectedCurrency,
       );
+
       setDisplay("table");
     },
-    [selectedCurrency, fromDate, toDate, location.search, navigate, fetchData],
+    [location.search, fromDate, toDate, selectedCurrency, navigate, fetchData],
   );
 
-  const handleChange = useCallback(
-    (value: string) => {
-      let curr = [...selectedCurrency];
-
-      if (curr.includes(value)) curr = curr.filter((val) => val !== value);
-      else curr = [...curr, value];
-
-      setSelectedCurrency(curr);
-    },
-    [selectedCurrency],
-  );
+  const handleCurrencyChange = useCallback((value: string) => {
+    setSelectedCurrency((prevState) =>
+      prevState.includes(value as Currency)
+        ? prevState.filter((curr) => curr !== (value as Currency))
+        : [...prevState, value as Currency],
+    );
+  }, []);
 
   const handleExport = useCallback(() => {
-    const workingData = [...data];
-    const headers = HEADERS.map((header) => header.title);
-    const arrayData = workingData.map((item) => [
+    if (!data.length) return;
+
+    const exportHeaders = HEADERS.map((header) => header.title);
+
+    const rows = data.map((item) => [
       item.drzava,
       item.valuta,
       item.broj_tecajnice,
@@ -273,9 +314,9 @@ const ExchangeHistory: React.FC = React.memo(() => {
       `${item.postotak_od_prosle_liste}%`,
       `${item.postotak_od_pocetka}%`,
     ]);
-    const excelData = [headers, ...arrayData];
+    const excelData = [exportHeaders, ...rows];
 
-    const columnWidths = excelData[0].map((_, columnIndex) => {
+    const columnWidths = exportHeaders.map((_, columnIndex) => {
       const maxLength = Math.max(
         ...excelData.map((row) => {
           const value = row[columnIndex];
@@ -286,77 +327,90 @@ const ExchangeHistory: React.FC = React.memo(() => {
       return { wch: maxLength + 2 };
     });
 
-    const workbook = XLSX.utils.book_new();
-
     const worksheet = XLSX.utils.aoa_to_sheet(excelData);
 
     worksheet["!autofilter"] = {
-      ref: `A1:I${data.length}`,
+      ref: `A1:I${data.length + 1}`,
     };
 
     worksheet["!cols"] = columnWidths;
 
+    const workbook = XLSX.utils.book_new();
+
     XLSX.utils.book_append_sheet(workbook, worksheet, "Izvještaj");
 
     XLSX.writeFile(workbook, "Izvještaj_promjene_vrijednosti_valuta.xlsx");
-  }, [data, HEADERS]);
+  }, [data]);
+
+  const handleDisplayChange = useCallback(
+    (view: string) => {
+      const nextView = getViewMode(view);
+
+      setDisplay(nextView);
+
+      navigate(createHistoryUrl(selectedCurrency, fromDate, toDate, nextView));
+    },
+    [navigate, selectedCurrency, fromDate, toDate],
+  );
+
+  const tableUrl = createHistoryUrl(
+    selectedCurrency,
+    fromDate,
+    toDate,
+    "table",
+  );
+
+  const chartUrl = createHistoryUrl(
+    selectedCurrency,
+    fromDate,
+    toDate,
+    "chart",
+  );
 
   useEffect(() => {
-    const d = new Date(fromDate);
-    d.setDate(d.getDate() + 2);
-    const compareDay = compareDate("day", d, toDate, "greater");
-    const compareMonth = compareDate("month", d, toDate, "greater");
-    const compareYear = compareDate("year", d, toDate, "greater");
+    const minimumToDate = getDateWithOffset(fromDate, 2);
 
-    if (compareDay || compareMonth || compareYear)
-      setFromDate(() => {
-        const d = new Date(toDate);
-        d.setDate(d.getDate() - 2);
-        return d;
-      });
-  }, [toDate]);
+    if (toDate < minimumToDate) {
+      setToDate(minimumToDate);
+    }
+  }, [fromDate, toDate]);
 
   useEffect(() => {
-    const d = new Date(toDate);
-    d.setDate(d.getDate() - 2);
-    const compareDay = compareDate("day", d, fromDate, "less");
-    const compareMonth = compareDate("month", d, fromDate, "less");
-    const compareYear = compareDate("year", d, fromDate, "less");
-
-    if (compareDay || compareMonth || compareYear)
-      setToDate(() => {
-        const d = new Date(fromDate);
-        d.setDate(d.getDate() + 2);
-        return d;
-      });
-  }, [fromDate]);
+    const minimumFromDate = getDateWithOffset(toDate, -2);
+    if (fromDate > minimumFromDate) {
+      setFromDate(minimumFromDate);
+    }
+  }, [fromDate, toDate]);
 
   useEffect(() => {
-    window.scrollTo(0, 0);
     const search = new URLSearchParams(location.search);
 
     const dateFrom = search.get("datum_primjene_od");
     const dateTo = search.get("datum_primjene_do");
-    const currency = JSON.parse(
-      decodeURIComponent(search.get("valuta") as string),
-    );
-    const view = search.get("prikaz");
+    const currencies = parseCurrencies(search.get("valuta"));
+    const view = getViewMode(search.get("prikaz"));
 
-    if (!dateFrom || !dateTo || !currency || !view) return;
-    setFromDate(new Date(dateFrom));
-    setToDate(new Date(dateTo));
-    setSelectedCurrency(currency);
+    if (!dateFrom || !dateTo || !currencies.length) return;
+
+    const parsedFromDate = new Date(dateFrom);
+    const parsedToDate = new Date(dateTo);
+
+    setFromDate(parsedFromDate);
+    setToDate(parsedToDate);
+    setSelectedCurrency(currencies as Currency[]);
     setDisplay(view);
 
-    fetchData(dateFrom, dateTo, currency);
+    void fetchData(dateFrom, dateTo, currencies);
+  }, [location.search, fetchData]);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
   }, []);
 
   return (
     <>
       <Container spacing="medium">
-        <h2 className="text-3xl md:text-3xl text-gray-800">
-          Provjera povijesti tečaja
-        </h2>
+        <h2 className="text-3xl text-gray-800">Provjera povijesti tečaja</h2>
 
         <p className="text-lg text-gray-800 max-w-5xl">
           Istražite kako su se tečajevi mijenjali kroz vrijeme. Naša arhiva
@@ -367,7 +421,7 @@ const ExchangeHistory: React.FC = React.memo(() => {
       <Container hasBackground spacing="medium">
         <strong className="text-xl text-red-600 max-w-5xl">Napomena</strong>
 
-        <List content={NOTES} listType="decimal" />
+        <List content={[...NOTES]} listType="decimal" />
 
         <form
           className="w-full md:max-w-6/12 flex flex-col gap-4 mt-10"
@@ -382,10 +436,10 @@ const ExchangeHistory: React.FC = React.memo(() => {
             </label>
 
             <Select
-              options={CURRENCIES}
+              options={[...CURRENCIES]}
               value={selectedCurrency}
               placeholder="Odaberi valutu..."
-              onChange={handleChange}
+              onChange={handleCurrencyChange}
               id="currencySelect"
               multiple
             />
@@ -426,9 +480,7 @@ const ExchangeHistory: React.FC = React.memo(() => {
         </form>
       </Container>
       <Container spacing="medium">
-        <h2 className="text-3xl md:text-3xl text-gray-800 mb-6">
-          Prikaz povjesti tečaja
-        </h2>
+        <h2 className="text-3xl text-gray-800 mb-6">Prikaz povjesti tečaja</h2>
 
         <p className="text-lg text-gray-800 max-w-5xl">Prikaži podatke u:</p>
 
@@ -439,13 +491,14 @@ const ExchangeHistory: React.FC = React.memo(() => {
         ) : (
           <Tabs
             value={display}
-            onChange={setDisplay}
+            onChange={handleDisplayChange}
             actionButton={
               <Button
                 variant="primary"
                 type="button"
                 onClick={handleExport}
                 className="md:max-w-fit max-w-none justify-center w-full"
+                disabled={!data.length}
               >
                 Preuzmi Excel datoteku
               </Button>
@@ -454,26 +507,20 @@ const ExchangeHistory: React.FC = React.memo(() => {
               {
                 value: "table",
                 label: "U tabličnom obliku",
-                link: `/povijest?valuta=${encodeURIComponent(JSON.stringify(selectedCurrency))}&datum_primjene_od=${convertToDateString(
-                  new Date(fromDate),
-                  "YYYY-MM-DD",
-                )}&datum_primjene_do=${convertToDateString(new Date(toDate), "YYYY-MM-DD")}&prikaz=table`,
+                link: tableUrl,
                 content: (
                   <Table
-                    headers={HEADERS}
+                    headers={[...HEADERS]}
                     data={data}
                     sortable
-                    sortableKeys={SORTABLE_KEYS}
+                    sortableKeys={[...SORTABLE_KEYS]}
                   />
                 ),
               },
               {
                 value: "chart",
                 label: "U grafičkom obliku",
-                link: `/povijest?valuta=${encodeURIComponent(JSON.stringify(selectedCurrency))}&datum_primjene_od=${convertToDateString(
-                  new Date(fromDate),
-                  "YYYY-MM-DD",
-                )}&datum_primjene_do=${convertToDateString(new Date(toDate), "YYYY-MM-DD")}&prikaz=chart`,
+                link: chartUrl,
                 content: (
                   <div className="md:h-120 h-200 w-full">
                     <Chart
