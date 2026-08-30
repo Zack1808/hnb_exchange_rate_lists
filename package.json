@@ -1,7 +1,7 @@
 {
   "name": "hnb-exchange-rate-lists",
   "private": true,
-  "version": "2.0.4",
+  "version": "2.0.5",
   "type": "module",
   "scripts": {
     "start": "vite --port 3000",

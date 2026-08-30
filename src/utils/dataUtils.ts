@@ -37,7 +37,9 @@ export const getUniqueList = <T extends Record<string, string>>(
   const map = new Map<string, T>();
 
   for (const item of data) {
-    const key = groupBy.map((k) => item[k]).join("|");
+    const year = new Date(item.datum_primjene).getFullYear();
+
+    const key = [year, ...groupBy.map((k) => item[k])].join("|");
 
     if (
       !map.has(key) ||
