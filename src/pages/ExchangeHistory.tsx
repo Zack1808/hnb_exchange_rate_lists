@@ -248,6 +248,7 @@ const ExchangeHistory: React.FC = React.memo(() => {
       newTableData = addPercentageFixed(newTableData, baseData);
 
       newTableData = sortData(newTableData, "broj_tecajnice", "asc", true);
+      newTableData = sortData(newTableData, "datum_primjene", "asc", false);
 
       setChartData(newChartData as ChartData[]);
       setData(newTableData);
@@ -348,7 +349,9 @@ const ExchangeHistory: React.FC = React.memo(() => {
 
       setDisplay(nextView);
 
-      navigate(createHistoryUrl(selectedCurrency, fromDate, toDate, nextView));
+      navigate(createHistoryUrl(selectedCurrency, fromDate, toDate, nextView), {
+        replace: true,
+      });
     },
     [navigate, selectedCurrency, fromDate, toDate],
   );
@@ -401,7 +404,7 @@ const ExchangeHistory: React.FC = React.memo(() => {
     setDisplay(view);
 
     void fetchData(dateFrom, dateTo, currencies);
-  }, [location.search, fetchData]);
+  }, [fetchData]);
 
   useEffect(() => {
     window.scrollTo(0, 0);
