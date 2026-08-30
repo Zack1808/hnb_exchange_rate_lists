@@ -3,7 +3,7 @@ import React from "react";
 const Hero: React.FC<React.HTMLAttributes<HTMLElement>> = React.memo(
   ({ children, className = "", ...rest }) => {
     const sectionClasses =
-      `w-full h-dvh flex justify-center items-center ${className}`.trim();
+      `w-full min-h-svh flex justify-center items-center ${className}`.trim();
 
     return (
       <section className={sectionClasses} {...rest}>

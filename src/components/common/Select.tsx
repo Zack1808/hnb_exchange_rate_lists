@@ -271,7 +271,7 @@ const Select: React.FC<SelectProps> = ({
       {isOpen && (
         <div
           className={`fixed inset-x-0 top-0 bottom-0 z-50 flex items-center justify-center bg-black/40 
-            md:absolute md:inset-x-auto md:left-0 md:right-0 md:bg-transparent ${hasSpaceBelow ? "md:top-full md:bottom-auto md:mt-1" : "md:top-auto md:bottom-full md:mb-1"}`}
+            md:absolute md:inset-x-auto md:px-0 px-3 md:left-0 md:right-0 md:bg-transparent ${hasSpaceBelow ? "md:top-full md:bottom-auto md:mt-1" : "md:top-auto md:bottom-full md:mb-1"}`}
           onClick={closeSelect}
         >
           <div

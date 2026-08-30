@@ -117,12 +117,12 @@ const KEYS = ["valuta", "drzava"] as const;
 type ExchangeRate = Record<string, string>;
 
 const convertCurrency = (
-  amount: number,
+  amount: string,
   fromCurrency: string,
   toCurrency: string,
   currencies: ExchangeRate[],
 ) => {
-  if (fromCurrency === toCurrency) return amount;
+  if (fromCurrency === toCurrency) return Number(amount);
 
   const fromRate =
     fromCurrency === "EUR"
@@ -144,13 +144,13 @@ const convertCurrency = (
 
   if (!fromRate || !toRate) return 0;
 
-  return (amount / fromRate) * toRate;
+  return (Number(amount) / fromRate) * toRate;
 };
 
 const ExchangeConversion: React.FC = React.memo(() => {
   const [fromCurr, setFromCurr] = useState<string>("");
   const [toCurr, setToCurr] = useState<string>("");
-  const [fromValue, setFromValue] = useState<number>(1);
+  const [fromValue, setFromValue] = useState<string>("");
   const [data, setData] = useState<ExchangeRate[]>([]);
 
   const navigate = useNavigate();
@@ -170,9 +170,9 @@ const ExchangeConversion: React.FC = React.memo(() => {
 
   const handleValueChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
-      const value = Number(event.target.value);
+      const value = event.target.value;
 
-      setFromValue(Number.isFinite(value) ? value : 0);
+      if (value === "" || Number(value) > 0) setFromValue(value);
     },
     [],
   );
@@ -203,7 +203,7 @@ const ExchangeConversion: React.FC = React.memo(() => {
     if (amount) {
       const parsedAmount = Number(amount);
 
-      if (Number.isFinite(parsedAmount)) setFromValue(parsedAmount);
+      if (Number.isFinite(parsedAmount)) setFromValue(amount);
     }
   }, [location.search]);
 
@@ -273,8 +273,8 @@ const ExchangeConversion: React.FC = React.memo(() => {
               />
               <Input
                 id="valueFrom"
-                type="number"
-                min={1}
+                type="text"
+                inputMode="numeric"
                 value={fromValue}
                 onChange={handleValueChange}
               />
